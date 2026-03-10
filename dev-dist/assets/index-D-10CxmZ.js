@@ -31971,59 +31971,61 @@ function AuthPage() {
 		setLoading(false);
 	};
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-		"data-uid": "src/pages/Auth.tsx:38:5",
+		"data-uid": "src/pages/Auth.tsx:37:5",
 		"data-prohibitions": "[editContent]",
 		className: "min-h-screen flex items-center justify-center bg-background p-4 relative overflow-hidden",
 		children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-			"data-uid": "src/pages/Auth.tsx:39:7",
+			"data-uid": "src/pages/Auth.tsx:38:7",
 			"data-prohibitions": "[editContent]",
 			className: "absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-blue-900/20 via-background to-background z-0"
 		}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Card, {
-			"data-uid": "src/pages/Auth.tsx:41:7",
+			"data-uid": "src/pages/Auth.tsx:40:7",
 			"data-prohibitions": "[editContent]",
 			className: "w-full max-w-md z-10 border-white/10 shadow-2xl backdrop-blur-glass bg-card/90 rounded-2xl",
 			children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardHeader, {
-				"data-uid": "src/pages/Auth.tsx:42:9",
+				"data-uid": "src/pages/Auth.tsx:41:9",
 				"data-prohibitions": "[]",
 				className: "space-y-3 pb-6 text-center",
 				children: [
 					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-						"data-uid": "src/pages/Auth.tsx:43:11",
+						"data-uid": "src/pages/Auth.tsx:42:11",
 						"data-prohibitions": "[]",
-						className: "w-16 h-16 bg-blue-500/10 rounded-2xl flex items-center justify-center mx-auto mb-2 border border-blue-500/20",
-						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ShieldCheck, {
-							"data-uid": "src/pages/Auth.tsx:44:13",
+						className: "flex items-center justify-center mx-auto mb-4",
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("img", {
+							"data-uid": "src/pages/Auth.tsx:43:13",
 							"data-prohibitions": "[editContent]",
-							className: "w-8 h-8 text-blue-500"
+							src: "https://prndiagnosticos.com.br/wp-content/themes/prnd/assets/images/logo.png",
+							alt: "PRN Diagnósticos Logo",
+							className: "h-16 w-auto object-contain invert hue-rotate-180 brightness-150 mix-blend-screen drop-shadow-sm"
 						})
 					}),
 					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(CardTitle, {
-						"data-uid": "src/pages/Auth.tsx:46:11",
+						"data-uid": "src/pages/Auth.tsx:49:11",
 						"data-prohibitions": "[]",
 						className: "text-2xl font-heading tracking-tight",
 						children: "PRN Vigilante"
 					}),
 					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(CardDescription, {
-						"data-uid": "src/pages/Auth.tsx:47:11",
+						"data-uid": "src/pages/Auth.tsx:50:11",
 						"data-prohibitions": "[]",
 						children: "Painel de Supervisão e Controle de Mensagens"
 					})
 				]
 			}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CardContent, {
-				"data-uid": "src/pages/Auth.tsx:49:9",
+				"data-uid": "src/pages/Auth.tsx:52:9",
 				"data-prohibitions": "[editContent]",
 				children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("form", {
-					"data-uid": "src/pages/Auth.tsx:50:11",
+					"data-uid": "src/pages/Auth.tsx:53:11",
 					"data-prohibitions": "[editContent]",
 					onSubmit: handleLogin,
 					className: "space-y-4",
 					children: [
 						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-							"data-uid": "src/pages/Auth.tsx:51:13",
+							"data-uid": "src/pages/Auth.tsx:54:13",
 							"data-prohibitions": "[]",
 							className: "space-y-2",
 							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
-								"data-uid": "src/pages/Auth.tsx:52:15",
+								"data-uid": "src/pages/Auth.tsx:55:15",
 								"data-prohibitions": "[editContent]",
 								type: "email",
 								placeholder: "E-mail corporativo",
@@ -32034,11 +32036,11 @@ function AuthPage() {
 							})
 						}),
 						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-							"data-uid": "src/pages/Auth.tsx:61:13",
+							"data-uid": "src/pages/Auth.tsx:64:13",
 							"data-prohibitions": "[]",
 							className: "space-y-2",
 							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
-								"data-uid": "src/pages/Auth.tsx:62:15",
+								"data-uid": "src/pages/Auth.tsx:65:15",
 								"data-prohibitions": "[editContent]",
 								type: "password",
 								placeholder: "Senha",
@@ -32049,7 +32051,7 @@ function AuthPage() {
 							})
 						}),
 						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
-							"data-uid": "src/pages/Auth.tsx:71:13",
+							"data-uid": "src/pages/Auth.tsx:74:13",
 							"data-prohibitions": "[editContent]",
 							type: "submit",
 							className: "w-full h-11 text-base font-medium rounded-xl transition-transform active:scale-95",
@@ -32057,7 +32059,7 @@ function AuthPage() {
 							children: loading ? "Verificando credenciais..." : "Acessar Sistema"
 						}),
 						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
-							"data-uid": "src/pages/Auth.tsx:78:13",
+							"data-uid": "src/pages/Auth.tsx:81:13",
 							"data-prohibitions": "[]",
 							className: "text-xs text-center text-muted-foreground mt-4",
 							children: "Uso exclusivo para operadores PRN Diagnósticos."
@@ -37453,4 +37455,4 @@ var App_default = App;
 	"data-prohibitions": "[editContent]"
 }));
 
-//# sourceMappingURL=index-xgVcwsDz.js.map
+//# sourceMappingURL=index-D-10CxmZ.js.map

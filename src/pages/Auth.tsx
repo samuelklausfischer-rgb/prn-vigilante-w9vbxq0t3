@@ -3,7 +3,6 @@ import { useAuth } from '@/hooks/use-auth'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { ShieldCheck } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
 
 export default function AuthPage() {
@@ -40,8 +39,12 @@ export default function AuthPage() {
 
       <Card className="w-full max-w-md z-10 border-white/10 shadow-2xl backdrop-blur-glass bg-card/90 rounded-2xl">
         <CardHeader className="space-y-3 pb-6 text-center">
-          <div className="w-16 h-16 bg-blue-500/10 rounded-2xl flex items-center justify-center mx-auto mb-2 border border-blue-500/20">
-            <ShieldCheck className="w-8 h-8 text-blue-500" />
+          <div className="flex items-center justify-center mx-auto mb-4">
+            <img
+              src="https://prndiagnosticos.com.br/wp-content/themes/prnd/assets/images/logo.png"
+              alt="PRN Diagnósticos Logo"
+              className="h-16 w-auto object-contain invert hue-rotate-180 brightness-150 mix-blend-screen drop-shadow-sm"
+            />
           </div>
           <CardTitle className="text-2xl font-heading tracking-tight">PRN Vigilante</CardTitle>
           <CardDescription>Painel de Supervisão e Controle de Mensagens</CardDescription>
