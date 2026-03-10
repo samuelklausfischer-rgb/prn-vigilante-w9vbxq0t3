@@ -34095,6 +34095,30 @@ const ptBR = {
 		firstWeekContainsDate: 1
 	}
 };
+function IconBrandWhatsapp({ className, ...props }) {
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("svg", {
+		"data-uid": "src/components/QueueList.tsx:23:5",
+		"data-prohibitions": "[editContent]",
+		xmlns: "http://www.w3.org/2000/svg",
+		viewBox: "0 0 24 24",
+		fill: "none",
+		stroke: "currentColor",
+		strokeWidth: "2",
+		strokeLinecap: "round",
+		strokeLinejoin: "round",
+		className,
+		...props,
+		children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("path", {
+			"data-uid": "src/components/QueueList.tsx:34:7",
+			"data-prohibitions": "[editContent]",
+			d: "M3 21l1.65 -3.8a9 9 0 1 1 3.4 2.9l-5.05 .9"
+		}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("path", {
+			"data-uid": "src/components/QueueList.tsx:35:7",
+			"data-prohibitions": "[editContent]",
+			d: "M9 10a.5 .5 0 0 0 1 0v-1a.5 .5 0 0 0 -1 0v1a5 5 0 0 0 5 5h1a.5 .5 0 0 0 0 -1h-1a.5 .5 0 0 0 0 1"
+		})]
+	});
+}
 function QueueList({ items, onToggleApprove, onEdit, onCancel }) {
 	const [localItems, setLocalItems] = (0, import_react.useState)([]);
 	const dragItem = (0, import_react.useRef)(null);
@@ -34186,23 +34210,23 @@ function QueueList({ items, onToggleApprove, onEdit, onCancel }) {
 	};
 	const firstQueuedIndex = localItems.findIndex((i) => i.status === "queued" && i.is_approved);
 	if (localItems.length === 0) return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-		"data-uid": "src/components/QueueList.tsx:125:7",
+		"data-uid": "src/components/QueueList.tsx:144:7",
 		"data-prohibitions": "[]",
 		className: "flex flex-col items-center justify-center py-20 text-center text-muted-foreground border border-dashed border-white/10 rounded-2xl",
 		children: [
 			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(MessageSquare, {
-				"data-uid": "src/components/QueueList.tsx:126:9",
+				"data-uid": "src/components/QueueList.tsx:145:9",
 				"data-prohibitions": "[editContent]",
 				className: "w-12 h-12 mb-4 opacity-20"
 			}),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
-				"data-uid": "src/components/QueueList.tsx:127:9",
+				"data-uid": "src/components/QueueList.tsx:146:9",
 				"data-prohibitions": "[]",
 				className: "font-heading text-lg",
 				children: "Nenhuma mensagem nesta fila."
 			}),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
-				"data-uid": "src/components/QueueList.tsx:128:9",
+				"data-uid": "src/components/QueueList.tsx:147:9",
 				"data-prohibitions": "[]",
 				className: "text-sm",
 				children: "Aproveite, a operação está em dia."
@@ -34210,7 +34234,7 @@ function QueueList({ items, onToggleApprove, onEdit, onCancel }) {
 		]
 	});
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-		"data-uid": "src/components/QueueList.tsx:134:5",
+		"data-uid": "src/components/QueueList.tsx:153:5",
 		"data-prohibitions": "[editContent]",
 		className: "space-y-3",
 		children: localItems.map((item, index$1) => {
@@ -34219,7 +34243,7 @@ function QueueList({ items, onToggleApprove, onEdit, onCancel }) {
 			const Icon$1 = config.icon;
 			const isEditable = item.status === "queued";
 			return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-				"data-uid": "src/components/QueueList.tsx:142:11",
+				"data-uid": "src/components/QueueList.tsx:161:11",
 				"data-prohibitions": "[editContent]",
 				id: `queue-item-${item.id}`,
 				draggable: isEditable,
@@ -34231,45 +34255,45 @@ function QueueList({ items, onToggleApprove, onEdit, onCancel }) {
 				style: { animationDelay: !isDragging ? `${index$1 * 50}ms` : "0ms" },
 				children: [
 					isEditable && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-						"data-uid": "src/components/QueueList.tsx:162:15",
+						"data-uid": "src/components/QueueList.tsx:181:15",
 						"data-prohibitions": "[]",
 						className: "flex items-center justify-center cursor-grab active:cursor-grabbing text-muted-foreground/30 hover:text-foreground/80 transition-colors shrink-0 py-2 -ml-2 pl-2 md:pl-0 md:mr-2",
 						title: "Arraste para reordenar",
 						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(GripVertical, {
-							"data-uid": "src/components/QueueList.tsx:166:17",
+							"data-uid": "src/components/QueueList.tsx:185:17",
 							"data-prohibitions": "[editContent]",
 							className: "w-5 h-5"
 						})
 					}),
 					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-						"data-uid": "src/components/QueueList.tsx:170:13",
+						"data-uid": "src/components/QueueList.tsx:189:13",
 						"data-prohibitions": "[editContent]",
 						className: "flex-1 min-w-0 flex items-start gap-4 w-full",
 						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-							"data-uid": "src/components/QueueList.tsx:171:15",
+							"data-uid": "src/components/QueueList.tsx:190:15",
 							"data-prohibitions": "[editContent]",
 							className: cn("p-2.5 rounded-xl shrink-0", config.bg, config.color),
 							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Icon$1, {
-								"data-uid": "src/components/QueueList.tsx:172:17",
+								"data-uid": "src/components/QueueList.tsx:191:17",
 								"data-prohibitions": "[editContent]",
 								className: "w-5 h-5"
 							})
 						}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-							"data-uid": "src/components/QueueList.tsx:174:15",
+							"data-uid": "src/components/QueueList.tsx:193:15",
 							"data-prohibitions": "[editContent]",
 							className: "flex-1 min-w-0 space-y-1",
 							children: [
 								/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-									"data-uid": "src/components/QueueList.tsx:175:17",
+									"data-uid": "src/components/QueueList.tsx:194:17",
 									"data-prohibitions": "[editContent]",
 									className: "flex items-center gap-2",
 									children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h4", {
-										"data-uid": "src/components/QueueList.tsx:176:19",
+										"data-uid": "src/components/QueueList.tsx:195:19",
 										"data-prohibitions": "[editContent]",
 										className: "font-medium text-foreground truncate",
 										children: item.patient_name
 									}), isNext && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Badge, {
-										"data-uid": "src/components/QueueList.tsx:178:21",
+										"data-uid": "src/components/QueueList.tsx:197:21",
 										"data-prohibitions": "[]",
 										variant: "outline",
 										className: "bg-amber-500/10 text-amber-500 border-amber-500/20 text-[10px] px-1.5 animate-pulse-soft",
@@ -34277,16 +34301,16 @@ function QueueList({ items, onToggleApprove, onEdit, onCancel }) {
 									})]
 								}),
 								/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-									"data-uid": "src/components/QueueList.tsx:186:17",
+									"data-uid": "src/components/QueueList.tsx:205:17",
 									"data-prohibitions": "[editContent]",
 									className: "flex items-center gap-3 text-xs text-muted-foreground",
 									children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
-										"data-uid": "src/components/QueueList.tsx:187:19",
+										"data-uid": "src/components/QueueList.tsx:206:19",
 										"data-prohibitions": "[editContent]",
 										className: "flex items-center gap-1",
 										children: [
 											/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Phone, {
-												"data-uid": "src/components/QueueList.tsx:188:21",
+												"data-uid": "src/components/QueueList.tsx:207:21",
 												"data-prohibitions": "[editContent]",
 												className: "w-3 h-3"
 											}),
@@ -34294,12 +34318,12 @@ function QueueList({ items, onToggleApprove, onEdit, onCancel }) {
 											item.phone_number
 										]
 									}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
-										"data-uid": "src/components/QueueList.tsx:190:19",
+										"data-uid": "src/components/QueueList.tsx:209:19",
 										"data-prohibitions": "[editContent]",
 										className: "flex items-center gap-1",
 										children: [
 											/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Clock, {
-												"data-uid": "src/components/QueueList.tsx:191:21",
+												"data-uid": "src/components/QueueList.tsx:210:21",
 												"data-prohibitions": "[editContent]",
 												className: "w-3 h-3"
 											}),
@@ -34309,7 +34333,7 @@ function QueueList({ items, onToggleApprove, onEdit, onCancel }) {
 									})]
 								}),
 								/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("p", {
-									"data-uid": "src/components/QueueList.tsx:195:17",
+									"data-uid": "src/components/QueueList.tsx:214:17",
 									"data-prohibitions": "[editContent]",
 									className: "text-xs text-muted-foreground line-clamp-1 italic mt-1.5 opacity-80 border-l-2 border-white/10 pl-2",
 									children: [
@@ -34319,7 +34343,7 @@ function QueueList({ items, onToggleApprove, onEdit, onCancel }) {
 									]
 								}),
 								item.notes && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("p", {
-									"data-uid": "src/components/QueueList.tsx:199:19",
+									"data-uid": "src/components/QueueList.tsx:218:19",
 									"data-prohibitions": "[editContent]",
 									className: "text-xs text-blue-400/80 line-clamp-1 mt-1",
 									children: ["Nota: ", item.notes]
@@ -34328,62 +34352,62 @@ function QueueList({ items, onToggleApprove, onEdit, onCancel }) {
 						})]
 					}),
 					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-						"data-uid": "src/components/QueueList.tsx:205:13",
+						"data-uid": "src/components/QueueList.tsx:224:13",
 						"data-prohibitions": "[editContent]",
 						className: "flex items-center gap-3 w-full md:w-auto mt-4 md:mt-0 pt-4 md:pt-0 border-t md:border-t-0 border-white/5 shrink-0 justify-between md:justify-end",
 						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-							"data-uid": "src/components/QueueList.tsx:206:15",
+							"data-uid": "src/components/QueueList.tsx:225:15",
 							"data-prohibitions": "[editContent]",
 							className: "flex items-center gap-2 mr-auto md:mr-4",
 							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Switch, {
-								"data-uid": "src/components/QueueList.tsx:207:17",
+								"data-uid": "src/components/QueueList.tsx:226:17",
 								"data-prohibitions": "[editContent]",
 								checked: item.is_approved,
 								onCheckedChange: () => onToggleApprove(item.id, item.is_approved),
 								disabled: !isEditable,
 								className: cn("data-[state=checked]:bg-emerald-500")
 							}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-								"data-uid": "src/components/QueueList.tsx:213:17",
+								"data-uid": "src/components/QueueList.tsx:232:17",
 								"data-prohibitions": "[editContent]",
 								className: "text-xs font-medium w-16",
 								children: item.is_approved ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-									"data-uid": "src/components/QueueList.tsx:215:21",
+									"data-uid": "src/components/QueueList.tsx:234:21",
 									"data-prohibitions": "[]",
 									className: "text-emerald-500",
 									children: "Liberado"
 								}) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-									"data-uid": "src/components/QueueList.tsx:217:21",
+									"data-uid": "src/components/QueueList.tsx:236:21",
 									"data-prohibitions": "[]",
 									className: "text-amber-500",
 									children: "Retido"
 								})
 							})]
 						}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-							"data-uid": "src/components/QueueList.tsx:222:15",
+							"data-uid": "src/components/QueueList.tsx:241:15",
 							"data-prohibitions": "[editContent]",
-							className: "flex gap-1",
+							className: "flex gap-1 bg-black/20 p-1 rounded-xl border border-white/5 shadow-inner",
 							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
-								"data-uid": "src/components/QueueList.tsx:223:17",
+								"data-uid": "src/components/QueueList.tsx:242:17",
 								"data-prohibitions": "[]",
 								variant: "ghost",
 								size: "icon",
-								className: "h-8 w-8 text-blue-400 hover:text-blue-300 hover:bg-blue-500/10",
+								className: "h-8 w-8 text-emerald-400 hover:text-emerald-300 hover:bg-emerald-500/10",
 								asChild: true,
 								children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("a", {
-									"data-uid": "src/components/QueueList.tsx:229:19",
+									"data-uid": "src/components/QueueList.tsx:248:19",
 									"data-prohibitions": "[]",
 									href: getWhatsAppLink(item.phone_number),
 									target: "_blank",
 									rel: "noreferrer",
 									title: "Abrir WhatsApp",
-									children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(MessageSquare, {
-										"data-uid": "src/components/QueueList.tsx:235:21",
+									children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(IconBrandWhatsapp, {
+										"data-uid": "src/components/QueueList.tsx:254:21",
 										"data-prohibitions": "[editContent]",
 										className: "w-4 h-4"
 									})
 								})
 							}), isEditable && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
-								"data-uid": "src/components/QueueList.tsx:241:21",
+								"data-uid": "src/components/QueueList.tsx:260:21",
 								"data-prohibitions": "[]",
 								variant: "ghost",
 								size: "icon",
@@ -34391,12 +34415,12 @@ function QueueList({ items, onToggleApprove, onEdit, onCancel }) {
 								onClick: () => onEdit(item),
 								title: "Editar",
 								children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Pen, {
-									"data-uid": "src/components/QueueList.tsx:248:23",
+									"data-uid": "src/components/QueueList.tsx:267:23",
 									"data-prohibitions": "[editContent]",
 									className: "w-4 h-4"
 								})
 							}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
-								"data-uid": "src/components/QueueList.tsx:250:21",
+								"data-uid": "src/components/QueueList.tsx:269:21",
 								"data-prohibitions": "[]",
 								variant: "ghost",
 								size: "icon",
@@ -34404,7 +34428,7 @@ function QueueList({ items, onToggleApprove, onEdit, onCancel }) {
 								onClick: () => onCancel(item.id),
 								title: "Cancelar Envio",
 								children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Ban, {
-									"data-uid": "src/components/QueueList.tsx:257:23",
+									"data-uid": "src/components/QueueList.tsx:276:23",
 									"data-prohibitions": "[editContent]",
 									className: "w-4 h-4"
 								})
@@ -37041,67 +37065,83 @@ function AppSidebar() {
 		icon: Archive$1
 	}];
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Sidebar, {
-		"data-uid": "src/components/Layout.tsx:41:5",
+		"data-uid": "src/components/Layout.tsx:40:5",
 		"data-prohibitions": "[editContent]",
 		className: "border-r border-white/5 bg-card/90 backdrop-blur-xl",
 		children: [
 			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(SidebarHeader, {
-				"data-uid": "src/components/Layout.tsx:42:7",
+				"data-uid": "src/components/Layout.tsx:41:7",
 				"data-prohibitions": "[]",
-				className: "p-4 flex flex-row items-center gap-3",
+				className: "p-4 flex flex-col gap-5 border-b border-white/5 pb-6",
 				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-					"data-uid": "src/components/Layout.tsx:43:9",
+					"data-uid": "src/components/Layout.tsx:42:9",
 					"data-prohibitions": "[]",
-					className: "bg-blue-500 text-white p-1.5 rounded-lg",
-					children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ShieldCheck, {
-						"data-uid": "src/components/Layout.tsx:44:11",
+					className: "bg-white p-3 rounded-xl flex items-center justify-center shadow-md border border-white/10 shrink-0",
+					children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("img", {
+						"data-uid": "src/components/Layout.tsx:43:11",
 						"data-prohibitions": "[editContent]",
-						className: "w-5 h-5"
+						src: "https://prndiagnosticos.com.br/wp-content/themes/prnd/assets/images/logo.png",
+						alt: "PRN Diagnósticos",
+						className: "h-8 max-w-[160px] object-contain drop-shadow-sm"
 					})
 				}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-					"data-uid": "src/components/Layout.tsx:46:9",
+					"data-uid": "src/components/Layout.tsx:49:9",
 					"data-prohibitions": "[]",
-					className: "flex flex-col",
-					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-						"data-uid": "src/components/Layout.tsx:47:11",
-						"data-prohibitions": "[]",
-						className: "font-heading font-bold text-lg leading-tight tracking-tight text-white",
-						children: "PRN Vigilante"
-					}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+					className: "flex flex-row items-center gap-3 px-1",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
 						"data-uid": "src/components/Layout.tsx:50:11",
 						"data-prohibitions": "[]",
-						className: "text-[10px] text-blue-400 uppercase tracking-wider font-semibold",
-						children: "Gatekeeper"
+						className: "bg-blue-500/20 border border-blue-500/30 text-blue-400 p-1.5 rounded-lg shrink-0",
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ShieldCheck, {
+							"data-uid": "src/components/Layout.tsx:51:13",
+							"data-prohibitions": "[editContent]",
+							className: "w-5 h-5"
+						})
+					}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+						"data-uid": "src/components/Layout.tsx:53:11",
+						"data-prohibitions": "[]",
+						className: "flex flex-col",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+							"data-uid": "src/components/Layout.tsx:54:13",
+							"data-prohibitions": "[]",
+							className: "font-heading font-bold text-lg leading-tight tracking-tight text-white",
+							children: "PRN Vigilante"
+						}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+							"data-uid": "src/components/Layout.tsx:57:13",
+							"data-prohibitions": "[]",
+							className: "text-[10px] text-blue-400 uppercase tracking-wider font-semibold",
+							children: "Torre de Controle"
+						})]
 					})]
 				})]
 			}),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SidebarContent, {
-				"data-uid": "src/components/Layout.tsx:55:7",
+				"data-uid": "src/components/Layout.tsx:63:7",
 				"data-prohibitions": "[editContent]",
 				className: "px-2 py-4",
 				children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SidebarMenu, {
-					"data-uid": "src/components/Layout.tsx:56:9",
+					"data-uid": "src/components/Layout.tsx:64:9",
 					"data-prohibitions": "[editContent]",
 					children: menuItems.map((item) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SidebarMenuItem, {
-						"data-uid": "src/components/Layout.tsx:58:13",
+						"data-uid": "src/components/Layout.tsx:66:13",
 						"data-prohibitions": "[editContent]",
 						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SidebarMenuButton, {
-							"data-uid": "src/components/Layout.tsx:59:15",
+							"data-uid": "src/components/Layout.tsx:67:15",
 							"data-prohibitions": "[editContent]",
 							asChild: true,
 							isActive: location.pathname === item.url,
 							className: cn("rounded-xl h-10 transition-all", location.pathname === item.url ? "bg-blue-500/10 text-blue-400" : "hover:bg-white/5"),
 							children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Link, {
-								"data-uid": "src/components/Layout.tsx:69:17",
+								"data-uid": "src/components/Layout.tsx:77:17",
 								"data-prohibitions": "[editContent]",
 								to: item.url,
 								className: "flex items-center gap-3",
 								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(item.icon, {
-									"data-uid": "src/components/Layout.tsx:70:19",
+									"data-uid": "src/components/Layout.tsx:78:19",
 									"data-prohibitions": "[editContent]",
 									className: "w-4 h-4"
 								}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-									"data-uid": "src/components/Layout.tsx:71:19",
+									"data-uid": "src/components/Layout.tsx:79:19",
 									"data-prohibitions": "[editContent]",
 									className: "font-medium",
 									children: item.title
@@ -37112,17 +37152,17 @@ function AppSidebar() {
 				})
 			}),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-				"data-uid": "src/components/Layout.tsx:78:7",
+				"data-uid": "src/components/Layout.tsx:86:7",
 				"data-prohibitions": "[]",
 				className: "mt-auto p-4 border-t border-white/5",
 				children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Button, {
-					"data-uid": "src/components/Layout.tsx:79:9",
+					"data-uid": "src/components/Layout.tsx:87:9",
 					"data-prohibitions": "[]",
 					variant: "ghost",
 					className: "w-full justify-start gap-3 text-muted-foreground hover:text-red-400 hover:bg-red-500/10 rounded-xl",
 					onClick: signOut,
 					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(LogOut, {
-						"data-uid": "src/components/Layout.tsx:84:11",
+						"data-uid": "src/components/Layout.tsx:92:11",
 						"data-prohibitions": "[editContent]",
 						className: "w-4 h-4"
 					}), " Sair do Sistema"]
@@ -37145,104 +37185,104 @@ function TopBar() {
 	};
 	const pageTitle = location.pathname === "/" ? "Monitoramento em Tempo Real" : "Auditoria de Arquivo";
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("header", {
-		"data-uid": "src/components/Layout.tsx:114:5",
+		"data-uid": "src/components/Layout.tsx:122:5",
 		"data-prohibitions": "[editContent]",
 		className: "h-16 flex items-center justify-between px-4 lg:px-8 border-b border-white/5 bg-background/50 backdrop-blur-lg sticky top-0 z-40",
 		children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-			"data-uid": "src/components/Layout.tsx:115:7",
+			"data-uid": "src/components/Layout.tsx:123:7",
 			"data-prohibitions": "[editContent]",
 			className: "flex items-center gap-4",
 			children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SidebarTrigger, {
-				"data-uid": "src/components/Layout.tsx:116:9",
+				"data-uid": "src/components/Layout.tsx:124:9",
 				"data-prohibitions": "[editContent]",
 				className: "text-muted-foreground hover:text-white"
 			}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("h1", {
-				"data-uid": "src/components/Layout.tsx:117:9",
+				"data-uid": "src/components/Layout.tsx:125:9",
 				"data-prohibitions": "[editContent]",
 				className: "font-heading font-semibold text-lg hidden sm:block",
 				children: pageTitle
 			})]
 		}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-			"data-uid": "src/components/Layout.tsx:120:7",
+			"data-uid": "src/components/Layout.tsx:128:7",
 			"data-prohibitions": "[editContent]",
 			className: "flex items-center gap-4",
 			children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-				"data-uid": "src/components/Layout.tsx:121:9",
+				"data-uid": "src/components/Layout.tsx:129:9",
 				"data-prohibitions": "[editContent]",
 				className: "flex items-center gap-2 px-3 py-1.5 rounded-full bg-card/50 border border-white/5 text-xs font-medium",
 				children: [
 					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
-						"data-uid": "src/components/Layout.tsx:122:11",
+						"data-uid": "src/components/Layout.tsx:130:11",
 						"data-prohibitions": "[editContent]",
 						className: "relative flex h-2 w-2",
 						children: [!isPaused && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-							"data-uid": "src/components/Layout.tsx:124:15",
+							"data-uid": "src/components/Layout.tsx:132:15",
 							"data-prohibitions": "[]",
 							className: "animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"
 						}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-							"data-uid": "src/components/Layout.tsx:126:13",
+							"data-uid": "src/components/Layout.tsx:134:13",
 							"data-prohibitions": "[editContent]",
 							className: cn("relative inline-flex rounded-full h-2 w-2", isPaused ? "bg-red-500" : "bg-emerald-500")
 						})]
 					}),
 					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-						"data-uid": "src/components/Layout.tsx:133:11",
+						"data-uid": "src/components/Layout.tsx:141:11",
 						"data-prohibitions": "[]",
 						className: "text-muted-foreground hidden sm:inline",
 						children: "Motor:"
 					}),
 					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-						"data-uid": "src/components/Layout.tsx:134:11",
+						"data-uid": "src/components/Layout.tsx:142:11",
 						"data-prohibitions": "[editContent]",
 						className: isPaused ? "text-red-400" : "text-emerald-400",
 						children: isPaused ? "Parado" : "Ativo"
 					})
 				]
 			}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(AlertDialog, {
-				"data-uid": "src/components/Layout.tsx:139:9",
+				"data-uid": "src/components/Layout.tsx:147:9",
 				"data-prohibitions": "[editContent]",
 				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(AlertDialogTrigger, {
-					"data-uid": "src/components/Layout.tsx:140:11",
+					"data-uid": "src/components/Layout.tsx:148:11",
 					"data-prohibitions": "[editContent]",
 					asChild: true,
 					children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Button, {
-						"data-uid": "src/components/Layout.tsx:141:13",
+						"data-uid": "src/components/Layout.tsx:149:13",
 						"data-prohibitions": "[editContent]",
 						variant: isPaused ? "default" : "destructive",
 						size: "sm",
 						className: cn("h-9 rounded-xl font-medium shadow-lg transition-transform active:scale-95", !isPaused && "animate-pulse-soft shadow-red-500/20"),
 						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(PowerOff, {
-							"data-uid": "src/components/Layout.tsx:149:15",
+							"data-uid": "src/components/Layout.tsx:157:15",
 							"data-prohibitions": "[editContent]",
 							className: "w-4 h-4 mr-2"
 						}), isPaused ? "Retomar Motor" : "Kill Switch"]
 					})
 				}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(AlertDialogContent, {
-					"data-uid": "src/components/Layout.tsx:153:11",
+					"data-uid": "src/components/Layout.tsx:161:11",
 					"data-prohibitions": "[editContent]",
 					className: "border-red-500/20 bg-card rounded-2xl",
 					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(AlertDialogHeader, {
-						"data-uid": "src/components/Layout.tsx:154:13",
+						"data-uid": "src/components/Layout.tsx:162:13",
 						"data-prohibitions": "[editContent]",
 						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(AlertDialogTitle, {
-							"data-uid": "src/components/Layout.tsx:155:15",
+							"data-uid": "src/components/Layout.tsx:163:15",
 							"data-prohibitions": "[editContent]",
 							children: isPaused ? "Retomar envios automatizados?" : "Pausar todos os envios?"
 						}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(AlertDialogDescription, {
-							"data-uid": "src/components/Layout.tsx:158:15",
+							"data-uid": "src/components/Layout.tsx:166:15",
 							"data-prohibitions": "[editContent]",
 							children: isPaused ? "O motor voltará a processar a fila imediatamente, respeitando a cadência configurada." : "Isso interromperá o processamento da fila no nível do banco de dados. Nenhuma mensagem será enviada até que o sistema seja retomado."
 						})]
 					}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(AlertDialogFooter, {
-						"data-uid": "src/components/Layout.tsx:164:13",
+						"data-uid": "src/components/Layout.tsx:172:13",
 						"data-prohibitions": "[editContent]",
 						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(AlertDialogCancel, {
-							"data-uid": "src/components/Layout.tsx:165:15",
+							"data-uid": "src/components/Layout.tsx:173:15",
 							"data-prohibitions": "[]",
 							className: "rounded-xl",
 							children: "Cancelar"
 						}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(AlertDialogAction, {
-							"data-uid": "src/components/Layout.tsx:166:15",
+							"data-uid": "src/components/Layout.tsx:174:15",
 							"data-prohibitions": "[editContent]",
 							onClick: handleToggleKillSwitch,
 							className: cn("rounded-xl", !isPaused ? "bg-red-600 hover:bg-red-700" : "bg-blue-600 hover:bg-blue-700"),
@@ -37256,39 +37296,39 @@ function TopBar() {
 }
 function Layout() {
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SidebarProvider, {
-		"data-uid": "src/components/Layout.tsx:185:5",
+		"data-uid": "src/components/Layout.tsx:193:5",
 		"data-prohibitions": "[]",
 		children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-			"data-uid": "src/components/Layout.tsx:186:7",
+			"data-uid": "src/components/Layout.tsx:194:7",
 			"data-prohibitions": "[]",
 			className: "flex min-h-screen w-full bg-background selection:bg-blue-500/30",
 			children: [
 				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-					"data-uid": "src/components/Layout.tsx:187:9",
+					"data-uid": "src/components/Layout.tsx:195:9",
 					"data-prohibitions": "[editContent]",
 					className: "fixed inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-900/10 via-background to-background pointer-events-none"
 				}),
 				/* @__PURE__ */ (0, import_jsx_runtime.jsx)(AppSidebar, {
-					"data-uid": "src/components/Layout.tsx:188:9",
+					"data-uid": "src/components/Layout.tsx:196:9",
 					"data-prohibitions": "[editContent]"
 				}),
 				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("main", {
-					"data-uid": "src/components/Layout.tsx:189:9",
+					"data-uid": "src/components/Layout.tsx:197:9",
 					"data-prohibitions": "[]",
 					className: "flex-1 flex flex-col min-w-0 relative z-10",
 					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TopBar, {
-						"data-uid": "src/components/Layout.tsx:190:11",
+						"data-uid": "src/components/Layout.tsx:198:11",
 						"data-prohibitions": "[editContent]"
 					}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-						"data-uid": "src/components/Layout.tsx:191:11",
+						"data-uid": "src/components/Layout.tsx:199:11",
 						"data-prohibitions": "[]",
 						className: "flex-1 overflow-auto p-4 lg:p-8",
 						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-							"data-uid": "src/components/Layout.tsx:192:13",
+							"data-uid": "src/components/Layout.tsx:200:13",
 							"data-prohibitions": "[]",
 							className: "max-w-6xl mx-auto",
 							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Outlet, {
-								"data-uid": "src/components/Layout.tsx:193:15",
+								"data-uid": "src/components/Layout.tsx:201:15",
 								"data-prohibitions": "[editContent]"
 							})
 						})
@@ -37393,4 +37433,4 @@ var App_default = App;
 	"data-prohibitions": "[editContent]"
 }));
 
-//# sourceMappingURL=index-HWhE6bvC.js.map
+//# sourceMappingURL=index-DGpX8Clk.js.map

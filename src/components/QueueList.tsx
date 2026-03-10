@@ -18,6 +18,25 @@ import { ptBR } from 'date-fns/locale'
 import { cn } from '@/lib/utils'
 import { updateQueueOrders } from '@/services/data'
 
+function IconBrandWhatsapp({ className, ...props }: React.ComponentProps<'svg'>) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      {...props}
+    >
+      <path d="M3 21l1.65 -3.8a9 9 0 1 1 3.4 2.9l-5.05 .9" />
+      <path d="M9 10a.5 .5 0 0 0 1 0v-1a.5 .5 0 0 0 -1 0v1a5 5 0 0 0 5 5h1a.5 .5 0 0 0 0 -1h-1a.5 .5 0 0 0 0 1" />
+    </svg>
+  )
+}
+
 interface QueueListProps {
   items: PatientQueue[]
   onToggleApprove: (id: string, current: boolean) => void
@@ -219,11 +238,11 @@ export function QueueList({ items, onToggleApprove, onEdit, onCancel }: QueueLis
                 </span>
               </div>
 
-              <div className="flex gap-1">
+              <div className="flex gap-1 bg-black/20 p-1 rounded-xl border border-white/5 shadow-inner">
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-8 w-8 text-blue-400 hover:text-blue-300 hover:bg-blue-500/10"
+                  className="h-8 w-8 text-emerald-400 hover:text-emerald-300 hover:bg-emerald-500/10"
                   asChild
                 >
                   <a
@@ -232,7 +251,7 @@ export function QueueList({ items, onToggleApprove, onEdit, onCancel }: QueueLis
                     rel="noreferrer"
                     title="Abrir WhatsApp"
                   >
-                    <MessageSquare className="w-4 h-4" />
+                    <IconBrandWhatsapp className="w-4 h-4" />
                   </a>
                 </Button>
 

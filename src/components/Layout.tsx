@@ -8,7 +8,6 @@ import {
   SidebarMenuItem,
   SidebarProvider,
   SidebarTrigger,
-  useSidebar,
 } from '@/components/ui/sidebar'
 import { Button } from '@/components/ui/button'
 import { ShieldCheck, ListTodo, Archive, PowerOff, LogOut } from 'lucide-react'
@@ -39,17 +38,26 @@ function AppSidebar() {
 
   return (
     <Sidebar className="border-r border-white/5 bg-card/90 backdrop-blur-xl">
-      <SidebarHeader className="p-4 flex flex-row items-center gap-3">
-        <div className="bg-blue-500 text-white p-1.5 rounded-lg">
-          <ShieldCheck className="w-5 h-5" />
+      <SidebarHeader className="p-4 flex flex-col gap-5 border-b border-white/5 pb-6">
+        <div className="bg-white p-3 rounded-xl flex items-center justify-center shadow-md border border-white/10 shrink-0">
+          <img
+            src="https://prndiagnosticos.com.br/wp-content/themes/prnd/assets/images/logo.png"
+            alt="PRN Diagnósticos"
+            className="h-8 max-w-[160px] object-contain drop-shadow-sm"
+          />
         </div>
-        <div className="flex flex-col">
-          <span className="font-heading font-bold text-lg leading-tight tracking-tight text-white">
-            PRN Vigilante
-          </span>
-          <span className="text-[10px] text-blue-400 uppercase tracking-wider font-semibold">
-            Gatekeeper
-          </span>
+        <div className="flex flex-row items-center gap-3 px-1">
+          <div className="bg-blue-500/20 border border-blue-500/30 text-blue-400 p-1.5 rounded-lg shrink-0">
+            <ShieldCheck className="w-5 h-5" />
+          </div>
+          <div className="flex flex-col">
+            <span className="font-heading font-bold text-lg leading-tight tracking-tight text-white">
+              PRN Vigilante
+            </span>
+            <span className="text-[10px] text-blue-400 uppercase tracking-wider font-semibold">
+              Torre de Controle
+            </span>
+          </div>
         </div>
       </SidebarHeader>
       <SidebarContent className="px-2 py-4">
