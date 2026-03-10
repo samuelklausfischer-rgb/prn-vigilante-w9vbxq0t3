@@ -17316,7 +17316,7 @@ function dispatch(action) {
 		listener(memoryState);
 	});
 }
-function toast$1({ ...props }) {
+function toast({ ...props }) {
 	const id = genId();
 	const update = (props$1) => dispatch({
 		type: "UPDATE_TOAST",
@@ -17357,7 +17357,7 @@ function useToast() {
 	}, [state]);
 	return {
 		...state,
-		toast: toast$1,
+		toast,
 		dismiss: (toastId) => dispatch({
 			type: "DISMISS_TOAST",
 			toastId
@@ -32190,12 +32190,46 @@ function useAppData(statusFilter) {
 			supabase.removeChannel(configSub);
 		};
 	}, [statusFilter.join(",")]);
+	const updateQueueItem$1 = async (id, updates) => {
+		const previousItems = [...items];
+		setItems((currentItems) => currentItems.map((item) => item.id === id ? {
+			...item,
+			...updates
+		} : item));
+		const success = await updateQueueItem(id, updates);
+		if (!success) {
+			setItems(previousItems);
+			toast({
+				title: "Erro de atualização",
+				description: "Não foi possível salvar a alteração. O status original foi restaurado.",
+				variant: "destructive"
+			});
+		}
+		return success;
+	};
+	const toggleSystemPause$1 = async (is_paused) => {
+		const previousConfig = config;
+		if (config) setConfig({
+			...config,
+			is_paused
+		});
+		const success = await toggleSystemPause(is_paused);
+		if (!success && previousConfig) {
+			setConfig(previousConfig);
+			toast({
+				title: "Erro de atualização",
+				description: "Falha ao alterar o status do sistema. O estado original foi restaurado.",
+				variant: "destructive"
+			});
+		}
+		return success;
+	};
 	return {
 		items,
 		config,
 		loading,
-		updateQueueItem,
-		toggleSystemPause
+		updateQueueItem: updateQueueItem$1,
+		toggleSystemPause: toggleSystemPause$1
 	};
 }
 function StatCard({ title, value, icon, trend, trendUp, alert, className }) {
@@ -34365,51 +34399,57 @@ function QueueList({ items, onToggleApprove, onEdit, onCancel }) {
 								"data-uid": "src/components/QueueList.tsx:226:17",
 								"data-prohibitions": "[editContent]",
 								checked: item.is_approved,
-								onCheckedChange: () => onToggleApprove(item.id, item.is_approved),
+								onCheckedChange: (checked) => {
+									setLocalItems((prev) => prev.map((i) => i.id === item.id ? {
+										...i,
+										is_approved: checked
+									} : i));
+									onToggleApprove(item.id, item.is_approved);
+								},
 								disabled: !isEditable,
 								className: cn("data-[state=checked]:bg-emerald-500")
 							}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-								"data-uid": "src/components/QueueList.tsx:232:17",
+								"data-uid": "src/components/QueueList.tsx:238:17",
 								"data-prohibitions": "[editContent]",
 								className: "text-xs font-medium w-16",
 								children: item.is_approved ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-									"data-uid": "src/components/QueueList.tsx:234:21",
+									"data-uid": "src/components/QueueList.tsx:240:21",
 									"data-prohibitions": "[]",
 									className: "text-emerald-500",
 									children: "Liberado"
 								}) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-									"data-uid": "src/components/QueueList.tsx:236:21",
+									"data-uid": "src/components/QueueList.tsx:242:21",
 									"data-prohibitions": "[]",
 									className: "text-amber-500",
 									children: "Retido"
 								})
 							})]
 						}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-							"data-uid": "src/components/QueueList.tsx:241:15",
+							"data-uid": "src/components/QueueList.tsx:247:15",
 							"data-prohibitions": "[editContent]",
 							className: "flex gap-1 bg-black/20 p-1 rounded-xl border border-white/5 shadow-inner",
 							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
-								"data-uid": "src/components/QueueList.tsx:242:17",
+								"data-uid": "src/components/QueueList.tsx:248:17",
 								"data-prohibitions": "[]",
 								variant: "ghost",
 								size: "icon",
 								className: "h-8 w-8 text-emerald-400 hover:text-emerald-300 hover:bg-emerald-500/10",
 								asChild: true,
 								children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("a", {
-									"data-uid": "src/components/QueueList.tsx:248:19",
+									"data-uid": "src/components/QueueList.tsx:254:19",
 									"data-prohibitions": "[]",
 									href: getWhatsAppLink(item.phone_number),
 									target: "_blank",
 									rel: "noreferrer",
 									title: "Abrir WhatsApp",
 									children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(IconBrandWhatsapp, {
-										"data-uid": "src/components/QueueList.tsx:254:21",
+										"data-uid": "src/components/QueueList.tsx:260:21",
 										"data-prohibitions": "[editContent]",
 										className: "w-4 h-4"
 									})
 								})
 							}), isEditable && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
-								"data-uid": "src/components/QueueList.tsx:260:21",
+								"data-uid": "src/components/QueueList.tsx:266:21",
 								"data-prohibitions": "[]",
 								variant: "ghost",
 								size: "icon",
@@ -34417,12 +34457,12 @@ function QueueList({ items, onToggleApprove, onEdit, onCancel }) {
 								onClick: () => onEdit(item),
 								title: "Editar",
 								children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Pen, {
-									"data-uid": "src/components/QueueList.tsx:267:23",
+									"data-uid": "src/components/QueueList.tsx:273:23",
 									"data-prohibitions": "[editContent]",
 									className: "w-4 h-4"
 								})
 							}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
-								"data-uid": "src/components/QueueList.tsx:269:21",
+								"data-uid": "src/components/QueueList.tsx:275:21",
 								"data-prohibitions": "[]",
 								variant: "ghost",
 								size: "icon",
@@ -34430,7 +34470,7 @@ function QueueList({ items, onToggleApprove, onEdit, onCancel }) {
 								onClick: () => onCancel(item.id),
 								title: "Cancelar Envio",
 								children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Ban, {
-									"data-uid": "src/components/QueueList.tsx:276:23",
+									"data-uid": "src/components/QueueList.tsx:282:23",
 									"data-prohibitions": "[editContent]",
 									className: "w-4 h-4"
 								})
@@ -37455,4 +37495,4 @@ var App_default = App;
 	"data-prohibitions": "[editContent]"
 }));
 
-//# sourceMappingURL=index-D-10CxmZ.js.map
+//# sourceMappingURL=index-DdEZXqj7.js.map

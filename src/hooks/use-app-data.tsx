@@ -1,7 +1,13 @@
 import { useState, useEffect } from 'react'
 import { PatientQueue, SystemConfig } from '@/types'
 import { supabase } from '@/lib/supabase/client'
-import { fetchQueue, fetchConfig, updateQueueItem, toggleSystemPause } from '@/services/data'
+import {
+  fetchQueue,
+  fetchConfig,
+  updateQueueItem as updateQueueItemService,
+  toggleSystemPause as toggleSystemPauseService,
+} from '@/services/data'
+import { toast } from '@/hooks/use-toast'
 
 export function useAppData(statusFilter: string[]) {
   const [items, setItems] = useState<PatientQueue[]>([])
@@ -44,6 +50,50 @@ export function useAppData(statusFilter: string[]) {
       supabase.removeChannel(configSub)
     }
   }, [statusFilter.join(',')])
+
+  const updateQueueItem = async (id: string, updates: Partial<PatientQueue>) => {
+    const previousItems = [...items]
+
+    // Optimistic UI update
+    setItems((currentItems) =>
+      currentItems.map((item) => (item.id === id ? { ...item, ...updates } : item)),
+    )
+
+    const success = await updateQueueItemService(id, updates)
+
+    if (!success) {
+      // Revert to previous state if API call fails
+      setItems(previousItems)
+      toast({
+        title: 'Erro de atualização',
+        description: 'Não foi possível salvar a alteração. O status original foi restaurado.',
+        variant: 'destructive',
+      })
+    }
+
+    return success
+  }
+
+  const toggleSystemPause = async (is_paused: boolean) => {
+    const previousConfig = config
+
+    if (config) {
+      setConfig({ ...config, is_paused })
+    }
+
+    const success = await toggleSystemPauseService(is_paused)
+
+    if (!success && previousConfig) {
+      setConfig(previousConfig)
+      toast({
+        title: 'Erro de atualização',
+        description: 'Falha ao alterar o status do sistema. O estado original foi restaurado.',
+        variant: 'destructive',
+      })
+    }
+
+    return success
+  }
 
   return { items, config, loading, updateQueueItem, toggleSystemPause }
 }

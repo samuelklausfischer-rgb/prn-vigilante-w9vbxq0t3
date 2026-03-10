@@ -225,7 +225,13 @@ export function QueueList({ items, onToggleApprove, onEdit, onCancel }: QueueLis
               <div className="flex items-center gap-2 mr-auto md:mr-4">
                 <Switch
                   checked={item.is_approved}
-                  onCheckedChange={() => onToggleApprove(item.id, item.is_approved)}
+                  onCheckedChange={(checked) => {
+                    // Optimistic update for immediate visual feedback
+                    setLocalItems((prev) =>
+                      prev.map((i) => (i.id === item.id ? { ...i, is_approved: checked } : i)),
+                    )
+                    onToggleApprove(item.id, item.is_approved)
+                  }}
                   disabled={!isEditable}
                   className={cn('data-[state=checked]:bg-emerald-500')}
                 />
