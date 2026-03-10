@@ -789,6 +789,10 @@ h1,
   margin-bottom: 0.25rem;
 }
 
+.-ml-2{
+  margin-left: -0.5rem;
+}
+
 .-ml-4{
   margin-left: -1rem;
 }
@@ -1309,6 +1313,12 @@ h1,
   transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
 }
 
+.scale-\[0\.98\]{
+  --tw-scale-x: 0.98;
+  --tw-scale-y: 0.98;
+  transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
+}
+
 .transform{
   transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
 }
@@ -1349,6 +1359,10 @@ h1,
 
 .cursor-default{
   cursor: default;
+}
+
+.cursor-grab{
+  cursor: grab;
 }
 
 .cursor-pointer{
@@ -2263,6 +2277,10 @@ h1,
   color: hsl(var(--muted-foreground));
 }
 
+.text-muted-foreground\/30{
+  color: hsl(var(--muted-foreground) / 0.3);
+}
+
 .text-muted-foreground\/80{
   color: hsl(var(--muted-foreground) / 0.8);
 }
@@ -2753,6 +2771,10 @@ h1,
   background-color: hsl(var(--card) / 0.6);
 }
 
+.hover\:bg-card\/80:hover{
+  background-color: hsl(var(--card) / 0.8);
+}
+
 .hover\:bg-destructive\/80:hover{
   background-color: hsl(var(--destructive) / 0.8);
 }
@@ -2834,6 +2856,10 @@ h1,
 
 .hover\:text-foreground:hover{
   color: hsl(var(--foreground));
+}
+
+.hover\:text-foreground\/80:hover{
+  color: hsl(var(--foreground) / 0.8);
 }
 
 .hover\:text-muted-foreground:hover{
@@ -2950,6 +2976,10 @@ h1,
   --tw-scale-x: .95;
   --tw-scale-y: .95;
   transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
+}
+
+.active\:cursor-grabbing:active{
+  cursor: grabbing;
 }
 
 .active\:bg-sidebar-accent:active{
@@ -3810,6 +3840,10 @@ h1,
     position: absolute;
   }
 
+  .md\:mr-2{
+    margin-right: 0.5rem;
+  }
+
   .md\:mr-4{
     margin-right: 1rem;
   }
@@ -3856,6 +3890,10 @@ h1,
 
   .md\:border-t-0{
     border-top-width: 0px;
+  }
+
+  .md\:pl-0{
+    padding-left: 0px;
   }
 
   .md\:pt-0{

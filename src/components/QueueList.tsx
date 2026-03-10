@@ -1,11 +1,22 @@
+import { useState, useEffect, useRef } from 'react'
 import { PatientQueue } from '@/types'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
-import { MessageSquare, AlertCircle, Edit2, Ban, Clock, Phone, Send } from 'lucide-react'
+import {
+  MessageSquare,
+  AlertCircle,
+  Edit2,
+  Ban,
+  Clock,
+  Phone,
+  Send,
+  GripVertical,
+} from 'lucide-react'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { cn } from '@/lib/utils'
+import { updateQueueOrders } from '@/services/data'
 
 interface QueueListProps {
   items: PatientQueue[]
@@ -15,6 +26,71 @@ interface QueueListProps {
 }
 
 export function QueueList({ items, onToggleApprove, onEdit, onCancel }: QueueListProps) {
+  const [localItems, setLocalItems] = useState<PatientQueue[]>([])
+  const dragItem = useRef<number | null>(null)
+  const dragOverItem = useRef<number | null>(null)
+  const [isDragging, setIsDragging] = useState(false)
+
+  useEffect(() => {
+    // Only update from props when not dragging to prevent jank from Realtime events
+    if (!isDragging) {
+      setLocalItems(items)
+    }
+  }, [items, isDragging])
+
+  const handleDragStart = (e: React.DragEvent, position: number) => {
+    dragItem.current = position
+    setIsDragging(true)
+    e.dataTransfer.effectAllowed = 'move'
+
+    // Delay class addition slightly so the drag image looks normal
+    setTimeout(() => {
+      const el = document.getElementById(`queue-item-${localItems[position].id}`)
+      if (el) el.classList.add('opacity-50', 'scale-[0.98]')
+    }, 0)
+  }
+
+  const handleDragEnter = (e: React.DragEvent, position: number) => {
+    e.preventDefault()
+    dragOverItem.current = position
+
+    if (dragItem.current !== null && dragItem.current !== position) {
+      const newList = [...localItems]
+      const draggedItem = newList[dragItem.current]
+      const targetItem = newList[position]
+
+      // Allow dragging and reordering only between queued items
+      if (draggedItem.status === 'queued' && targetItem.status === 'queued') {
+        newList.splice(dragItem.current, 1)
+        newList.splice(position, 0, draggedItem)
+        dragItem.current = position
+        setLocalItems(newList)
+      }
+    }
+  }
+
+  const handleDragEnd = async () => {
+    if (dragItem.current !== null) {
+      const el = document.getElementById(`queue-item-${localItems[dragItem.current].id}`)
+      if (el) el.classList.remove('opacity-50', 'scale-[0.98]')
+    }
+
+    dragItem.current = null
+    dragOverItem.current = null
+    setIsDragging(false)
+
+    // Save strictly the explicit new order for the queued items back to the database
+    const queuedItems = localItems.filter((i) => i.status === 'queued')
+    const updates = queuedItems.map((item, index) => ({
+      id: item.id,
+      queue_order: index + 1,
+    }))
+
+    if (updates.length > 0) {
+      await updateQueueOrders(updates)
+    }
+  }
+
   const getStatusConfig = (status: string) => {
     switch (status) {
       case 'queued':
@@ -42,9 +118,9 @@ export function QueueList({ items, onToggleApprove, onEdit, onCancel }: QueueLis
     return `https://wa.me/55${cleanPhone}`
   }
 
-  const firstQueuedIndex = items.findIndex((i) => i.status === 'queued' && i.is_approved)
+  const firstQueuedIndex = localItems.findIndex((i) => i.status === 'queued' && i.is_approved)
 
-  if (items.length === 0) {
+  if (localItems.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-center text-muted-foreground border border-dashed border-white/10 rounded-2xl">
         <MessageSquare className="w-12 h-12 mb-4 opacity-20" />
@@ -56,7 +132,7 @@ export function QueueList({ items, onToggleApprove, onEdit, onCancel }: QueueLis
 
   return (
     <div className="space-y-3">
-      {items.map((item, index) => {
+      {localItems.map((item, index) => {
         const isNext = index === firstQueuedIndex
         const config = getStatusConfig(item.status)
         const Icon = config.icon
@@ -64,16 +140,32 @@ export function QueueList({ items, onToggleApprove, onEdit, onCancel }: QueueLis
 
         return (
           <div
+            id={`queue-item-${item.id}`}
             key={item.id}
+            draggable={isEditable}
+            onDragStart={(e) => isEditable && handleDragStart(e, index)}
+            onDragEnter={(e) => isEditable && handleDragEnter(e, index)}
+            onDragEnd={handleDragEnd}
+            onDragOver={(e) => e.preventDefault()}
             className={cn(
-              'group flex flex-col md:flex-row items-start md:items-center gap-4 p-4 rounded-2xl transition-all duration-300 animate-fade-in-up',
+              'group flex flex-col md:flex-row items-start md:items-center gap-4 p-4 rounded-2xl transition-all duration-300',
+              !isDragging && 'animate-fade-in-up',
               'bg-card/50 border backdrop-blur-sm',
+              isEditable ? 'cursor-grab active:cursor-grabbing hover:bg-card/80' : '',
               isNext
                 ? 'border-amber-500/30 shadow-[0_0_15px_rgba(245,158,11,0.1)]'
                 : 'border-white/5 hover:border-white/10',
             )}
-            style={{ animationDelay: `${index * 50}ms` }}
+            style={{ animationDelay: !isDragging ? `${index * 50}ms` : '0ms' }}
           >
+            {isEditable && (
+              <div
+                className="flex items-center justify-center cursor-grab active:cursor-grabbing text-muted-foreground/30 hover:text-foreground/80 transition-colors shrink-0 py-2 -ml-2 pl-2 md:pl-0 md:mr-2"
+                title="Arraste para reordenar"
+              >
+                <GripVertical className="w-5 h-5" />
+              </div>
+            )}
             {/* Status & Patient Info */}
             <div className="flex-1 min-w-0 flex items-start gap-4 w-full">
               <div className={cn('p-2.5 rounded-xl shrink-0', config.bg, config.color)}>

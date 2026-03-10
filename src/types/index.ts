@@ -11,6 +11,7 @@ export interface PatientQueue {
   notes: string | null
   created_at: string
   updated_at: string
+  queue_order: number | null
 }
 
 export interface SystemConfig {

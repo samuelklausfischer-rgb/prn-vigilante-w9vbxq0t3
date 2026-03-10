@@ -9,7 +9,69 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      patients_queue: {
+        Row: {
+          created_at: string
+          id: string
+          is_approved: boolean
+          message_body: string
+          notes: string | null
+          patient_name: string
+          phone_number: string
+          send_after: string
+          status: Database['public']['Enums']['queue_status']
+          updated_at: string
+          queue_order: number | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_approved?: boolean
+          message_body: string
+          notes?: string | null
+          patient_name: string
+          phone_number: string
+          send_after?: string
+          status?: Database['public']['Enums']['queue_status']
+          updated_at?: string
+          queue_order?: number | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_approved?: boolean
+          message_body?: string
+          notes?: string | null
+          patient_name?: string
+          phone_number?: string
+          send_after?: string
+          status?: Database['public']['Enums']['queue_status']
+          updated_at?: string
+          queue_order?: number | null
+        }
+        Relationships: []
+      }
+      system_config: {
+        Row: {
+          id: number
+          is_paused: boolean
+          safe_cadence_delay: number
+          updated_at: string
+        }
+        Insert: {
+          id: number
+          is_paused?: boolean
+          safe_cadence_delay?: number
+          updated_at?: string
+        }
+        Update: {
+          id?: number
+          is_paused?: boolean
+          safe_cadence_delay?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -18,7 +80,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      queue_status: 'queued' | 'sending' | 'delivered' | 'failed' | 'cancelled'
     }
     CompositeTypes: {
       [_ in never]: never
@@ -143,7 +205,9 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      queue_status: ['queued', 'sending', 'delivered', 'failed', 'cancelled'],
+    },
   },
 } as const
 
@@ -154,35 +218,38 @@ export const Constants = {
 // Use the COLUMN TYPES section below to know the real PostgreSQL type for each column.
 // Always use the correct PostgreSQL type when writing SQL migrations.
 
-// --- DATABASE FUNCTIONS ---
-// FUNCTION rls_auto_enable()
-//   CREATE OR REPLACE FUNCTION public.rls_auto_enable()
-//    RETURNS event_trigger
-//    LANGUAGE plpgsql
-//    SECURITY DEFINER
-//    SET search_path TO 'pg_catalog'
-//   AS $function$
-//   DECLARE
-//     cmd record;
-//   BEGIN
-//     FOR cmd IN
-//       SELECT *
-//       FROM pg_event_trigger_ddl_commands()
-//       WHERE command_tag IN ('CREATE TABLE', 'CREATE TABLE AS', 'SELECT INTO')
-//         AND object_type IN ('table','partitioned table')
-//     LOOP
-//        IF cmd.schema_name IS NOT NULL AND cmd.schema_name IN ('public') AND cmd.schema_name NOT IN ('pg_catalog','information_schema') AND cmd.schema_name NOT LIKE 'pg_toast%' AND cmd.schema_name NOT LIKE 'pg_temp%' THEN
-//         BEGIN
-//           EXECUTE format('alter table if exists %s enable row level security', cmd.object_identity);
-//           RAISE LOG 'rls_auto_enable: enabled RLS on %', cmd.object_identity;
-//         EXCEPTION
-//           WHEN OTHERS THEN
-//             RAISE LOG 'rls_auto_enable: failed to enable RLS on %', cmd.object_identity;
-//         END;
-//        ELSE
-//           RAISE LOG 'rls_auto_enable: skip % (either system schema or not in enforced list: %.)', cmd.object_identity, cmd.schema_name;
-//        END IF;
-//     END LOOP;
-//   END;
-//   $function$
-//
+// --- COLUMN TYPES (actual PostgreSQL types) ---
+// Use this to know the real database type when writing migrations.
+// "string" in TypeScript types above may be uuid, text, varchar, timestamptz, etc.
+// Table: patients_queue
+//   id: uuid (not null, default: gen_random_uuid())
+//   patient_name: text (not null)
+//   phone_number: text (not null)
+//   message_body: text (not null)
+//   status: queue_status (not null, default: 'queued'::queue_status)
+//   is_approved: boolean (not null, default: false)
+//   send_after: timestamp with time zone (not null, default: now())
+//   notes: text (nullable)
+//   created_at: timestamp with time zone (not null, default: now())
+//   updated_at: timestamp with time zone (not null, default: now())
+//   queue_order: integer (nullable)
+// Table: system_config
+//   id: integer (not null)
+//   is_paused: boolean (not null, default: false)
+//   safe_cadence_delay: integer (not null, default: 30)
+//   updated_at: timestamp with time zone (not null, default: now())
+
+// --- CONSTRAINTS ---
+// Table: patients_queue
+//   PRIMARY KEY patients_queue_pkey: PRIMARY KEY (id)
+// Table: system_config
+//   CHECK system_config_id_check: CHECK ((id = 1))
+//   PRIMARY KEY system_config_pkey: PRIMARY KEY (id)
+
+// --- ROW LEVEL SECURITY POLICIES ---
+// Table: patients_queue
+//   Policy "Allow all authenticated operations on patients_queue" (ALL, PERMISSIVE) roles={authenticated}
+//     USING: true
+// Table: system_config
+//   Policy "Allow all authenticated operations on system_config" (ALL, PERMISSIVE) roles={authenticated}
+//     USING: true
