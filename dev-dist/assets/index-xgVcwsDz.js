@@ -37072,17 +37072,17 @@ function AppSidebar() {
 			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(SidebarHeader, {
 				"data-uid": "src/components/Layout.tsx:41:7",
 				"data-prohibitions": "[]",
-				className: "p-4 flex flex-col gap-5 border-b border-white/5 pb-6",
+				className: "p-5 flex flex-col gap-6 border-b border-white/5 pb-6",
 				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
 					"data-uid": "src/components/Layout.tsx:42:9",
 					"data-prohibitions": "[]",
-					className: "bg-white p-3 rounded-xl flex items-center justify-center shadow-md border border-white/10 shrink-0",
+					className: "flex items-center justify-center w-full px-2 pt-1 shrink-0",
 					children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("img", {
 						"data-uid": "src/components/Layout.tsx:43:11",
 						"data-prohibitions": "[editContent]",
 						src: "https://prndiagnosticos.com.br/wp-content/themes/prnd/assets/images/logo.png",
 						alt: "PRN Diagnósticos",
-						className: "h-8 max-w-[160px] object-contain drop-shadow-sm"
+						className: "h-10 sm:h-11 w-auto max-w-[200px] object-contain mix-blend-screen grayscale invert brightness-200 contrast-200 transition-opacity hover:opacity-90"
 					})
 				}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 					"data-uid": "src/components/Layout.tsx:49:9",
@@ -37192,97 +37192,117 @@ function TopBar() {
 			"data-uid": "src/components/Layout.tsx:123:7",
 			"data-prohibitions": "[editContent]",
 			className: "flex items-center gap-4",
-			children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SidebarTrigger, {
-				"data-uid": "src/components/Layout.tsx:124:9",
-				"data-prohibitions": "[editContent]",
-				className: "text-muted-foreground hover:text-white"
-			}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("h1", {
-				"data-uid": "src/components/Layout.tsx:125:9",
-				"data-prohibitions": "[editContent]",
-				className: "font-heading font-semibold text-lg hidden sm:block",
-				children: pageTitle
-			})]
+			children: [
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SidebarTrigger, {
+					"data-uid": "src/components/Layout.tsx:124:9",
+					"data-prohibitions": "[editContent]",
+					className: "text-muted-foreground hover:text-white"
+				}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+					"data-uid": "src/components/Layout.tsx:125:9",
+					"data-prohibitions": "[]",
+					className: "flex items-center sm:hidden h-full mt-1",
+					children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("img", {
+						"data-uid": "src/components/Layout.tsx:126:11",
+						"data-prohibitions": "[editContent]",
+						src: "https://prndiagnosticos.com.br/wp-content/themes/prnd/assets/images/logo.png",
+						alt: "PRN",
+						className: "h-6 w-auto object-contain mix-blend-screen grayscale invert brightness-200 contrast-200"
+					})
+				}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h1", {
+					"data-uid": "src/components/Layout.tsx:132:9",
+					"data-prohibitions": "[editContent]",
+					className: "font-heading font-semibold text-lg hidden sm:block",
+					children: pageTitle
+				})
+			]
 		}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-			"data-uid": "src/components/Layout.tsx:128:7",
+			"data-uid": "src/components/Layout.tsx:135:7",
 			"data-prohibitions": "[editContent]",
-			className: "flex items-center gap-4",
+			className: "flex items-center gap-3 sm:gap-4",
 			children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-				"data-uid": "src/components/Layout.tsx:129:9",
+				"data-uid": "src/components/Layout.tsx:136:9",
 				"data-prohibitions": "[editContent]",
 				className: "flex items-center gap-2 px-3 py-1.5 rounded-full bg-card/50 border border-white/5 text-xs font-medium",
 				children: [
 					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
-						"data-uid": "src/components/Layout.tsx:130:11",
+						"data-uid": "src/components/Layout.tsx:137:11",
 						"data-prohibitions": "[editContent]",
 						className: "relative flex h-2 w-2",
 						children: [!isPaused && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-							"data-uid": "src/components/Layout.tsx:132:15",
+							"data-uid": "src/components/Layout.tsx:139:15",
 							"data-prohibitions": "[]",
 							className: "animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"
 						}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-							"data-uid": "src/components/Layout.tsx:134:13",
+							"data-uid": "src/components/Layout.tsx:141:13",
 							"data-prohibitions": "[editContent]",
 							className: cn("relative inline-flex rounded-full h-2 w-2", isPaused ? "bg-red-500" : "bg-emerald-500")
 						})]
 					}),
 					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-						"data-uid": "src/components/Layout.tsx:141:11",
+						"data-uid": "src/components/Layout.tsx:148:11",
 						"data-prohibitions": "[]",
 						className: "text-muted-foreground hidden sm:inline",
 						children: "Motor:"
 					}),
 					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-						"data-uid": "src/components/Layout.tsx:142:11",
+						"data-uid": "src/components/Layout.tsx:149:11",
 						"data-prohibitions": "[editContent]",
 						className: isPaused ? "text-red-400" : "text-emerald-400",
 						children: isPaused ? "Parado" : "Ativo"
 					})
 				]
 			}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(AlertDialog, {
-				"data-uid": "src/components/Layout.tsx:147:9",
+				"data-uid": "src/components/Layout.tsx:154:9",
 				"data-prohibitions": "[editContent]",
 				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(AlertDialogTrigger, {
-					"data-uid": "src/components/Layout.tsx:148:11",
+					"data-uid": "src/components/Layout.tsx:155:11",
 					"data-prohibitions": "[editContent]",
 					asChild: true,
 					children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Button, {
-						"data-uid": "src/components/Layout.tsx:149:13",
+						"data-uid": "src/components/Layout.tsx:156:13",
 						"data-prohibitions": "[editContent]",
 						variant: isPaused ? "default" : "destructive",
 						size: "sm",
-						className: cn("h-9 rounded-xl font-medium shadow-lg transition-transform active:scale-95", !isPaused && "animate-pulse-soft shadow-red-500/20"),
+						className: cn("h-9 rounded-xl font-medium shadow-lg transition-transform active:scale-95 px-3 sm:px-4", !isPaused && "animate-pulse-soft shadow-red-500/20"),
 						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(PowerOff, {
-							"data-uid": "src/components/Layout.tsx:157:15",
+							"data-uid": "src/components/Layout.tsx:164:15",
 							"data-prohibitions": "[editContent]",
-							className: "w-4 h-4 mr-2"
-						}), isPaused ? "Retomar Motor" : "Kill Switch"]
+							className: "w-4 h-4 sm:mr-2"
+						}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+							"data-uid": "src/components/Layout.tsx:165:15",
+							"data-prohibitions": "[editContent]",
+							className: "hidden sm:inline",
+							children: isPaused ? "Retomar Motor" : "Kill Switch"
+						})]
 					})
 				}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(AlertDialogContent, {
-					"data-uid": "src/components/Layout.tsx:161:11",
+					"data-uid": "src/components/Layout.tsx:168:11",
 					"data-prohibitions": "[editContent]",
-					className: "border-red-500/20 bg-card rounded-2xl",
+					className: "border-red-500/20 bg-card rounded-2xl w-[90vw] sm:w-full max-w-md",
 					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(AlertDialogHeader, {
-						"data-uid": "src/components/Layout.tsx:162:13",
+						"data-uid": "src/components/Layout.tsx:169:13",
 						"data-prohibitions": "[editContent]",
 						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(AlertDialogTitle, {
-							"data-uid": "src/components/Layout.tsx:163:15",
+							"data-uid": "src/components/Layout.tsx:170:15",
 							"data-prohibitions": "[editContent]",
 							children: isPaused ? "Retomar envios automatizados?" : "Pausar todos os envios?"
 						}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(AlertDialogDescription, {
-							"data-uid": "src/components/Layout.tsx:166:15",
+							"data-uid": "src/components/Layout.tsx:173:15",
 							"data-prohibitions": "[editContent]",
 							children: isPaused ? "O motor voltará a processar a fila imediatamente, respeitando a cadência configurada." : "Isso interromperá o processamento da fila no nível do banco de dados. Nenhuma mensagem será enviada até que o sistema seja retomado."
 						})]
 					}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(AlertDialogFooter, {
-						"data-uid": "src/components/Layout.tsx:172:13",
+						"data-uid": "src/components/Layout.tsx:179:13",
 						"data-prohibitions": "[editContent]",
 						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(AlertDialogCancel, {
-							"data-uid": "src/components/Layout.tsx:173:15",
+							"data-uid": "src/components/Layout.tsx:180:15",
 							"data-prohibitions": "[]",
 							className: "rounded-xl",
 							children: "Cancelar"
 						}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(AlertDialogAction, {
-							"data-uid": "src/components/Layout.tsx:174:15",
+							"data-uid": "src/components/Layout.tsx:181:15",
 							"data-prohibitions": "[editContent]",
 							onClick: handleToggleKillSwitch,
 							className: cn("rounded-xl", !isPaused ? "bg-red-600 hover:bg-red-700" : "bg-blue-600 hover:bg-blue-700"),
@@ -37296,39 +37316,39 @@ function TopBar() {
 }
 function Layout() {
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SidebarProvider, {
-		"data-uid": "src/components/Layout.tsx:193:5",
+		"data-uid": "src/components/Layout.tsx:200:5",
 		"data-prohibitions": "[]",
 		children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-			"data-uid": "src/components/Layout.tsx:194:7",
+			"data-uid": "src/components/Layout.tsx:201:7",
 			"data-prohibitions": "[]",
 			className: "flex min-h-screen w-full bg-background selection:bg-blue-500/30",
 			children: [
 				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-					"data-uid": "src/components/Layout.tsx:195:9",
+					"data-uid": "src/components/Layout.tsx:202:9",
 					"data-prohibitions": "[editContent]",
 					className: "fixed inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-900/10 via-background to-background pointer-events-none"
 				}),
 				/* @__PURE__ */ (0, import_jsx_runtime.jsx)(AppSidebar, {
-					"data-uid": "src/components/Layout.tsx:196:9",
+					"data-uid": "src/components/Layout.tsx:203:9",
 					"data-prohibitions": "[editContent]"
 				}),
 				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("main", {
-					"data-uid": "src/components/Layout.tsx:197:9",
+					"data-uid": "src/components/Layout.tsx:204:9",
 					"data-prohibitions": "[]",
 					className: "flex-1 flex flex-col min-w-0 relative z-10",
 					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TopBar, {
-						"data-uid": "src/components/Layout.tsx:198:11",
+						"data-uid": "src/components/Layout.tsx:205:11",
 						"data-prohibitions": "[editContent]"
 					}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-						"data-uid": "src/components/Layout.tsx:199:11",
+						"data-uid": "src/components/Layout.tsx:206:11",
 						"data-prohibitions": "[]",
 						className: "flex-1 overflow-auto p-4 lg:p-8",
 						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-							"data-uid": "src/components/Layout.tsx:200:13",
+							"data-uid": "src/components/Layout.tsx:207:13",
 							"data-prohibitions": "[]",
 							className: "max-w-6xl mx-auto",
 							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Outlet, {
-								"data-uid": "src/components/Layout.tsx:201:15",
+								"data-uid": "src/components/Layout.tsx:208:15",
 								"data-prohibitions": "[editContent]"
 							})
 						})
@@ -37433,4 +37453,4 @@ var App_default = App;
 	"data-prohibitions": "[editContent]"
 }));
 
-//# sourceMappingURL=index-DGpX8Clk.js.map
+//# sourceMappingURL=index-xgVcwsDz.js.map

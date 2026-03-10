@@ -18,6 +18,7 @@ export type Database = {
           notes: string | null
           patient_name: string
           phone_number: string
+          queue_order: number | null
           send_after: string
           status: Database['public']['Enums']['queue_status']
           updated_at: string
@@ -30,6 +31,7 @@ export type Database = {
           notes?: string | null
           patient_name: string
           phone_number: string
+          queue_order?: number | null
           send_after?: string
           status?: Database['public']['Enums']['queue_status']
           updated_at?: string
@@ -42,6 +44,7 @@ export type Database = {
           notes?: string | null
           patient_name?: string
           phone_number?: string
+          queue_order?: number | null
           send_after?: string
           status?: Database['public']['Enums']['queue_status']
           updated_at?: string
@@ -229,6 +232,7 @@ export const Constants = {
 //   notes: text (nullable)
 //   created_at: timestamp with time zone (not null, default: now())
 //   updated_at: timestamp with time zone (not null, default: now())
+//   queue_order: integer (nullable)
 // Table: system_config
 //   id: integer (not null)
 //   is_paused: boolean (not null, default: false)
