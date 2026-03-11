@@ -1,55 +1,75 @@
-import { WhatsAppInstance } from '@/types'
+import { supabase } from '@/lib/supabase/client'
 
-// Mock Data for Evolution API Instances
-let MOCK_INSTANCES: WhatsAppInstance[] = [
-  { slotId: 1, instanceName: 'PRN Principal', status: 'connected' },
-  { slotId: 2, instanceName: 'PRN Marketing', status: 'disconnected' },
-  { slotId: 3, instanceName: null, status: 'empty' },
-]
+export interface WhatsAppInstance {
+  id?: string
+  slotId: number
+  instanceName: string | null
+  phoneNumber: string | null
+  status: 'empty' | 'disconnected' | 'connected'
+}
 
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
 export const evolutionApi = {
   async getInstances(): Promise<WhatsAppInstance[]> {
-    await delay(600) // Simulate network latency
-    return [...MOCK_INSTANCES]
+    const { data, error } = await supabase
+      .from('whatsapp_instances' as any)
+      .select('*')
+      .order('slot_id', { ascending: true })
+
+    if (error || !data) {
+      console.error('Failed to fetch instances', error)
+      return []
+    }
+
+    return data.map((d: any) => ({
+      id: d.id,
+      slotId: d.slot_id,
+      instanceName: d.instance_name,
+      phoneNumber: d.phone_number,
+      status: d.status,
+    }))
   },
 
   async getQrCode(slotId: number): Promise<string> {
-    await delay(1500) // Simulate fetching QR Code
-    // Provide a real QR code generating API for visual feedback
+    await delay(1500) // Simulate generating a secure QR code
     return `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=evolution-auth-${slotId}-${Date.now()}`
   },
 
   async disconnect(slotId: number): Promise<boolean> {
-    await delay(1200) // Simulate disconnection process
-    const instance = MOCK_INSTANCES.find((i) => i.slotId === slotId)
-    if (instance) {
-      instance.status = 'disconnected'
-      return true
-    }
-    return false
+    const { error } = await supabase
+      .from('whatsapp_instances' as any)
+      .update({ status: 'disconnected' })
+      .eq('slot_id', slotId)
+
+    return !error
   },
 
-  async create(slotId: number, name: string): Promise<boolean> {
-    await delay(800) // Simulate creation process
-    const instance = MOCK_INSTANCES.find((i) => i.slotId === slotId)
-    if (instance) {
-      instance.instanceName = name
-      instance.status = 'disconnected'
-      return true
-    }
-    return false
+  async deleteInstance(slotId: number): Promise<boolean> {
+    const { error } = await supabase
+      .from('whatsapp_instances' as any)
+      .update({ status: 'empty', instance_name: null, phone_number: null })
+      .eq('slot_id', slotId)
+
+    return !error
+  },
+
+  async create(slotId: number, name: string, phoneNumber: string): Promise<boolean> {
+    const { error } = await supabase
+      .from('whatsapp_instances' as any)
+      .update({ status: 'disconnected', instance_name: name, phone_number: phoneNumber })
+      .eq('slot_id', slotId)
+
+    return !error
   },
 
   // Helper just to mock a successful QR code scan on the UI
   async simulateScan(slotId: number): Promise<boolean> {
-    await delay(1000)
-    const instance = MOCK_INSTANCES.find((i) => i.slotId === slotId)
-    if (instance) {
-      instance.status = 'connected'
-      return true
-    }
-    return false
+    const { error } = await supabase
+      .from('whatsapp_instances' as any)
+      .update({ status: 'connected' })
+      .eq('slot_id', slotId)
+
+    return !error
   },
 }

@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react'
-import { WhatsAppInstance } from '@/types'
-import { evolutionApi } from '@/services/evolution'
+import { WhatsAppInstance, evolutionApi } from '@/services/evolution'
 import { WhatsAppModal } from '@/components/WhatsAppModal'
 import { Smartphone, RefreshCw, PlusCircle, CheckCircle2, AlertCircle } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
+import { supabase } from '@/lib/supabase/client'
 
 export default function WhatsAppSettings() {
   const [instances, setInstances] = useState<WhatsAppInstance[]>([])
@@ -25,13 +25,23 @@ export default function WhatsAppSettings() {
 
   useEffect(() => {
     loadData()
+
+    const sub = supabase
+      .channel('whatsapp-instances-changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'whatsapp_instances' }, () => {
+        loadData()
+      })
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(sub)
+    }
   }, [])
 
-  // Auto update selected instance reference if it changes in the background
   useEffect(() => {
     if (selectedInstance) {
       const updated = instances.find((i) => i.slotId === selectedInstance.slotId)
-      if (updated && updated.status !== selectedInstance.status) {
+      if (updated && JSON.stringify(updated) !== JSON.stringify(selectedInstance)) {
         setSelectedInstance(updated)
       }
     }
@@ -68,11 +78,10 @@ export default function WhatsAppSettings() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-card/50 p-6 rounded-2xl border border-white/5 backdrop-blur-md">
         <div>
           <h2 className="text-xl font-heading font-semibold flex items-center gap-2">
-            <Smartphone className="w-5 h-5 text-blue-400" />
-            Canais de Comunicação
+            <Smartphone className="w-5 h-5 text-blue-400" /> Canais de Comunicação
           </h2>
           <p className="text-sm text-muted-foreground mt-1">
-            Gerencie até 3 instâncias de WhatsApp simultâneas através da Evolution API.
+            Gerencie até 3 instâncias de WhatsApp simultâneas configuradas no banco de dados.
           </p>
         </div>
         <Button
@@ -82,8 +91,7 @@ export default function WhatsAppSettings() {
           disabled={loading}
           className="rounded-xl border-white/10 hover:bg-white/5"
         >
-          <RefreshCw className={cn('w-4 h-4 mr-2', loading && 'animate-spin')} />
-          Sincronizar
+          <RefreshCw className={cn('w-4 h-4 mr-2', loading && 'animate-spin')} /> Sincronizar
         </Button>
       </div>
 
@@ -102,8 +110,7 @@ export default function WhatsAppSettings() {
                   key={instance.slotId}
                   onClick={() => setSelectedInstance(instance)}
                   className={cn(
-                    'group relative p-6 rounded-2xl bg-card/50 backdrop-blur-sm cursor-pointer transition-all duration-300 hover:bg-card/80 hover:-translate-y-1',
-                    'border',
+                    'group relative p-6 rounded-2xl bg-card/50 backdrop-blur-sm cursor-pointer transition-all duration-300 hover:bg-card/80 hover:-translate-y-1 border',
                     display.border,
                   )}
                 >
@@ -129,8 +136,12 @@ export default function WhatsAppSettings() {
                     >
                       {instance.instanceName || 'Vazio'}
                     </h3>
+                    {instance.phoneNumber && instance.status !== 'empty' && (
+                      <p className="text-sm text-muted-foreground mt-1 truncate">
+                        {instance.phoneNumber}
+                      </p>
+                    )}
                   </div>
-
                   {instance.status === 'disconnected' && (
                     <div className="absolute inset-0 rounded-2xl bg-gradient-to-t from-background/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end justify-center pb-6">
                       <span className="text-sm font-medium text-amber-400 drop-shadow-md">
@@ -149,7 +160,6 @@ export default function WhatsAppSettings() {
               )
             })}
       </div>
-
       <WhatsAppModal
         instance={selectedInstance}
         open={!!selectedInstance}
