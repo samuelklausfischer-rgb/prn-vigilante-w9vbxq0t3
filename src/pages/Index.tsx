@@ -5,7 +5,7 @@ import { QueueList } from '@/components/QueueList'
 import { EditModal } from '@/components/EditModal'
 import { PatientQueue } from '@/types'
 import { useToast } from '@/hooks/use-toast'
-import { Send, Clock, Layers, Loader2 } from 'lucide-react'
+import { Send, Clock, Layers, Loader2, Activity } from 'lucide-react'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -32,7 +32,7 @@ export default function Index() {
     if (success) {
       toast({
         title: !current ? 'Envio Liberado' : 'Envio Retido',
-        description: 'Status atualizado com sucesso.',
+        description: 'Status atualizado no sistema central.',
       })
     }
   }
@@ -40,7 +40,10 @@ export default function Index() {
   const handleSaveEdit = async (id: string, updates: Partial<PatientQueue>) => {
     const success = await updateQueueItem(id, updates)
     if (success) {
-      toast({ title: 'Mensagem Atualizada', description: 'As modificações foram salvas na fila.' })
+      toast({
+        title: 'Parâmetros Atualizados',
+        description: 'As modificações foram aplicadas ao lote.',
+      })
     }
   }
 
@@ -48,12 +51,12 @@ export default function Index() {
     if (!cancelId) return
     const success = await updateQueueItem(cancelId, {
       status: 'cancelled',
-      notes: 'Cancelado pelo operador via painel',
+      notes: 'Cancelado pelo operador via painel de controle.',
     })
     if (success) {
       toast({
-        title: 'Envio Cancelado',
-        description: 'A mensagem foi movida para o arquivo morto.',
+        title: 'Operação Abortada',
+        description: 'O envio foi permanentemente suspenso e arquivado.',
       })
     }
     setCancelId(null)
@@ -68,36 +71,47 @@ export default function Index() {
   }
 
   return (
-    <div className="space-y-8 animate-fade-in-up">
+    <div className="space-y-8 animate-fade-in-up pb-12">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <StatCard
-          title="Fila de Espera"
+          title="Volume em Espera"
           value={pendingCount.toString()}
           icon={<Layers className="w-6 h-6" />}
-          trend={pendingCount > 10 ? 'Alto volume' : 'Normal'}
+          trend={pendingCount > 10 ? 'Alto tráfego' : 'Estável'}
           trendUp={false}
           alert={pendingCount > 50}
         />
         <StatCard
-          title="Processando Agora"
+          title="Execução Ativa"
           value={sendingCount.toString()}
-          icon={<Send className="w-6 h-6" />}
-          className="border-blue-500/20 bg-blue-500/5"
+          icon={<Activity className="w-6 h-6" />}
+          className="border-blue-500/20 bg-blue-500/5 shadow-[0_0_30px_rgba(59,130,246,0.1)]"
         />
         <StatCard
-          title="Cadência de Segurança"
+          title="Cadência do Sistema"
           value={`${config?.safe_cadence_delay || 0}s`}
           icon={<Clock className="w-6 h-6" />}
-          trend="Delay entre disparos"
+          trend="Delay de segurança"
           trendUp={true}
         />
       </div>
 
-      <div className="space-y-4">
+      <div className="space-y-6">
         <div className="flex items-center justify-between">
-          <h2 className="text-xl font-heading font-semibold">Painel de Triagem</h2>
-          <span className="text-xs text-muted-foreground bg-card px-3 py-1 rounded-full border border-white/5">
-            Atualização em tempo real
+          <div className="space-y-1">
+            <h2 className="text-2xl font-heading font-semibold tracking-tight text-slate-100">
+              Supervisão de Lotes
+            </h2>
+            <p className="text-sm text-muted-foreground">
+              Monitoramento e controle granular de procedimentos agendados.
+            </p>
+          </div>
+          <span className="hidden sm:flex items-center gap-2 text-[10px] font-mono text-emerald-400 bg-emerald-400/10 px-3 py-1.5 rounded-full border border-emerald-400/20 uppercase tracking-widest shadow-[0_0_15px_rgba(16,185,129,0.15)]">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+            </span>
+            Sync Ativo
           </span>
         </div>
 
@@ -117,21 +131,25 @@ export default function Index() {
       />
 
       <AlertDialog open={!!cancelId} onOpenChange={(o) => !o && setCancelId(null)}>
-        <AlertDialogContent className="bg-card rounded-2xl border-red-500/20">
+        <AlertDialogContent className="bg-[#0f1115] rounded-2xl border-red-500/30 shadow-[0_0_40px_rgba(239,68,68,0.15)]">
           <AlertDialogHeader>
-            <AlertDialogTitle>Cancelar Envio Definitivamente?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Esta ação removerá a mensagem da fila ativa e a enviará para o Arquivo Morto com
-              status "Cancelado". Esta ação não pode ser desfeita automaticamente.
+            <AlertDialogTitle className="font-heading text-xl">
+              Abortar Envio Definitivamente?
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-slate-400">
+              Esta ação removerá a mensagem da fila ativa e a enviará para o histórico com status
+              "Cancelado". Os dados não serão transmitidos ao paciente.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel className="rounded-xl">Voltar</AlertDialogCancel>
+          <AlertDialogFooter className="mt-4">
+            <AlertDialogCancel className="rounded-xl border-white/10 hover:bg-white/5">
+              Manter na Fila
+            </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleConfirmCancel}
-              className="bg-red-600 hover:bg-red-700 rounded-xl"
+              className="bg-red-500/20 text-red-500 hover:bg-red-500/30 border border-red-500/50 rounded-xl"
             >
-              Sim, Cancelar Envio
+              Sim, Abortar
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

@@ -12,6 +12,9 @@ export interface PatientQueue {
   created_at: string
   updated_at: string
   queue_order: number | null
+  Data_nascimento?: string | null
+  procedimentos?: string | null
+  time_proce?: string | null
 }
 
 export interface SystemConfig {

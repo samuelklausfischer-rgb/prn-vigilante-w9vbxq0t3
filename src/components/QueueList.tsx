@@ -3,6 +3,7 @@ import { PatientQueue } from '@/types'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import {
   MessageSquare,
   AlertCircle,
@@ -12,6 +13,10 @@ import {
   Phone,
   Send,
   GripVertical,
+  Calendar,
+  Stethoscope,
+  Info,
+  CheckCircle2,
 } from 'lucide-react'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
@@ -37,6 +42,18 @@ function IconBrandWhatsapp({ className, ...props }: React.ComponentProps<'svg'>)
   )
 }
 
+const formatDOB = (dateStr?: string | null) => {
+  if (!dateStr) return '--/--/----'
+  const parts = dateStr.split('-')
+  if (parts.length === 3) return `${parts[2]}/${parts[1]}/${parts[0]}`
+  return dateStr
+}
+
+const formatTimeStr = (timeStr?: string | null) => {
+  if (!timeStr) return '--:--'
+  return timeStr.substring(0, 5)
+}
+
 interface QueueListProps {
   items: PatientQueue[]
   onToggleApprove: (id: string, current: boolean) => void
@@ -51,7 +68,6 @@ export function QueueList({ items, onToggleApprove, onEdit, onCancel }: QueueLis
   const [isDragging, setIsDragging] = useState(false)
 
   useEffect(() => {
-    // Only update from props when not dragging to prevent jank from Realtime events
     if (!isDragging) {
       setLocalItems(items)
     }
@@ -62,10 +78,9 @@ export function QueueList({ items, onToggleApprove, onEdit, onCancel }: QueueLis
     setIsDragging(true)
     e.dataTransfer.effectAllowed = 'move'
 
-    // Delay class addition slightly so the drag image looks normal
     setTimeout(() => {
       const el = document.getElementById(`queue-item-${localItems[position].id}`)
-      if (el) el.classList.add('opacity-50', 'scale-[0.98]')
+      if (el) el.classList.add('opacity-40', 'scale-[0.98]')
     }, 0)
   }
 
@@ -78,7 +93,6 @@ export function QueueList({ items, onToggleApprove, onEdit, onCancel }: QueueLis
       const draggedItem = newList[dragItem.current]
       const targetItem = newList[position]
 
-      // Allow dragging and reordering only between queued items
       if (draggedItem.status === 'queued' && targetItem.status === 'queued') {
         newList.splice(dragItem.current, 1)
         newList.splice(position, 0, draggedItem)
@@ -91,14 +105,13 @@ export function QueueList({ items, onToggleApprove, onEdit, onCancel }: QueueLis
   const handleDragEnd = async () => {
     if (dragItem.current !== null) {
       const el = document.getElementById(`queue-item-${localItems[dragItem.current].id}`)
-      if (el) el.classList.remove('opacity-50', 'scale-[0.98]')
+      if (el) el.classList.remove('opacity-40', 'scale-[0.98]')
     }
 
     dragItem.current = null
     dragOverItem.current = null
     setIsDragging(false)
 
-    // Save strictly the explicit new order for the queued items back to the database
     const queuedItems = localItems.filter((i) => i.status === 'queued')
     const updates = queuedItems.map((item, index) => ({
       id: item.id,
@@ -113,22 +126,53 @@ export function QueueList({ items, onToggleApprove, onEdit, onCancel }: QueueLis
   const getStatusConfig = (status: string) => {
     switch (status) {
       case 'queued':
-        return { icon: Clock, color: 'text-amber-500', bg: 'bg-amber-500/10', label: 'Na Fila' }
+        return {
+          color: 'text-amber-400',
+          bg: 'bg-amber-400/10',
+          border: 'border-amber-400/20',
+          dot: 'bg-amber-400',
+          label: 'Aguardando',
+        }
       case 'sending':
-        return { icon: Send, color: 'text-blue-500', bg: 'bg-blue-500/10', label: 'Enviando...' }
+        return {
+          color: 'text-blue-400',
+          bg: 'bg-blue-400/10',
+          border: 'border-blue-400/20',
+          dot: 'bg-blue-400 animate-pulse',
+          label: 'Processando',
+        }
       case 'delivered':
         return {
-          icon: MessageSquare,
-          color: 'text-emerald-500',
-          bg: 'bg-emerald-500/10',
+          color: 'text-emerald-400',
+          bg: 'bg-emerald-400/10',
+          border: 'border-emerald-400/20',
+          dot: 'bg-emerald-400',
           label: 'Entregue',
         }
       case 'failed':
-        return { icon: AlertCircle, color: 'text-red-500', bg: 'bg-red-500/10', label: 'Falhou' }
+        return {
+          color: 'text-red-400',
+          bg: 'bg-red-400/10',
+          border: 'border-red-400/20',
+          dot: 'bg-red-400',
+          label: 'Falha',
+        }
       case 'cancelled':
-        return { icon: Ban, color: 'text-slate-500', bg: 'bg-slate-500/10', label: 'Cancelado' }
+        return {
+          color: 'text-slate-400',
+          bg: 'bg-slate-400/10',
+          border: 'border-slate-400/20',
+          dot: 'bg-slate-400',
+          label: 'Cancelado',
+        }
       default:
-        return { icon: Clock, color: 'text-slate-500', bg: 'bg-slate-500/10', label: status }
+        return {
+          color: 'text-slate-400',
+          bg: 'bg-slate-400/10',
+          border: 'border-slate-400/20',
+          dot: 'bg-slate-400',
+          label: status,
+        }
     }
   }
 
@@ -141,20 +185,19 @@ export function QueueList({ items, onToggleApprove, onEdit, onCancel }: QueueLis
 
   if (localItems.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-20 text-center text-muted-foreground border border-dashed border-white/10 rounded-2xl">
+      <div className="flex flex-col items-center justify-center py-20 text-center text-muted-foreground border border-dashed border-white/10 rounded-3xl bg-card/20 backdrop-blur-sm">
         <MessageSquare className="w-12 h-12 mb-4 opacity-20" />
-        <p className="font-heading text-lg">Nenhuma mensagem nesta fila.</p>
-        <p className="text-sm">Aproveite, a operação está em dia.</p>
+        <p className="font-heading text-lg">Central de Envios Vazia</p>
+        <p className="text-sm">Nenhum paciente aguardando processamento no momento.</p>
       </div>
     )
   }
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
       {localItems.map((item, index) => {
         const isNext = index === firstQueuedIndex
-        const config = getStatusConfig(item.status)
-        const Icon = config.icon
+        const statusCfg = getStatusConfig(item.status)
         const isEditable = item.status === 'queued'
 
         return (
@@ -167,122 +210,182 @@ export function QueueList({ items, onToggleApprove, onEdit, onCancel }: QueueLis
             onDragEnd={handleDragEnd}
             onDragOver={(e) => e.preventDefault()}
             className={cn(
-              'group flex flex-col md:flex-row items-start md:items-center gap-4 p-4 rounded-2xl transition-all duration-300',
+              'group relative flex flex-col lg:flex-row items-stretch gap-0 rounded-2xl transition-all duration-300',
               !isDragging && 'animate-fade-in-up',
-              'bg-card/50 border backdrop-blur-sm',
-              isEditable ? 'cursor-grab active:cursor-grabbing hover:bg-card/80' : '',
+              'bg-[#0f1115]/80 backdrop-blur-xl border overflow-hidden',
+              isEditable ? 'cursor-grab active:cursor-grabbing hover:bg-[#15181e]/90' : '',
               isNext
-                ? 'border-amber-500/30 shadow-[0_0_15px_rgba(245,158,11,0.1)]'
-                : 'border-white/5 hover:border-white/10',
+                ? 'border-amber-500/40 shadow-[0_0_20px_rgba(245,158,11,0.15)] z-10'
+                : 'border-white/5 hover:border-white/15',
             )}
-            style={{ animationDelay: !isDragging ? `${index * 50}ms` : '0ms' }}
+            style={{ animationDelay: !isDragging ? `${index * 40}ms` : '0ms' }}
           >
+            {/* Drag Handle Area */}
             {isEditable && (
-              <div
-                className="flex items-center justify-center cursor-grab active:cursor-grabbing text-muted-foreground/30 hover:text-foreground/80 transition-colors shrink-0 py-2 -ml-2 pl-2 md:pl-0 md:mr-2"
-                title="Arraste para reordenar"
-              >
-                <GripVertical className="w-5 h-5" />
+              <div className="hidden lg:flex w-8 items-center justify-center bg-black/20 border-r border-white/5 group-hover:bg-white/5 transition-colors">
+                <GripVertical className="w-4 h-4 text-white/20 group-hover:text-white/60" />
               </div>
             )}
-            {/* Status & Patient Info */}
-            <div className="flex-1 min-w-0 flex items-start gap-4 w-full">
-              <div className={cn('p-2.5 rounded-xl shrink-0', config.bg, config.color)}>
-                <Icon className="w-5 h-5" />
-              </div>
-              <div className="flex-1 min-w-0 space-y-1">
-                <div className="flex items-center gap-2">
-                  <h4 className="font-medium text-foreground truncate">{item.patient_name}</h4>
-                  {isNext && (
-                    <Badge
-                      variant="outline"
-                      className="bg-amber-500/10 text-amber-500 border-amber-500/20 text-[10px] px-1.5 animate-pulse-soft"
-                    >
-                      🔜 Próximo
-                    </Badge>
-                  )}
-                </div>
-                <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                  <span className="flex items-center gap-1">
-                    <Phone className="w-3 h-3" /> {item.phone_number}
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <Clock className="w-3 h-3" />{' '}
-                    {format(new Date(item.send_after), "dd/MM 'às' HH:mm", { locale: ptBR })}
-                  </span>
-                </div>
-                <p className="text-xs text-muted-foreground line-clamp-1 italic mt-1.5 opacity-80 border-l-2 border-white/10 pl-2">
-                  "{item.message_body}"
-                </p>
-                {item.notes && (
-                  <p className="text-xs text-blue-400/80 line-clamp-1 mt-1">Nota: {item.notes}</p>
+
+            <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-6 p-5">
+              {/* Profile Section */}
+              <div className="lg:col-span-4 flex flex-col justify-center space-y-2.5 relative lg:pr-6 lg:border-r border-white/5 pb-4 lg:pb-0 border-b lg:border-b-0">
+                {isNext && (
+                  <Badge className="absolute -top-1 -right-2 bg-amber-500/20 text-amber-500 border-amber-500/30 text-[9px] px-1.5 py-0 uppercase tracking-wider animate-pulse">
+                    Próximo da Fila
+                  </Badge>
                 )}
+                <h4 className="font-heading font-semibold text-base text-foreground truncate">
+                  {item.patient_name}
+                </h4>
+                <div className="flex items-center gap-4 text-xs text-muted-foreground font-mono">
+                  <div className="flex items-center gap-1.5">
+                    <Phone className="w-3.5 h-3.5 text-blue-400/70" />
+                    {item.phone_number}
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <Calendar className="w-3.5 h-3.5 text-emerald-400/70" />
+                    {formatDOB(item.Data_nascimento)}
+                  </div>
+                </div>
               </div>
-            </div>
 
-            {/* Actions */}
-            <div className="flex items-center gap-3 w-full md:w-auto mt-4 md:mt-0 pt-4 md:pt-0 border-t md:border-t-0 border-white/5 shrink-0 justify-between md:justify-end">
-              <div className="flex items-center gap-2 mr-auto md:mr-4">
-                <Switch
-                  checked={item.is_approved}
-                  onCheckedChange={(checked) => {
-                    // Optimistic update for immediate visual feedback
-                    setLocalItems((prev) =>
-                      prev.map((i) => (i.id === item.id ? { ...i, is_approved: checked } : i)),
-                    )
-                    onToggleApprove(item.id, item.is_approved)
-                  }}
-                  disabled={!isEditable}
-                  className={cn('data-[state=checked]:bg-emerald-500')}
-                />
-                <span className="text-xs font-medium w-16">
-                  {item.is_approved ? (
-                    <span className="text-emerald-500">Liberado</span>
-                  ) : (
-                    <span className="text-amber-500">Retido</span>
+              {/* Procedure Section */}
+              <div className="lg:col-span-4 flex flex-col justify-center space-y-2 lg:pr-6 lg:border-r border-white/5 pb-4 lg:pb-0 border-b lg:border-b-0">
+                <div className="flex items-center gap-2 text-[10px] uppercase tracking-widest text-muted-foreground/70 font-semibold">
+                  <Stethoscope className="w-3 h-3" /> Detalhes Médicos
+                </div>
+                <div className="text-sm font-medium text-slate-200 line-clamp-1">
+                  {item.procedimentos || (
+                    <span className="text-slate-500 italic font-normal">Não informado</span>
                   )}
-                </span>
+                </div>
+                <div className="flex items-center gap-2 text-xs font-mono">
+                  <Clock className="w-3.5 h-3.5 text-amber-400/70" />
+                  <span className="text-muted-foreground">Agendado:</span>
+                  <span className="text-amber-400/90">{formatTimeStr(item.time_proce)}</span>
+                </div>
               </div>
 
-              <div className="flex gap-1 bg-black/20 p-1 rounded-xl border border-white/5 shadow-inner">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 text-emerald-400 hover:text-emerald-300 hover:bg-emerald-500/10"
-                  asChild
-                >
-                  <a
-                    href={getWhatsAppLink(item.phone_number)}
-                    target="_blank"
-                    rel="noreferrer"
-                    title="Abrir WhatsApp"
+              {/* Execution Section */}
+              <div className="lg:col-span-4 flex flex-col justify-between space-y-3">
+                <div className="flex items-center justify-between">
+                  <div
+                    className={cn(
+                      'flex items-center gap-2 px-2.5 py-1 rounded-full border text-[11px] font-medium tracking-wide uppercase',
+                      statusCfg.bg,
+                      statusCfg.border,
+                      statusCfg.color,
+                    )}
                   >
-                    <IconBrandWhatsapp className="w-4 h-4" />
-                  </a>
-                </Button>
+                    <div className={cn('w-1.5 h-1.5 rounded-full', statusCfg.dot)} />
+                    {statusCfg.label}
+                  </div>
 
-                {isEditable && (
-                  <>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground/70">
+                      {item.is_approved ? 'Liberado' : 'Retido'}
+                    </span>
+                    <Switch
+                      checked={item.is_approved}
+                      onCheckedChange={(checked) => {
+                        setLocalItems((prev) =>
+                          prev.map((i) => (i.id === item.id ? { ...i, is_approved: checked } : i)),
+                        )
+                        onToggleApprove(item.id, item.is_approved)
+                      }}
+                      disabled={!isEditable}
+                      className={cn(
+                        'h-5 w-9 data-[state=checked]:bg-emerald-500 data-[state=unchecked]:bg-slate-700',
+                      )}
+                    />
+                  </div>
+                </div>
+
+                <div className="flex items-end justify-between">
+                  <div className="space-y-1">
+                    <div className="text-[10px] text-muted-foreground uppercase tracking-wider">
+                      Disparo Programado
+                    </div>
+                    <div className="text-xs font-mono text-slate-300">
+                      {format(new Date(item.send_after), "dd/MM '—' HH:mm", { locale: ptBR })}
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-1.5 bg-black/40 p-1 rounded-xl border border-white/5">
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7 text-slate-400 hover:text-blue-400 hover:bg-blue-400/10"
+                        >
+                          <Info className="w-3.5 h-3.5" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent
+                        side="top"
+                        className="max-w-xs bg-slate-900 border-white/10 text-slate-300 p-3 space-y-2"
+                      >
+                        <div>
+                          <p className="text-[10px] text-muted-foreground uppercase mb-1">
+                            Corpo da Mensagem
+                          </p>
+                          <p className="text-xs italic border-l-2 border-white/10 pl-2">
+                            "{item.message_body}"
+                          </p>
+                        </div>
+                        {item.notes && (
+                          <div>
+                            <p className="text-[10px] text-muted-foreground uppercase mb-1">
+                              Notas
+                            </p>
+                            <p className="text-xs text-blue-300">{item.notes}</p>
+                          </div>
+                        )}
+                      </TooltipContent>
+                    </Tooltip>
+
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-8 w-8 hover:bg-white/10"
-                      onClick={() => onEdit(item)}
-                      title="Editar"
+                      className="h-7 w-7 text-emerald-400/70 hover:text-emerald-400 hover:bg-emerald-400/10"
+                      asChild
                     >
-                      <Edit2 className="w-4 h-4" />
+                      <a
+                        href={getWhatsAppLink(item.phone_number)}
+                        target="_blank"
+                        rel="noreferrer"
+                        title="Abrir no WhatsApp"
+                      >
+                        <IconBrandWhatsapp className="w-3.5 h-3.5" />
+                      </a>
                     </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 text-red-400 hover:text-red-300 hover:bg-red-500/10"
-                      onClick={() => onCancel(item.id)}
-                      title="Cancelar Envio"
-                    >
-                      <Ban className="w-4 h-4" />
-                    </Button>
-                  </>
-                )}
+
+                    {isEditable && (
+                      <>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7 text-slate-400 hover:text-white hover:bg-white/10"
+                          onClick={() => onEdit(item)}
+                          title="Editar/Intervir"
+                        >
+                          <Edit2 className="w-3.5 h-3.5" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7 text-red-400/70 hover:text-red-400 hover:bg-red-400/10"
+                          onClick={() => onCancel(item.id)}
+                          title="Cancelar Envio Definitivamente"
+                        >
+                          <Ban className="w-3.5 h-3.5" />
+                        </Button>
+                      </>
+                    )}
+                  </div>
+                </div>
               </div>
             </div>
           </div>
