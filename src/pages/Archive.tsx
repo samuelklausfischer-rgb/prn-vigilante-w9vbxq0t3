@@ -1,7 +1,15 @@
 import { useState, useEffect } from 'react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuTrigger,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+} from '@/components/ui/dropdown-menu'
 import {
   Search,
   Loader2,
@@ -12,6 +20,7 @@ import {
   Clock,
   Send,
   FilterX,
+  ListFilter,
 } from 'lucide-react'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
@@ -21,6 +30,94 @@ import { DatePickerWithRange } from '@/components/ui/date-picker-with-range'
 import { DateRange } from 'react-day-picker'
 import { useToast } from '@/hooks/use-toast'
 import { useDebounce } from '@/hooks/use-debounce'
+import { cn } from '@/lib/utils'
+
+const STATUS_OPTIONS = [
+  {
+    value: 'all',
+    label: 'Todos os Status',
+    icon: ListFilter,
+    style: {
+      trigger: 'border-white/10 bg-background/50 hover:bg-white/5 text-foreground',
+      icon: 'text-muted-foreground',
+    },
+  },
+  {
+    value: 'queued',
+    label: 'Na Fila',
+    icon: Clock,
+    style: {
+      trigger: 'border-blue-500/30 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400',
+      icon: 'text-blue-400',
+    },
+  },
+  {
+    value: 'sending',
+    label: 'Enviando',
+    icon: Send,
+    style: {
+      trigger: 'border-amber-500/30 bg-amber-500/10 hover:bg-amber-500/20 text-amber-400',
+      icon: 'text-amber-400',
+    },
+  },
+  {
+    value: 'delivered',
+    label: 'Entregue',
+    icon: CheckCircle2,
+    style: {
+      trigger: 'border-emerald-500/30 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400',
+      icon: 'text-emerald-400',
+    },
+  },
+  {
+    value: 'failed',
+    label: 'Falha',
+    icon: AlertCircle,
+    style: {
+      trigger: 'border-red-500/30 bg-red-500/10 hover:bg-red-500/20 text-red-400',
+      icon: 'text-red-400',
+    },
+  },
+  {
+    value: 'cancelled',
+    label: 'Cancelado',
+    icon: Ban,
+    style: {
+      trigger: 'border-slate-500/30 bg-slate-500/10 hover:bg-slate-500/20 text-slate-300',
+      icon: 'text-slate-400',
+    },
+  },
+]
+
+const APPROVAL_OPTIONS = [
+  {
+    value: 'all',
+    label: 'Todas as Aprovações',
+    icon: ListFilter,
+    style: {
+      trigger: 'border-white/10 bg-background/50 hover:bg-white/5 text-foreground',
+      icon: 'text-muted-foreground',
+    },
+  },
+  {
+    value: 'approved',
+    label: 'Aprovados',
+    icon: CheckCircle2,
+    style: {
+      trigger: 'border-emerald-500/30 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400',
+      icon: 'text-emerald-400',
+    },
+  },
+  {
+    value: 'pending',
+    label: 'Pendentes',
+    icon: Clock,
+    style: {
+      trigger: 'border-amber-500/30 bg-amber-500/10 hover:bg-amber-500/20 text-amber-400',
+      icon: 'text-amber-400',
+    },
+  },
+]
 
 const getStatusBadge = (s: string) => {
   const badges: Record<string, JSX.Element> = {
@@ -102,6 +199,8 @@ export default function Archive() {
 
   const hasFilters =
     search !== '' || dateRange !== undefined || status !== 'all' || approval !== 'all'
+  const activeStatus = STATUS_OPTIONS.find((o) => o.value === status) || STATUS_OPTIONS[0]
+  const activeApproval = APPROVAL_OPTIONS.find((o) => o.value === approval) || APPROVAL_OPTIONS[0]
 
   return (
     <div className="space-y-6 animate-fade-in-up">
@@ -112,7 +211,7 @@ export default function Archive() {
         </p>
       </div>
 
-      <div className="bg-card/50 p-5 rounded-2xl border border-white/5 backdrop-blur-md shadow-sm space-y-5 transition-all">
+      <div className="bg-card/50 p-4 rounded-2xl border border-white/5 backdrop-blur-md shadow-sm space-y-4 transition-all">
         <div className="flex flex-col md:flex-row gap-3">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -132,103 +231,91 @@ export default function Archive() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-          <div className="lg:col-span-2 space-y-2">
-            <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider ml-1">
-              Status de Envio
-            </label>
-            <div className="bg-background/40 p-1.5 rounded-xl border border-white/5 overflow-x-auto hide-scrollbar">
-              <ToggleGroup
-                type="single"
-                value={status}
-                onValueChange={(v) => {
-                  if (v) setStatus(v)
-                }}
-                className="justify-start gap-1 min-w-max"
+        <div className="flex flex-wrap items-center gap-2">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="outline"
+                className={cn(
+                  'h-10 rounded-xl border-dashed transition-all duration-300',
+                  activeStatus.style.trigger,
+                )}
               >
-                <ToggleGroupItem
-                  value="all"
-                  className="h-9 rounded-lg px-4 text-sm font-medium data-[state=on]:bg-white/10 data-[state=on]:text-white transition-all hover:bg-white/5"
-                >
-                  Todos
-                </ToggleGroupItem>
-                <ToggleGroupItem
-                  value="queued"
-                  className="h-9 rounded-lg px-4 text-sm font-medium data-[state=on]:bg-blue-500/20 data-[state=on]:text-blue-400 transition-all hover:bg-white/5"
-                >
-                  <Clock className="w-3.5 h-3.5 mr-2" /> Na Fila
-                </ToggleGroupItem>
-                <ToggleGroupItem
-                  value="sending"
-                  className="h-9 rounded-lg px-4 text-sm font-medium data-[state=on]:bg-amber-500/20 data-[state=on]:text-amber-400 transition-all hover:bg-white/5"
-                >
-                  <Send className="w-3.5 h-3.5 mr-2" /> Enviando
-                </ToggleGroupItem>
-                <ToggleGroupItem
-                  value="delivered"
-                  className="h-9 rounded-lg px-4 text-sm font-medium data-[state=on]:bg-emerald-500/20 data-[state=on]:text-emerald-400 transition-all hover:bg-white/5"
-                >
-                  <CheckCircle2 className="w-3.5 h-3.5 mr-2" /> Entregue
-                </ToggleGroupItem>
-                <ToggleGroupItem
-                  value="failed"
-                  className="h-9 rounded-lg px-4 text-sm font-medium data-[state=on]:bg-red-500/20 data-[state=on]:text-red-400 transition-all hover:bg-white/5"
-                >
-                  <AlertCircle className="w-3.5 h-3.5 mr-2" /> Falha
-                </ToggleGroupItem>
-                <ToggleGroupItem
-                  value="cancelled"
-                  className="h-9 rounded-lg px-4 text-sm font-medium data-[state=on]:bg-slate-500/20 data-[state=on]:text-slate-300 transition-all hover:bg-white/5"
-                >
-                  <Ban className="w-3.5 h-3.5 mr-2" /> Cancelado
-                </ToggleGroupItem>
-              </ToggleGroup>
-            </div>
-          </div>
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider ml-1">
-                Aprovação
-              </label>
-              {hasFilters && (
-                <button
-                  onClick={clearFilters}
-                  className="text-xs flex items-center text-muted-foreground hover:text-white transition-colors"
-                >
-                  <FilterX className="w-3 h-3 mr-1" /> Limpar
-                </button>
-              )}
-            </div>
-            <div className="bg-background/40 p-1.5 rounded-xl border border-white/5 overflow-x-auto hide-scrollbar">
-              <ToggleGroup
-                type="single"
-                value={approval}
-                onValueChange={(v) => {
-                  if (v) setApproval(v)
-                }}
-                className="justify-start gap-1 min-w-max"
+                <activeStatus.icon className={cn('w-4 h-4 mr-2', activeStatus.style.icon)} />
+                <span className="font-medium mr-1 opacity-70">Status:</span>
+                <span className="font-semibold">{activeStatus.label}</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent
+              align="start"
+              className="w-[200px] rounded-xl border-white/10 bg-card/95 backdrop-blur-xl shadow-xl"
+            >
+              <DropdownMenuLabel className="text-xs text-muted-foreground uppercase font-medium tracking-wider">
+                Filtrar por Status
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator className="bg-white/5" />
+              <DropdownMenuRadioGroup value={status} onValueChange={setStatus}>
+                {STATUS_OPTIONS.map((opt) => (
+                  <DropdownMenuRadioItem
+                    key={opt.value}
+                    value={opt.value}
+                    className="rounded-lg cursor-pointer focus:bg-white/10 transition-colors py-2"
+                  >
+                    <opt.icon className={cn('w-4 h-4 mr-2', opt.style.icon)} />
+                    {opt.label}
+                  </DropdownMenuRadioItem>
+                ))}
+              </DropdownMenuRadioGroup>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="outline"
+                className={cn(
+                  'h-10 rounded-xl border-dashed transition-all duration-300',
+                  activeApproval.style.trigger,
+                )}
               >
-                <ToggleGroupItem
-                  value="all"
-                  className="h-9 rounded-lg px-4 text-sm font-medium data-[state=on]:bg-white/10 data-[state=on]:text-white transition-all hover:bg-white/5"
-                >
-                  Todas
-                </ToggleGroupItem>
-                <ToggleGroupItem
-                  value="approved"
-                  className="h-9 rounded-lg px-4 text-sm font-medium data-[state=on]:bg-emerald-500/20 data-[state=on]:text-emerald-400 transition-all hover:bg-white/5"
-                >
-                  Aprovados
-                </ToggleGroupItem>
-                <ToggleGroupItem
-                  value="pending"
-                  className="h-9 rounded-lg px-4 text-sm font-medium data-[state=on]:bg-amber-500/20 data-[state=on]:text-amber-400 transition-all hover:bg-white/5"
-                >
-                  Pendentes
-                </ToggleGroupItem>
-              </ToggleGroup>
-            </div>
-          </div>
+                <activeApproval.icon className={cn('w-4 h-4 mr-2', activeApproval.style.icon)} />
+                <span className="font-medium mr-1 opacity-70">Aprovação:</span>
+                <span className="font-semibold">{activeApproval.label}</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent
+              align="start"
+              className="w-[220px] rounded-xl border-white/10 bg-card/95 backdrop-blur-xl shadow-xl"
+            >
+              <DropdownMenuLabel className="text-xs text-muted-foreground uppercase font-medium tracking-wider">
+                Filtrar por Aprovação
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator className="bg-white/5" />
+              <DropdownMenuRadioGroup value={approval} onValueChange={setApproval}>
+                {APPROVAL_OPTIONS.map((opt) => (
+                  <DropdownMenuRadioItem
+                    key={opt.value}
+                    value={opt.value}
+                    className="rounded-lg cursor-pointer focus:bg-white/10 transition-colors py-2"
+                  >
+                    <opt.icon className={cn('w-4 h-4 mr-2', opt.style.icon)} />
+                    {opt.label}
+                  </DropdownMenuRadioItem>
+                ))}
+              </DropdownMenuRadioGroup>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          {hasFilters && (
+            <Button
+              variant="ghost"
+              onClick={clearFilters}
+              className="h-10 rounded-xl text-muted-foreground hover:text-white hover:bg-white/5 transition-all ml-auto sm:ml-0"
+            >
+              <FilterX className="w-4 h-4 mr-2" />
+              Limpar
+            </Button>
+          )}
         </div>
       </div>
 
