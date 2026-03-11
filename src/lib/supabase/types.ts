@@ -72,6 +72,36 @@ export type Database = {
         }
         Relationships: []
       }
+      whatsapp_instances: {
+        Row: {
+          created_at: string
+          id: string
+          instance_name: string | null
+          phone_number: string | null
+          slot_id: number
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          instance_name?: string | null
+          phone_number?: string | null
+          slot_id: number
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          instance_name?: string | null
+          phone_number?: string | null
+          slot_id?: number
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -238,6 +268,14 @@ export const Constants = {
 //   is_paused: boolean (not null, default: false)
 //   safe_cadence_delay: integer (not null, default: 30)
 //   updated_at: timestamp with time zone (not null, default: now())
+// Table: whatsapp_instances
+//   id: uuid (not null, default: gen_random_uuid())
+//   slot_id: integer (not null)
+//   instance_name: text (nullable)
+//   phone_number: text (nullable)
+//   status: text (not null, default: 'empty'::text)
+//   created_at: timestamp with time zone (not null, default: now())
+//   updated_at: timestamp with time zone (not null, default: now())
 
 // --- CONSTRAINTS ---
 // Table: patients_queue
@@ -245,6 +283,9 @@ export const Constants = {
 // Table: system_config
 //   CHECK system_config_id_check: CHECK ((id = 1))
 //   PRIMARY KEY system_config_pkey: PRIMARY KEY (id)
+// Table: whatsapp_instances
+//   PRIMARY KEY whatsapp_instances_pkey: PRIMARY KEY (id)
+//   UNIQUE whatsapp_instances_slot_id_key: UNIQUE (slot_id)
 
 // --- ROW LEVEL SECURITY POLICIES ---
 // Table: patients_queue
@@ -252,6 +293,9 @@ export const Constants = {
 //     USING: true
 // Table: system_config
 //   Policy "Allow all authenticated operations on system_config" (ALL, PERMISSIVE) roles={authenticated}
+//     USING: true
+// Table: whatsapp_instances
+//   Policy "Allow all authenticated operations on whatsapp_instances" (ALL, PERMISSIVE) roles={authenticated}
 //     USING: true
 
 // --- DATABASE FUNCTIONS ---
@@ -286,3 +330,7 @@ export const Constants = {
 //   END;
 //   $function$
 //
+
+// --- INDEXES ---
+// Table: whatsapp_instances
+//   CREATE UNIQUE INDEX whatsapp_instances_slot_id_key ON public.whatsapp_instances USING btree (slot_id)
