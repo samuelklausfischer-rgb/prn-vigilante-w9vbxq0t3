@@ -42,9 +42,10 @@ export default function Index() {
     if (success) {
       toast({
         title: 'Parâmetros Atualizados',
-        description: 'As modificações foram aplicadas ao lote.',
+        description: 'As modificações foram aplicadas ao lote do paciente.',
       })
     }
+    return success
   }
 
   const handleConfirmCancel = async () => {
