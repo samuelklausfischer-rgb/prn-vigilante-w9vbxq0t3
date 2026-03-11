@@ -6,6 +6,7 @@ import { AuthProvider, useAuth } from '@/hooks/use-auth'
 import AuthPage from './pages/Auth'
 import Index from './pages/Index'
 import Archive from './pages/Archive'
+import WhatsAppSettings from './pages/WhatsAppSettings'
 import NotFound from './pages/NotFound'
 import Layout from './components/Layout'
 
@@ -35,6 +36,7 @@ const AppRoutes = () => (
     >
       <Route path="/" element={<Index />} />
       <Route path="/arquivo" element={<Archive />} />
+      <Route path="/whatsapp" element={<WhatsAppSettings />} />
     </Route>
     <Route path="*" element={<NotFound />} />
   </Routes>

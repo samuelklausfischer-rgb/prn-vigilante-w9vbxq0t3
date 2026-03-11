@@ -18990,6 +18990,22 @@ var CircleCheck = createLucideIcon("circle-check", [["circle", {
 	d: "m9 12 2 2 4-4",
 	key: "dzmm74"
 }]]);
+var CirclePlus = createLucideIcon("circle-plus", [
+	["circle", {
+		cx: "12",
+		cy: "12",
+		r: "10",
+		key: "1mglay"
+	}],
+	["path", {
+		d: "M8 12h8",
+		key: "1wcyev"
+	}],
+	["path", {
+		d: "M12 8v8",
+		key: "napkw2"
+	}]
+]);
 var Clock = createLucideIcon("clock", [["circle", {
 	cx: "12",
 	cy: "12",
@@ -19136,6 +19152,86 @@ var PowerOff = createLucideIcon("power-off", [
 		key: "1ooewy"
 	}]
 ]);
+var QrCode = createLucideIcon("qr-code", [
+	["rect", {
+		width: "5",
+		height: "5",
+		x: "3",
+		y: "3",
+		rx: "1",
+		key: "1tu5fj"
+	}],
+	["rect", {
+		width: "5",
+		height: "5",
+		x: "16",
+		y: "3",
+		rx: "1",
+		key: "1v8r4q"
+	}],
+	["rect", {
+		width: "5",
+		height: "5",
+		x: "3",
+		y: "16",
+		rx: "1",
+		key: "1x03jg"
+	}],
+	["path", {
+		d: "M21 16h-3a2 2 0 0 0-2 2v3",
+		key: "177gqh"
+	}],
+	["path", {
+		d: "M21 21v.01",
+		key: "ents32"
+	}],
+	["path", {
+		d: "M12 7v3a2 2 0 0 1-2 2H7",
+		key: "8crl2c"
+	}],
+	["path", {
+		d: "M3 12h.01",
+		key: "nlz23k"
+	}],
+	["path", {
+		d: "M12 3h.01",
+		key: "n36tog"
+	}],
+	["path", {
+		d: "M12 16v.01",
+		key: "133mhm"
+	}],
+	["path", {
+		d: "M16 12h1",
+		key: "1slzba"
+	}],
+	["path", {
+		d: "M21 12v.01",
+		key: "1lwtk9"
+	}],
+	["path", {
+		d: "M12 21v-1",
+		key: "1880an"
+	}]
+]);
+var RefreshCw = createLucideIcon("refresh-cw", [
+	["path", {
+		d: "M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8",
+		key: "v9h5vc"
+	}],
+	["path", {
+		d: "M21 3v5h-5",
+		key: "1q7to0"
+	}],
+	["path", {
+		d: "M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16",
+		key: "3uifl3"
+	}],
+	["path", {
+		d: "M8 16H3v5",
+		key: "1cv678"
+	}]
+]);
 var Search = createLucideIcon("search", [["path", {
 	d: "m21 21-4.34-4.34",
 	key: "14j7rj"
@@ -19159,12 +19255,28 @@ var ShieldCheck = createLucideIcon("shield-check", [["path", {
 	d: "m9 12 2 2 4-4",
 	key: "dzmm74"
 }]]);
+var Smartphone = createLucideIcon("smartphone", [["rect", {
+	width: "14",
+	height: "20",
+	x: "5",
+	y: "2",
+	rx: "2",
+	ry: "2",
+	key: "1yt0o3"
+}], ["path", {
+	d: "M12 18h.01",
+	key: "mhygvu"
+}]]);
 var X = createLucideIcon("x", [["path", {
 	d: "M18 6 6 18",
 	key: "1bl5f8"
 }], ["path", {
 	d: "m6 6 12 12",
 	key: "d8bk6v"
+}]]);
+var Zap = createLucideIcon("zap", [["path", {
+	d: "M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z",
+	key: "1xq2db"
 }]]);
 var CLASS_PART_SEPARATOR = "-";
 var createClassGroupUtils = (config) => {
@@ -36464,6 +36576,527 @@ function Archive() {
 		})]
 	});
 }
+var MOCK_INSTANCES = [
+	{
+		slotId: 1,
+		instanceName: "PRN Principal",
+		status: "connected"
+	},
+	{
+		slotId: 2,
+		instanceName: "PRN Marketing",
+		status: "disconnected"
+	},
+	{
+		slotId: 3,
+		instanceName: null,
+		status: "empty"
+	}
+];
+var delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+const evolutionApi = {
+	async getInstances() {
+		await delay(600);
+		return [...MOCK_INSTANCES];
+	},
+	async getQrCode(slotId) {
+		await delay(1500);
+		return `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=evolution-auth-${slotId}-${Date.now()}`;
+	},
+	async disconnect(slotId) {
+		await delay(1200);
+		const instance = MOCK_INSTANCES.find((i) => i.slotId === slotId);
+		if (instance) {
+			instance.status = "disconnected";
+			return true;
+		}
+		return false;
+	},
+	async create(slotId, name) {
+		await delay(800);
+		const instance = MOCK_INSTANCES.find((i) => i.slotId === slotId);
+		if (instance) {
+			instance.instanceName = name;
+			instance.status = "disconnected";
+			return true;
+		}
+		return false;
+	},
+	async simulateScan(slotId) {
+		await delay(1e3);
+		const instance = MOCK_INSTANCES.find((i) => i.slotId === slotId);
+		if (instance) {
+			instance.status = "connected";
+			return true;
+		}
+		return false;
+	}
+};
+function WhatsAppModal({ instance, open, onOpenChange, onRefresh }) {
+	const [loading, setLoading] = (0, import_react.useState)(false);
+	const [qrCodeUrl, setQrCodeUrl] = (0, import_react.useState)(null);
+	const [newInstanceName, setNewInstanceName] = (0, import_react.useState)("");
+	const { toast: toast$2 } = useToast();
+	(0, import_react.useEffect)(() => {
+		if (open && instance?.status === "disconnected") loadQrCode();
+		else {
+			setQrCodeUrl(null);
+			setNewInstanceName("");
+		}
+	}, [open, instance]);
+	const loadQrCode = async () => {
+		if (!instance) return;
+		setLoading(true);
+		try {
+			setQrCodeUrl(await evolutionApi.getQrCode(instance.slotId));
+		} catch (error) {
+			toast$2({
+				title: "Erro",
+				description: "Falha ao buscar QR Code.",
+				variant: "destructive"
+			});
+		} finally {
+			setLoading(false);
+		}
+	};
+	const handleDisconnect = async () => {
+		if (!instance) return;
+		setLoading(true);
+		if (await evolutionApi.disconnect(instance.slotId)) {
+			toast$2({
+				title: "Instância Desconectada",
+				description: "O aparelho foi desvinculado."
+			});
+			await onRefresh();
+		}
+		setLoading(false);
+	};
+	const handleCreate = async () => {
+		if (!instance || !newInstanceName.trim()) return;
+		setLoading(true);
+		if (await evolutionApi.create(instance.slotId, newInstanceName.trim())) {
+			toast$2({
+				title: "Slot Configurado",
+				description: "Aguarde para sincronizar o QR Code."
+			});
+			await onRefresh();
+		}
+		setLoading(false);
+	};
+	const handleSimulateScan = async () => {
+		if (!instance) return;
+		setLoading(true);
+		if (await evolutionApi.simulateScan(instance.slotId)) {
+			toast$2({
+				title: "Sincronização Concluída",
+				description: "WhatsApp conectado com sucesso!"
+			});
+			await onRefresh();
+			onOpenChange(false);
+		}
+		setLoading(false);
+	};
+	if (!instance) return null;
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Dialog, {
+		"data-uid": "src/components/WhatsAppModal.tsx:90:5",
+		"data-prohibitions": "[editContent]",
+		open,
+		onOpenChange: (val) => !loading && onOpenChange(val),
+		children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(DialogContent, {
+			"data-uid": "src/components/WhatsAppModal.tsx:91:7",
+			"data-prohibitions": "[editContent]",
+			className: "sm:max-w-md border-white/10 bg-card rounded-2xl",
+			children: [
+				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(DialogHeader, {
+					"data-uid": "src/components/WhatsAppModal.tsx:92:9",
+					"data-prohibitions": "[editContent]",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(DialogTitle, {
+						"data-uid": "src/components/WhatsAppModal.tsx:93:11",
+						"data-prohibitions": "[editContent]",
+						className: "font-heading flex items-center gap-2",
+						children: [
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Smartphone, {
+								"data-uid": "src/components/WhatsAppModal.tsx:94:13",
+								"data-prohibitions": "[editContent]",
+								className: "w-5 h-5 text-blue-400"
+							}),
+							"Gerenciar Slot ",
+							instance.slotId
+						]
+					}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(DialogDescription, {
+						"data-uid": "src/components/WhatsAppModal.tsx:97:11",
+						"data-prohibitions": "[editContent]",
+						children: instance.instanceName ? `Instância: ${instance.instanceName}` : "Slot Disponível"
+					})]
+				}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					"data-uid": "src/components/WhatsAppModal.tsx:102:9",
+					"data-prohibitions": "[editContent]",
+					className: "py-6 flex flex-col items-center justify-center min-h-[200px]",
+					children: [
+						instance.status === "connected" && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+							"data-uid": "src/components/WhatsAppModal.tsx:104:13",
+							"data-prohibitions": "[]",
+							className: "text-center space-y-4 animate-in fade-in zoom-in duration-300",
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+								"data-uid": "src/components/WhatsAppModal.tsx:105:15",
+								"data-prohibitions": "[]",
+								className: "w-16 h-16 rounded-full bg-emerald-500/10 text-emerald-500 flex items-center justify-center mx-auto",
+								children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CircleCheck, {
+									"data-uid": "src/components/WhatsAppModal.tsx:106:17",
+									"data-prohibitions": "[editContent]",
+									className: "w-8 h-8"
+								})
+							}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+								"data-uid": "src/components/WhatsAppModal.tsx:108:15",
+								"data-prohibitions": "[]",
+								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h3", {
+									"data-uid": "src/components/WhatsAppModal.tsx:109:17",
+									"data-prohibitions": "[]",
+									className: "text-lg font-medium text-foreground",
+									children: "Conexão Ativa"
+								}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+									"data-uid": "src/components/WhatsAppModal.tsx:110:17",
+									"data-prohibitions": "[]",
+									className: "text-sm text-muted-foreground mt-1",
+									children: "Esta instância está conectada e processando mensagens normalmente."
+								})]
+							})]
+						}),
+						instance.status === "disconnected" && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+							"data-uid": "src/components/WhatsAppModal.tsx:118:13",
+							"data-prohibitions": "[editContent]",
+							className: "text-center space-y-4 w-full",
+							children: loading || !qrCodeUrl ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+								"data-uid": "src/components/WhatsAppModal.tsx:120:17",
+								"data-prohibitions": "[]",
+								className: "flex flex-col items-center gap-4 text-muted-foreground",
+								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(LoaderCircle, {
+									"data-uid": "src/components/WhatsAppModal.tsx:121:19",
+									"data-prohibitions": "[editContent]",
+									className: "w-10 h-10 animate-spin text-blue-500"
+								}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+									"data-uid": "src/components/WhatsAppModal.tsx:122:19",
+									"data-prohibitions": "[]",
+									className: "text-sm",
+									children: "Gerando QR Code seguro..."
+								})]
+							}) : /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+								"data-uid": "src/components/WhatsAppModal.tsx:125:17",
+								"data-prohibitions": "[]",
+								className: "space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500",
+								children: [
+									/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+										"data-uid": "src/components/WhatsAppModal.tsx:126:19",
+										"data-prohibitions": "[]",
+										className: "bg-white p-4 rounded-xl inline-block shadow-lg mx-auto border-4 border-white/5",
+										children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("img", {
+											"data-uid": "src/components/WhatsAppModal.tsx:127:21",
+											"data-prohibitions": "[editContent]",
+											src: qrCodeUrl,
+											alt: "WhatsApp QR Code",
+											className: "w-48 h-48 rounded-md"
+										})
+									}),
+									/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+										"data-uid": "src/components/WhatsAppModal.tsx:129:19",
+										"data-prohibitions": "[]",
+										className: "text-sm text-muted-foreground max-w-[280px] mx-auto",
+										children: "Abra o WhatsApp no seu celular, vá em \"Aparelhos conectados\" e aponte a câmera para o código acima."
+									}),
+									/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Button, {
+										"data-uid": "src/components/WhatsAppModal.tsx:133:19",
+										"data-prohibitions": "[]",
+										variant: "ghost",
+										size: "sm",
+										className: "text-blue-400 hover:text-blue-300 mt-2",
+										onClick: handleSimulateScan,
+										disabled: loading,
+										children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Zap, {
+											"data-uid": "src/components/WhatsAppModal.tsx:140:21",
+											"data-prohibitions": "[editContent]",
+											className: "w-4 h-4 mr-2"
+										}), " Simular Leitura (Teste)"]
+									})
+								]
+							})
+						}),
+						instance.status === "empty" && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+							"data-uid": "src/components/WhatsAppModal.tsx:148:13",
+							"data-prohibitions": "[]",
+							className: "w-full space-y-4",
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+								"data-uid": "src/components/WhatsAppModal.tsx:149:15",
+								"data-prohibitions": "[]",
+								className: "text-center mb-6",
+								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(QrCode, {
+									"data-uid": "src/components/WhatsAppModal.tsx:150:17",
+									"data-prohibitions": "[editContent]",
+									className: "w-12 h-12 text-muted-foreground/50 mx-auto mb-3"
+								}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+									"data-uid": "src/components/WhatsAppModal.tsx:151:17",
+									"data-prohibitions": "[]",
+									className: "text-sm text-muted-foreground",
+									children: "Configure uma nova instância para este slot para começar a enviar mensagens."
+								})]
+							}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+								"data-uid": "src/components/WhatsAppModal.tsx:155:15",
+								"data-prohibitions": "[]",
+								className: "space-y-2",
+								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("label", {
+									"data-uid": "src/components/WhatsAppModal.tsx:156:17",
+									"data-prohibitions": "[]",
+									className: "text-sm font-medium text-foreground",
+									children: "Nome da Instância"
+								}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
+									"data-uid": "src/components/WhatsAppModal.tsx:157:17",
+									"data-prohibitions": "[editContent]",
+									placeholder: "Ex: PRN Operação Sul",
+									value: newInstanceName,
+									onChange: (e) => setNewInstanceName(e.target.value),
+									className: "bg-background/50 border-white/10 h-11",
+									disabled: loading
+								})]
+							})]
+						})
+					]
+				}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(DialogFooter, {
+					"data-uid": "src/components/WhatsAppModal.tsx:169:9",
+					"data-prohibitions": "[editContent]",
+					className: "sm:justify-between border-t border-white/5 pt-4",
+					children: [
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
+							"data-uid": "src/components/WhatsAppModal.tsx:170:11",
+							"data-prohibitions": "[]",
+							variant: "ghost",
+							onClick: () => onOpenChange(false),
+							disabled: loading,
+							children: "Fechar"
+						}),
+						instance.status === "connected" && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Button, {
+							"data-uid": "src/components/WhatsAppModal.tsx:175:13",
+							"data-prohibitions": "[editContent]",
+							variant: "destructive",
+							onClick: handleDisconnect,
+							disabled: loading,
+							className: "bg-red-600 hover:bg-red-700",
+							children: [loading ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(LoaderCircle, {
+								"data-uid": "src/components/WhatsAppModal.tsx:181:26",
+								"data-prohibitions": "[editContent]",
+								className: "w-4 h-4 animate-spin mr-2"
+							}) : null, "Desconectar"]
+						}),
+						instance.status === "empty" && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Button, {
+							"data-uid": "src/components/WhatsAppModal.tsx:187:13",
+							"data-prohibitions": "[editContent]",
+							onClick: handleCreate,
+							disabled: loading || !newInstanceName.trim(),
+							className: "bg-blue-600 hover:bg-blue-700",
+							children: [loading ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(LoaderCircle, {
+								"data-uid": "src/components/WhatsAppModal.tsx:192:26",
+								"data-prohibitions": "[editContent]",
+								className: "w-4 h-4 animate-spin mr-2"
+							}) : null, "Criar e Conectar"]
+						}),
+						instance.status === "disconnected" && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
+							"data-uid": "src/components/WhatsAppModal.tsx:198:13",
+							"data-prohibitions": "[]",
+							variant: "outline",
+							onClick: loadQrCode,
+							disabled: loading,
+							className: "border-white/10 hover:bg-white/5",
+							children: "Atualizar QR Code"
+						})
+					]
+				})
+			]
+		})
+	});
+}
+function WhatsAppSettings() {
+	const [instances, setInstances] = (0, import_react.useState)([]);
+	const [loading, setLoading] = (0, import_react.useState)(true);
+	const [selectedInstance, setSelectedInstance] = (0, import_react.useState)(null);
+	const loadData = async () => {
+		setLoading(true);
+		try {
+			setInstances(await evolutionApi.getInstances());
+		} catch (e) {
+			console.error("Failed to load instances", e);
+		}
+		setLoading(false);
+	};
+	(0, import_react.useEffect)(() => {
+		loadData();
+	}, []);
+	(0, import_react.useEffect)(() => {
+		if (selectedInstance) {
+			const updated = instances.find((i) => i.slotId === selectedInstance.slotId);
+			if (updated && updated.status !== selectedInstance.status) setSelectedInstance(updated);
+		}
+	}, [instances, selectedInstance]);
+	const getStatusDisplay = (status) => {
+		switch (status) {
+			case "connected": return {
+				label: "Conectado",
+				badge: "bg-emerald-500/20 text-emerald-400 border-emerald-500/30",
+				icon: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CircleCheck, {
+					"data-uid": "src/pages/WhatsAppSettings.tsx:46:17",
+					"data-prohibitions": "[editContent]",
+					className: "w-5 h-5 text-emerald-500"
+				}),
+				border: "border-emerald-500/20 shadow-[0_0_15px_rgba(16,185,129,0.05)]"
+			};
+			case "disconnected": return {
+				label: "Aguardando QR",
+				badge: "bg-amber-500/20 text-amber-400 border-amber-500/30",
+				icon: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CircleAlert, {
+					"data-uid": "src/pages/WhatsAppSettings.tsx:53:17",
+					"data-prohibitions": "[editContent]",
+					className: "w-5 h-5 text-amber-500"
+				}),
+				border: "border-amber-500/20"
+			};
+			default: return {
+				label: "Disponível",
+				badge: "bg-slate-500/20 text-slate-400 border-slate-500/30",
+				icon: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CirclePlus, {
+					"data-uid": "src/pages/WhatsAppSettings.tsx:60:17",
+					"data-prohibitions": "[editContent]",
+					className: "w-5 h-5 text-slate-500"
+				}),
+				border: "border-dashed border-white/10 hover:border-white/20"
+			};
+		}
+	};
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+		"data-uid": "src/pages/WhatsAppSettings.tsx:67:5",
+		"data-prohibitions": "[editContent]",
+		className: "space-y-6 animate-fade-in-up",
+		children: [
+			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				"data-uid": "src/pages/WhatsAppSettings.tsx:68:7",
+				"data-prohibitions": "[editContent]",
+				className: "flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-card/50 p-6 rounded-2xl border border-white/5 backdrop-blur-md",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					"data-uid": "src/pages/WhatsAppSettings.tsx:69:9",
+					"data-prohibitions": "[]",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("h2", {
+						"data-uid": "src/pages/WhatsAppSettings.tsx:70:11",
+						"data-prohibitions": "[]",
+						className: "text-xl font-heading font-semibold flex items-center gap-2",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Smartphone, {
+							"data-uid": "src/pages/WhatsAppSettings.tsx:71:13",
+							"data-prohibitions": "[editContent]",
+							className: "w-5 h-5 text-blue-400"
+						}), "Canais de Comunicação"]
+					}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+						"data-uid": "src/pages/WhatsAppSettings.tsx:74:11",
+						"data-prohibitions": "[]",
+						className: "text-sm text-muted-foreground mt-1",
+						children: "Gerencie até 3 instâncias de WhatsApp simultâneas através da Evolution API."
+					})]
+				}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Button, {
+					"data-uid": "src/pages/WhatsAppSettings.tsx:78:9",
+					"data-prohibitions": "[editContent]",
+					variant: "outline",
+					size: "sm",
+					onClick: loadData,
+					disabled: loading,
+					className: "rounded-xl border-white/10 hover:bg-white/5",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(RefreshCw, {
+						"data-uid": "src/pages/WhatsAppSettings.tsx:85:11",
+						"data-prohibitions": "[editContent]",
+						className: cn("w-4 h-4 mr-2", loading && "animate-spin")
+					}), "Sincronizar"]
+				})]
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+				"data-uid": "src/pages/WhatsAppSettings.tsx:90:7",
+				"data-prohibitions": "[editContent]",
+				className: "grid grid-cols-1 md:grid-cols-3 gap-6",
+				children: instances.length === 0 && loading ? Array.from({ length: 3 }).map((_$1, i) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+					"data-uid": "src/pages/WhatsAppSettings.tsx:93:15",
+					"data-prohibitions": "[editContent]",
+					className: "h-40 rounded-2xl bg-card/30 border border-white/5 animate-pulse"
+				}, i)) : instances.map((instance) => {
+					const display = getStatusDisplay(instance.status);
+					return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+						"data-uid": "src/pages/WhatsAppSettings.tsx:101:17",
+						"data-prohibitions": "[editContent]",
+						onClick: () => setSelectedInstance(instance),
+						className: cn("group relative p-6 rounded-2xl bg-card/50 backdrop-blur-sm cursor-pointer transition-all duration-300 hover:bg-card/80 hover:-translate-y-1", "border", display.border),
+						children: [
+							/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+								"data-uid": "src/pages/WhatsAppSettings.tsx:110:19",
+								"data-prohibitions": "[editContent]",
+								className: "flex justify-between items-start mb-4",
+								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+									"data-uid": "src/pages/WhatsAppSettings.tsx:111:21",
+									"data-prohibitions": "[editContent]",
+									className: "p-3 rounded-xl bg-background/50 border border-white/5 group-hover:scale-110 transition-transform",
+									children: display.icon
+								}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Badge, {
+									"data-uid": "src/pages/WhatsAppSettings.tsx:114:21",
+									"data-prohibitions": "[editContent]",
+									variant: "outline",
+									className: display.badge,
+									children: display.label
+								})]
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+								"data-uid": "src/pages/WhatsAppSettings.tsx:118:19",
+								"data-prohibitions": "[editContent]",
+								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("p", {
+									"data-uid": "src/pages/WhatsAppSettings.tsx:119:21",
+									"data-prohibitions": "[editContent]",
+									className: "text-xs text-muted-foreground font-medium uppercase tracking-wider mb-1",
+									children: ["Slot ", instance.slotId]
+								}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("h3", {
+									"data-uid": "src/pages/WhatsAppSettings.tsx:122:21",
+									"data-prohibitions": "[editContent]",
+									className: cn("text-lg font-semibold truncate", instance.status === "empty" ? "text-muted-foreground/50" : "text-foreground"),
+									children: instance.instanceName || "Vazio"
+								})]
+							}),
+							instance.status === "disconnected" && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+								"data-uid": "src/pages/WhatsAppSettings.tsx:135:21",
+								"data-prohibitions": "[]",
+								className: "absolute inset-0 rounded-2xl bg-gradient-to-t from-background/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end justify-center pb-6",
+								children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+									"data-uid": "src/pages/WhatsAppSettings.tsx:136:23",
+									"data-prohibitions": "[]",
+									className: "text-sm font-medium text-amber-400 drop-shadow-md",
+									children: "Clique para ler o QR Code"
+								})
+							}),
+							instance.status === "empty" && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+								"data-uid": "src/pages/WhatsAppSettings.tsx:142:21",
+								"data-prohibitions": "[]",
+								className: "absolute inset-0 rounded-2xl bg-gradient-to-t from-background/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end justify-center pb-6",
+								children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+									"data-uid": "src/pages/WhatsAppSettings.tsx:143:23",
+									"data-prohibitions": "[]",
+									className: "text-sm font-medium text-blue-400 drop-shadow-md",
+									children: "Configurar Instância"
+								})
+							})
+						]
+					}, instance.slotId);
+				})
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(WhatsAppModal, {
+				"data-uid": "src/pages/WhatsAppSettings.tsx:153:7",
+				"data-prohibitions": "[editContent]",
+				instance: selectedInstance,
+				open: !!selectedInstance,
+				onOpenChange: (open) => !open && setSelectedInstance(null),
+				onRefresh: loadData
+			})
+		]
+	});
+}
 var NotFound = () => {
 	const location = useLocation();
 	(0, import_react.useEffect)(() => {
@@ -37097,59 +37730,67 @@ SidebarMenuSubButton.displayName = "SidebarMenuSubButton";
 function AppSidebar() {
 	const location = useLocation();
 	const { signOut } = useAuth();
-	const menuItems = [{
-		title: "Fila de Envios",
-		url: "/",
-		icon: ListTodo
-	}, {
-		title: "Arquivo Morto",
-		url: "/arquivo",
-		icon: Archive$1
-	}];
+	const menuItems = [
+		{
+			title: "Fila de Envios",
+			url: "/",
+			icon: ListTodo
+		},
+		{
+			title: "Arquivo Morto",
+			url: "/arquivo",
+			icon: Archive$1
+		},
+		{
+			title: "WhatsApp",
+			url: "/whatsapp",
+			icon: Smartphone
+		}
+	];
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Sidebar, {
-		"data-uid": "src/components/Layout.tsx:40:5",
+		"data-uid": "src/components/Layout.tsx:41:5",
 		"data-prohibitions": "[editContent]",
 		className: "border-r border-white/5 bg-card/90 backdrop-blur-xl",
 		children: [
 			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(SidebarHeader, {
-				"data-uid": "src/components/Layout.tsx:41:7",
+				"data-uid": "src/components/Layout.tsx:42:7",
 				"data-prohibitions": "[]",
 				className: "p-5 flex flex-col gap-6 border-b border-white/5 pb-6",
 				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-					"data-uid": "src/components/Layout.tsx:42:9",
+					"data-uid": "src/components/Layout.tsx:43:9",
 					"data-prohibitions": "[]",
 					className: "flex items-center justify-center w-full px-2 pt-1 shrink-0",
 					children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("img", {
-						"data-uid": "src/components/Layout.tsx:43:11",
+						"data-uid": "src/components/Layout.tsx:44:11",
 						"data-prohibitions": "[editContent]",
 						src: "https://prndiagnosticos.com.br/wp-content/themes/prnd/assets/images/logo.png",
 						alt: "PRN Diagnósticos",
 						className: "h-10 sm:h-11 w-auto max-w-[200px] object-contain mix-blend-screen grayscale invert brightness-200 contrast-200 transition-opacity hover:opacity-90"
 					})
 				}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-					"data-uid": "src/components/Layout.tsx:49:9",
+					"data-uid": "src/components/Layout.tsx:50:9",
 					"data-prohibitions": "[]",
 					className: "flex flex-row items-center gap-3 px-1",
 					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-						"data-uid": "src/components/Layout.tsx:50:11",
+						"data-uid": "src/components/Layout.tsx:51:11",
 						"data-prohibitions": "[]",
 						className: "bg-blue-500/20 border border-blue-500/30 text-blue-400 p-1.5 rounded-lg shrink-0",
 						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ShieldCheck, {
-							"data-uid": "src/components/Layout.tsx:51:13",
+							"data-uid": "src/components/Layout.tsx:52:13",
 							"data-prohibitions": "[editContent]",
 							className: "w-5 h-5"
 						})
 					}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-						"data-uid": "src/components/Layout.tsx:53:11",
+						"data-uid": "src/components/Layout.tsx:54:11",
 						"data-prohibitions": "[]",
 						className: "flex flex-col",
 						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-							"data-uid": "src/components/Layout.tsx:54:13",
+							"data-uid": "src/components/Layout.tsx:55:13",
 							"data-prohibitions": "[]",
 							className: "font-heading font-bold text-lg leading-tight tracking-tight text-white",
 							children: "PRN Vigilante"
 						}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-							"data-uid": "src/components/Layout.tsx:57:13",
+							"data-uid": "src/components/Layout.tsx:58:13",
 							"data-prohibitions": "[]",
 							className: "text-[10px] text-blue-400 uppercase tracking-wider font-semibold",
 							children: "Torre de Controle"
@@ -37158,32 +37799,32 @@ function AppSidebar() {
 				})]
 			}),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SidebarContent, {
-				"data-uid": "src/components/Layout.tsx:63:7",
+				"data-uid": "src/components/Layout.tsx:64:7",
 				"data-prohibitions": "[editContent]",
 				className: "px-2 py-4",
 				children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SidebarMenu, {
-					"data-uid": "src/components/Layout.tsx:64:9",
+					"data-uid": "src/components/Layout.tsx:65:9",
 					"data-prohibitions": "[editContent]",
 					children: menuItems.map((item) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SidebarMenuItem, {
-						"data-uid": "src/components/Layout.tsx:66:13",
+						"data-uid": "src/components/Layout.tsx:67:13",
 						"data-prohibitions": "[editContent]",
 						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SidebarMenuButton, {
-							"data-uid": "src/components/Layout.tsx:67:15",
+							"data-uid": "src/components/Layout.tsx:68:15",
 							"data-prohibitions": "[editContent]",
 							asChild: true,
 							isActive: location.pathname === item.url,
 							className: cn("rounded-xl h-10 transition-all", location.pathname === item.url ? "bg-blue-500/10 text-blue-400" : "hover:bg-white/5"),
 							children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Link, {
-								"data-uid": "src/components/Layout.tsx:77:17",
+								"data-uid": "src/components/Layout.tsx:78:17",
 								"data-prohibitions": "[editContent]",
 								to: item.url,
 								className: "flex items-center gap-3",
 								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(item.icon, {
-									"data-uid": "src/components/Layout.tsx:78:19",
+									"data-uid": "src/components/Layout.tsx:79:19",
 									"data-prohibitions": "[editContent]",
 									className: "w-4 h-4"
 								}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-									"data-uid": "src/components/Layout.tsx:79:19",
+									"data-uid": "src/components/Layout.tsx:80:19",
 									"data-prohibitions": "[editContent]",
 									className: "font-medium",
 									children: item.title
@@ -37194,17 +37835,17 @@ function AppSidebar() {
 				})
 			}),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-				"data-uid": "src/components/Layout.tsx:86:7",
+				"data-uid": "src/components/Layout.tsx:87:7",
 				"data-prohibitions": "[]",
 				className: "mt-auto p-4 border-t border-white/5",
 				children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Button, {
-					"data-uid": "src/components/Layout.tsx:87:9",
+					"data-uid": "src/components/Layout.tsx:88:9",
 					"data-prohibitions": "[]",
 					variant: "ghost",
 					className: "w-full justify-start gap-3 text-muted-foreground hover:text-red-400 hover:bg-red-500/10 rounded-xl",
 					onClick: signOut,
 					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(LogOut, {
-						"data-uid": "src/components/Layout.tsx:92:11",
+						"data-uid": "src/components/Layout.tsx:93:11",
 						"data-prohibitions": "[editContent]",
 						className: "w-4 h-4"
 					}), " Sair do Sistema"]
@@ -37225,27 +37866,27 @@ function TopBar() {
 			variant: !isPaused ? "destructive" : "default"
 		});
 	};
-	const pageTitle = location.pathname === "/" ? "Monitoramento em Tempo Real" : "Auditoria de Arquivo";
+	const pageTitle = location.pathname === "/" ? "Monitoramento em Tempo Real" : location.pathname === "/arquivo" ? "Auditoria de Arquivo" : "Gerenciamento WhatsApp";
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("header", {
-		"data-uid": "src/components/Layout.tsx:122:5",
+		"data-uid": "src/components/Layout.tsx:127:5",
 		"data-prohibitions": "[editContent]",
 		className: "h-16 flex items-center justify-between px-4 lg:px-8 border-b border-white/5 bg-background/50 backdrop-blur-lg sticky top-0 z-40",
 		children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-			"data-uid": "src/components/Layout.tsx:123:7",
+			"data-uid": "src/components/Layout.tsx:128:7",
 			"data-prohibitions": "[editContent]",
 			className: "flex items-center gap-4",
 			children: [
 				/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SidebarTrigger, {
-					"data-uid": "src/components/Layout.tsx:124:9",
+					"data-uid": "src/components/Layout.tsx:129:9",
 					"data-prohibitions": "[editContent]",
 					className: "text-muted-foreground hover:text-white"
 				}),
 				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-					"data-uid": "src/components/Layout.tsx:125:9",
+					"data-uid": "src/components/Layout.tsx:130:9",
 					"data-prohibitions": "[]",
 					className: "flex items-center sm:hidden h-full mt-1",
 					children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("img", {
-						"data-uid": "src/components/Layout.tsx:126:11",
+						"data-uid": "src/components/Layout.tsx:131:11",
 						"data-prohibitions": "[editContent]",
 						src: "https://prndiagnosticos.com.br/wp-content/themes/prnd/assets/images/logo.png",
 						alt: "PRN",
@@ -37253,98 +37894,98 @@ function TopBar() {
 					})
 				}),
 				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h1", {
-					"data-uid": "src/components/Layout.tsx:132:9",
+					"data-uid": "src/components/Layout.tsx:137:9",
 					"data-prohibitions": "[editContent]",
 					className: "font-heading font-semibold text-lg hidden sm:block",
 					children: pageTitle
 				})
 			]
 		}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-			"data-uid": "src/components/Layout.tsx:135:7",
+			"data-uid": "src/components/Layout.tsx:140:7",
 			"data-prohibitions": "[editContent]",
 			className: "flex items-center gap-3 sm:gap-4",
 			children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-				"data-uid": "src/components/Layout.tsx:136:9",
+				"data-uid": "src/components/Layout.tsx:141:9",
 				"data-prohibitions": "[editContent]",
 				className: "flex items-center gap-2 px-3 py-1.5 rounded-full bg-card/50 border border-white/5 text-xs font-medium",
 				children: [
 					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
-						"data-uid": "src/components/Layout.tsx:137:11",
+						"data-uid": "src/components/Layout.tsx:142:11",
 						"data-prohibitions": "[editContent]",
 						className: "relative flex h-2 w-2",
 						children: [!isPaused && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-							"data-uid": "src/components/Layout.tsx:139:15",
+							"data-uid": "src/components/Layout.tsx:144:15",
 							"data-prohibitions": "[]",
 							className: "animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"
 						}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-							"data-uid": "src/components/Layout.tsx:141:13",
+							"data-uid": "src/components/Layout.tsx:146:13",
 							"data-prohibitions": "[editContent]",
 							className: cn("relative inline-flex rounded-full h-2 w-2", isPaused ? "bg-red-500" : "bg-emerald-500")
 						})]
 					}),
 					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-						"data-uid": "src/components/Layout.tsx:148:11",
+						"data-uid": "src/components/Layout.tsx:153:11",
 						"data-prohibitions": "[]",
 						className: "text-muted-foreground hidden sm:inline",
 						children: "Motor:"
 					}),
 					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-						"data-uid": "src/components/Layout.tsx:149:11",
+						"data-uid": "src/components/Layout.tsx:154:11",
 						"data-prohibitions": "[editContent]",
 						className: isPaused ? "text-red-400" : "text-emerald-400",
 						children: isPaused ? "Parado" : "Ativo"
 					})
 				]
 			}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(AlertDialog, {
-				"data-uid": "src/components/Layout.tsx:154:9",
+				"data-uid": "src/components/Layout.tsx:159:9",
 				"data-prohibitions": "[editContent]",
 				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(AlertDialogTrigger, {
-					"data-uid": "src/components/Layout.tsx:155:11",
+					"data-uid": "src/components/Layout.tsx:160:11",
 					"data-prohibitions": "[editContent]",
 					asChild: true,
 					children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Button, {
-						"data-uid": "src/components/Layout.tsx:156:13",
+						"data-uid": "src/components/Layout.tsx:161:13",
 						"data-prohibitions": "[editContent]",
 						variant: isPaused ? "default" : "destructive",
 						size: "sm",
 						className: cn("h-9 rounded-xl font-medium shadow-lg transition-transform active:scale-95 px-3 sm:px-4", !isPaused && "animate-pulse-soft shadow-red-500/20"),
 						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(PowerOff, {
-							"data-uid": "src/components/Layout.tsx:164:15",
+							"data-uid": "src/components/Layout.tsx:169:15",
 							"data-prohibitions": "[editContent]",
 							className: "w-4 h-4 sm:mr-2"
 						}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-							"data-uid": "src/components/Layout.tsx:165:15",
+							"data-uid": "src/components/Layout.tsx:170:15",
 							"data-prohibitions": "[editContent]",
 							className: "hidden sm:inline",
 							children: isPaused ? "Retomar Motor" : "Kill Switch"
 						})]
 					})
 				}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(AlertDialogContent, {
-					"data-uid": "src/components/Layout.tsx:168:11",
+					"data-uid": "src/components/Layout.tsx:173:11",
 					"data-prohibitions": "[editContent]",
 					className: "border-red-500/20 bg-card rounded-2xl w-[90vw] sm:w-full max-w-md",
 					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(AlertDialogHeader, {
-						"data-uid": "src/components/Layout.tsx:169:13",
+						"data-uid": "src/components/Layout.tsx:174:13",
 						"data-prohibitions": "[editContent]",
 						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(AlertDialogTitle, {
-							"data-uid": "src/components/Layout.tsx:170:15",
+							"data-uid": "src/components/Layout.tsx:175:15",
 							"data-prohibitions": "[editContent]",
 							children: isPaused ? "Retomar envios automatizados?" : "Pausar todos os envios?"
 						}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(AlertDialogDescription, {
-							"data-uid": "src/components/Layout.tsx:173:15",
+							"data-uid": "src/components/Layout.tsx:178:15",
 							"data-prohibitions": "[editContent]",
 							children: isPaused ? "O motor voltará a processar a fila imediatamente, respeitando a cadência configurada." : "Isso interromperá o processamento da fila no nível do banco de dados. Nenhuma mensagem será enviada até que o sistema seja retomado."
 						})]
 					}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(AlertDialogFooter, {
-						"data-uid": "src/components/Layout.tsx:179:13",
+						"data-uid": "src/components/Layout.tsx:184:13",
 						"data-prohibitions": "[editContent]",
 						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(AlertDialogCancel, {
-							"data-uid": "src/components/Layout.tsx:180:15",
+							"data-uid": "src/components/Layout.tsx:185:15",
 							"data-prohibitions": "[]",
 							className: "rounded-xl",
 							children: "Cancelar"
 						}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(AlertDialogAction, {
-							"data-uid": "src/components/Layout.tsx:181:15",
+							"data-uid": "src/components/Layout.tsx:186:15",
 							"data-prohibitions": "[editContent]",
 							onClick: handleToggleKillSwitch,
 							className: cn("rounded-xl", !isPaused ? "bg-red-600 hover:bg-red-700" : "bg-blue-600 hover:bg-blue-700"),
@@ -37358,39 +37999,39 @@ function TopBar() {
 }
 function Layout() {
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SidebarProvider, {
-		"data-uid": "src/components/Layout.tsx:200:5",
+		"data-uid": "src/components/Layout.tsx:205:5",
 		"data-prohibitions": "[]",
 		children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-			"data-uid": "src/components/Layout.tsx:201:7",
+			"data-uid": "src/components/Layout.tsx:206:7",
 			"data-prohibitions": "[]",
 			className: "flex min-h-screen w-full bg-background selection:bg-blue-500/30",
 			children: [
 				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-					"data-uid": "src/components/Layout.tsx:202:9",
+					"data-uid": "src/components/Layout.tsx:207:9",
 					"data-prohibitions": "[editContent]",
 					className: "fixed inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-900/10 via-background to-background pointer-events-none"
 				}),
 				/* @__PURE__ */ (0, import_jsx_runtime.jsx)(AppSidebar, {
-					"data-uid": "src/components/Layout.tsx:203:9",
+					"data-uid": "src/components/Layout.tsx:208:9",
 					"data-prohibitions": "[editContent]"
 				}),
 				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("main", {
-					"data-uid": "src/components/Layout.tsx:204:9",
+					"data-uid": "src/components/Layout.tsx:209:9",
 					"data-prohibitions": "[]",
 					className: "flex-1 flex flex-col min-w-0 relative z-10",
 					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TopBar, {
-						"data-uid": "src/components/Layout.tsx:205:11",
+						"data-uid": "src/components/Layout.tsx:210:11",
 						"data-prohibitions": "[editContent]"
 					}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-						"data-uid": "src/components/Layout.tsx:206:11",
+						"data-uid": "src/components/Layout.tsx:211:11",
 						"data-prohibitions": "[]",
 						className: "flex-1 overflow-auto p-4 lg:p-8",
 						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-							"data-uid": "src/components/Layout.tsx:207:13",
+							"data-uid": "src/components/Layout.tsx:212:13",
 							"data-prohibitions": "[]",
 							className: "max-w-6xl mx-auto",
 							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Outlet, {
-								"data-uid": "src/components/Layout.tsx:208:15",
+								"data-uid": "src/components/Layout.tsx:213:15",
 								"data-prohibitions": "[editContent]"
 							})
 						})
@@ -37403,86 +38044,98 @@ function Layout() {
 var ProtectedRoute = ({ children }) => {
 	const { user, loading } = useAuth();
 	if (loading) return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-		"data-uid": "src/App.tsx:18:7",
+		"data-uid": "src/App.tsx:19:7",
 		"data-prohibitions": "[]",
 		className: "min-h-screen bg-background flex items-center justify-center",
 		children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-			"data-uid": "src/App.tsx:19:9",
+			"data-uid": "src/App.tsx:20:9",
 			"data-prohibitions": "[]",
 			className: "w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"
 		})
 	});
 	if (!user) return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(AuthPage, {
-		"data-uid": "src/App.tsx:22:21",
+		"data-uid": "src/App.tsx:23:21",
 		"data-prohibitions": "[editContent]"
 	});
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(import_jsx_runtime.Fragment, { children });
 };
 var AppRoutes = () => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Routes, {
-	"data-uid": "src/App.tsx:28:3",
+	"data-uid": "src/App.tsx:29:3",
 	"data-prohibitions": "[]",
 	children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Route, {
-		"data-uid": "src/App.tsx:29:5",
+		"data-uid": "src/App.tsx:30:5",
 		"data-prohibitions": "[]",
 		element: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ProtectedRoute, {
-			"data-uid": "src/App.tsx:31:9",
+			"data-uid": "src/App.tsx:32:9",
 			"data-prohibitions": "[]",
 			children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Layout, {
-				"data-uid": "src/App.tsx:32:11",
+				"data-uid": "src/App.tsx:33:11",
 				"data-prohibitions": "[editContent]"
 			})
 		}),
-		children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Route, {
-			"data-uid": "src/App.tsx:36:7",
-			"data-prohibitions": "[editContent]",
-			path: "/",
-			element: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Index, {
-				"data-uid": "src/App.tsx:36:32",
-				"data-prohibitions": "[editContent]"
+		children: [
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Route, {
+				"data-uid": "src/App.tsx:37:7",
+				"data-prohibitions": "[editContent]",
+				path: "/",
+				element: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Index, {
+					"data-uid": "src/App.tsx:37:32",
+					"data-prohibitions": "[editContent]"
+				})
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Route, {
+				"data-uid": "src/App.tsx:38:7",
+				"data-prohibitions": "[editContent]",
+				path: "/arquivo",
+				element: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Archive, {
+					"data-uid": "src/App.tsx:38:39",
+					"data-prohibitions": "[editContent]"
+				})
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Route, {
+				"data-uid": "src/App.tsx:39:7",
+				"data-prohibitions": "[editContent]",
+				path: "/whatsapp",
+				element: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(WhatsAppSettings, {
+					"data-uid": "src/App.tsx:39:40",
+					"data-prohibitions": "[editContent]"
+				})
 			})
-		}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Route, {
-			"data-uid": "src/App.tsx:37:7",
-			"data-prohibitions": "[editContent]",
-			path: "/arquivo",
-			element: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Archive, {
-				"data-uid": "src/App.tsx:37:39",
-				"data-prohibitions": "[editContent]"
-			})
-		})]
+		]
 	}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Route, {
-		"data-uid": "src/App.tsx:39:5",
+		"data-uid": "src/App.tsx:41:5",
 		"data-prohibitions": "[editContent]",
 		path: "*",
 		element: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(NotFound_default, {
-			"data-uid": "src/App.tsx:39:30",
+			"data-uid": "src/App.tsx:41:30",
 			"data-prohibitions": "[editContent]"
 		})
 	})]
 });
 var App = () => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(BrowserRouter, {
-	"data-uid": "src/App.tsx:44:3",
+	"data-uid": "src/App.tsx:46:3",
 	"data-prohibitions": "[]",
 	future: {
 		v7_startTransition: false,
 		v7_relativeSplatPath: false
 	},
 	children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(AuthProvider, {
-		"data-uid": "src/App.tsx:45:5",
+		"data-uid": "src/App.tsx:47:5",
 		"data-prohibitions": "[]",
 		children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TooltipProvider, {
-			"data-uid": "src/App.tsx:46:7",
+			"data-uid": "src/App.tsx:48:7",
 			"data-prohibitions": "[]",
 			children: [
 				/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Toaster, {
-					"data-uid": "src/App.tsx:47:9",
+					"data-uid": "src/App.tsx:49:9",
 					"data-prohibitions": "[editContent]"
 				}),
 				/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Toaster$1, {
-					"data-uid": "src/App.tsx:48:9",
+					"data-uid": "src/App.tsx:50:9",
 					"data-prohibitions": "[editContent]"
 				}),
 				/* @__PURE__ */ (0, import_jsx_runtime.jsx)(AppRoutes, {
-					"data-uid": "src/App.tsx:49:9",
+					"data-uid": "src/App.tsx:51:9",
 					"data-prohibitions": "[editContent]"
 				})
 			]
@@ -37495,4 +38148,4 @@ var App_default = App;
 	"data-prohibitions": "[editContent]"
 }));
 
-//# sourceMappingURL=index-DdEZXqj7.js.map
+//# sourceMappingURL=index-CQnXFApG.js.map

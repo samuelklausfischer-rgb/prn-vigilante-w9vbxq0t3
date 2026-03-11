@@ -10,7 +10,7 @@ import {
   SidebarTrigger,
 } from '@/components/ui/sidebar'
 import { Button } from '@/components/ui/button'
-import { ShieldCheck, ListTodo, Archive, PowerOff, LogOut } from 'lucide-react'
+import { ShieldCheck, ListTodo, Archive, PowerOff, LogOut, Smartphone } from 'lucide-react'
 import { useAuth } from '@/hooks/use-auth'
 import { useAppData } from '@/hooks/use-app-data'
 import { useToast } from '@/hooks/use-toast'
@@ -34,6 +34,7 @@ function AppSidebar() {
   const menuItems = [
     { title: 'Fila de Envios', url: '/', icon: ListTodo },
     { title: 'Arquivo Morto', url: '/arquivo', icon: Archive },
+    { title: 'WhatsApp', url: '/whatsapp', icon: Smartphone },
   ]
 
   return (
@@ -116,7 +117,11 @@ function TopBar() {
   }
 
   const pageTitle =
-    location.pathname === '/' ? 'Monitoramento em Tempo Real' : 'Auditoria de Arquivo'
+    location.pathname === '/'
+      ? 'Monitoramento em Tempo Real'
+      : location.pathname === '/arquivo'
+        ? 'Auditoria de Arquivo'
+        : 'Gerenciamento WhatsApp'
 
   return (
     <header className="h-16 flex items-center justify-between px-4 lg:px-8 border-b border-white/5 bg-background/50 backdrop-blur-lg sticky top-0 z-40">

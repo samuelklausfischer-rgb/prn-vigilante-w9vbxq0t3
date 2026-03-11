@@ -20,3 +20,11 @@ export interface SystemConfig {
   safe_cadence_delay: number
   updated_at: string
 }
+
+export type InstanceStatus = 'connected' | 'disconnected' | 'empty'
+
+export interface WhatsAppInstance {
+  slotId: number
+  instanceName: string | null
+  status: InstanceStatus
+}
