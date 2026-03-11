@@ -12,41 +12,50 @@ export type Database = {
       patients_queue: {
         Row: {
           created_at: string
+          Data_nascimento: string | null
           id: string
           is_approved: boolean
           message_body: string
           notes: string | null
           patient_name: string
           phone_number: string
+          procedimentos: string | null
           queue_order: number | null
           send_after: string
           status: Database['public']['Enums']['queue_status']
+          time_proce: string | null
           updated_at: string
         }
         Insert: {
           created_at?: string
+          Data_nascimento?: string | null
           id?: string
           is_approved?: boolean
           message_body: string
           notes?: string | null
           patient_name: string
           phone_number: string
+          procedimentos?: string | null
           queue_order?: number | null
           send_after?: string
           status?: Database['public']['Enums']['queue_status']
+          time_proce?: string | null
           updated_at?: string
         }
         Update: {
           created_at?: string
+          Data_nascimento?: string | null
           id?: string
           is_approved?: boolean
           message_body?: string
           notes?: string | null
           patient_name?: string
           phone_number?: string
+          procedimentos?: string | null
           queue_order?: number | null
           send_after?: string
           status?: Database['public']['Enums']['queue_status']
+          time_proce?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -263,6 +272,9 @@ export const Constants = {
 //   created_at: timestamp with time zone (not null, default: now())
 //   updated_at: timestamp with time zone (not null, default: now())
 //   queue_order: integer (nullable)
+//   Data_nascimento: date (nullable)
+//   procedimentos: text (nullable)
+//   time_proce: time without time zone (nullable)
 // Table: system_config
 //   id: integer (not null)
 //   is_paused: boolean (not null, default: false)

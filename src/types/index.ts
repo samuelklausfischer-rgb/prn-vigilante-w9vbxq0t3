@@ -21,10 +21,11 @@ export interface SystemConfig {
   updated_at: string
 }
 
-export type InstanceStatus = 'connected' | 'disconnected' | 'empty'
+export type InstanceStatus = 'connected' | 'disconnected' | 'empty' | 'initializing'
 
 export interface WhatsAppInstance {
   slotId: number
   instanceName: string | null
   status: InstanceStatus
+  phoneNumber?: string | null
 }

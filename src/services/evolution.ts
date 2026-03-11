@@ -1,12 +1,5 @@
 import { supabase } from '@/lib/supabase/client'
-
-export interface WhatsAppInstance {
-  id?: string
-  slotId: number
-  instanceName: string | null
-  phoneNumber: string | null
-  status: 'empty' | 'disconnected' | 'connected'
-}
+import { WhatsAppInstance } from '@/types'
 
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
@@ -29,6 +22,63 @@ export const evolutionApi = {
       phoneNumber: d.phone_number,
       status: d.status,
     }))
+  },
+
+  async syncWithWebhook(): Promise<{ success: boolean; message?: string }> {
+    try {
+      // Sincronização com o webhook específico
+      const response = await fetch('http://host.docker.internal:5678/webhook/a', {
+        method: 'GET',
+        headers: {
+          Accept: 'application/json',
+        },
+      }).catch((e) => {
+        throw new Error(`Falha de rede ao contatar webhook: ${e.message}`)
+      })
+
+      if (!response.ok) {
+        throw new Error(`Webhook retornou status HTTP ${response.status}`)
+      }
+
+      const data = await response.json().catch(() => {
+        throw new Error('Formato de resposta inválido (esperado JSON)')
+      })
+
+      // Mapeamento flexível da resposta do webhook
+      const instances = Array.isArray(data) ? data : data.data || data.instances || [data]
+
+      if (!instances || instances.length === 0) {
+        return { success: true, message: 'Nenhuma instância recebida do webhook.' }
+      }
+
+      const toUpsert = instances
+        .map((inst: any) => {
+          const slot_id = inst.slot_id ?? inst.slotId ?? inst.id
+          if (slot_id === undefined) return null
+
+          return {
+            slot_id: Number(slot_id),
+            instance_name: inst.instance_name ?? inst.instanceName ?? inst.name ?? null,
+            phone_number: inst.phone_number ?? inst.phoneNumber ?? inst.phone ?? null,
+            status: inst.status ?? 'empty',
+            updated_at: new Date().toISOString(),
+          }
+        })
+        .filter(Boolean)
+
+      if (toUpsert.length > 0) {
+        const { error } = await supabase
+          .from('whatsapp_instances' as any)
+          .upsert(toUpsert, { onConflict: 'slot_id' })
+
+        if (error) throw error
+      }
+
+      return { success: true }
+    } catch (err: any) {
+      console.warn('Webhook sync error:', err)
+      return { success: false, message: err.message || 'Erro desconhecido.' }
+    }
   },
 
   async getQrCode(slotId: number): Promise<string> {
@@ -63,7 +113,6 @@ export const evolutionApi = {
     return !error
   },
 
-  // Helper just to mock a successful QR code scan on the UI
   async simulateScan(slotId: number): Promise<boolean> {
     const { error } = await supabase
       .from('whatsapp_instances' as any)
