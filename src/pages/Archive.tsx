@@ -1,13 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import {
   Search,
   Loader2,
@@ -28,19 +22,49 @@ import { DateRange } from 'react-day-picker'
 import { useToast } from '@/hooks/use-toast'
 import { useDebounce } from '@/hooks/use-debounce'
 
+const getStatusBadge = (s: string) => {
+  const badges: Record<string, JSX.Element> = {
+    delivered: (
+      <Badge className="bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 border-0">
+        <CheckCircle2 className="w-3 h-3 mr-1" /> Entregue
+      </Badge>
+    ),
+    failed: (
+      <Badge className="bg-red-500/20 text-red-400 hover:bg-red-500/30 border-0">
+        <AlertCircle className="w-3 h-3 mr-1" /> Falha
+      </Badge>
+    ),
+    cancelled: (
+      <Badge className="bg-slate-500/20 text-slate-400 hover:bg-slate-500/30 border-0">
+        <Ban className="w-3 h-3 mr-1" /> Cancelado
+      </Badge>
+    ),
+    queued: (
+      <Badge className="bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 border-0">
+        <Clock className="w-3 h-3 mr-1" /> Fila
+      </Badge>
+    ),
+    sending: (
+      <Badge className="bg-amber-500/20 text-amber-400 hover:bg-amber-500/30 border-0">
+        <Send className="w-3 h-3 mr-1" /> Enviando
+      </Badge>
+    ),
+  }
+  return badges[s] || <Badge variant="outline">{s}</Badge>
+}
+
 export default function Archive() {
   const [data, setData] = useState<PatientQueue[]>([])
   const [loading, setLoading] = useState(true)
-
   const [search, setSearch] = useState('')
   const debouncedSearch = useDebounce(search, 500)
   const [dateRange, setDateRange] = useState<DateRange | undefined>()
   const [status, setStatus] = useState<string>('all')
   const [approval, setApproval] = useState<string>('all')
-
   const { toast } = useToast()
 
   useEffect(() => {
+    let mounted = true
     const loadData = async () => {
       setLoading(true)
       try {
@@ -50,18 +74,23 @@ export default function Archive() {
           status,
           isApproved: approval === 'all' ? null : approval === 'approved',
         }
-        setData(await fetchArchive(filters))
+        const result = await fetchArchive(filters)
+        if (mounted) setData(result)
       } catch (error) {
-        toast({
-          title: 'Erro',
-          description: 'Falha ao carregar histórico.',
-          variant: 'destructive',
-        })
+        if (mounted)
+          toast({
+            title: 'Erro',
+            description: 'Falha ao carregar histórico.',
+            variant: 'destructive',
+          })
       } finally {
-        setLoading(false)
+        if (mounted) setLoading(false)
       }
     }
     loadData()
+    return () => {
+      mounted = false
+    }
   }, [debouncedSearch, dateRange, status, approval, toast])
 
   const clearFilters = () => {
@@ -74,92 +103,133 @@ export default function Archive() {
   const hasFilters =
     search !== '' || dateRange !== undefined || status !== 'all' || approval !== 'all'
 
-  const getStatusBadge = (s: string) => {
-    const badges: Record<string, JSX.Element> = {
-      delivered: (
-        <Badge className="bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 border-0">
-          <CheckCircle2 className="w-3 h-3 mr-1" /> Entregue
-        </Badge>
-      ),
-      failed: (
-        <Badge className="bg-red-500/20 text-red-400 hover:bg-red-500/30 border-0">
-          <AlertCircle className="w-3 h-3 mr-1" /> Falha
-        </Badge>
-      ),
-      cancelled: (
-        <Badge className="bg-slate-500/20 text-slate-400 hover:bg-slate-500/30 border-0">
-          <Ban className="w-3 h-3 mr-1" /> Cancelado
-        </Badge>
-      ),
-      queued: (
-        <Badge className="bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 border-0">
-          <Clock className="w-3 h-3 mr-1" /> Fila
-        </Badge>
-      ),
-      sending: (
-        <Badge className="bg-amber-500/20 text-amber-400 hover:bg-amber-500/30 border-0">
-          <Send className="w-3 h-3 mr-1" /> Enviando
-        </Badge>
-      ),
-    }
-    return badges[s] || <Badge variant="outline">{s}</Badge>
-  }
-
   return (
     <div className="space-y-6 animate-fade-in-up">
       <div>
         <h2 className="text-2xl font-heading font-semibold">Histórico e Arquivo</h2>
-        <p className="text-muted-foreground">Analise todos os disparos com filtros avançados.</p>
+        <p className="text-muted-foreground">
+          Analise todos os disparos com filtros avançados e interativos.
+        </p>
       </div>
 
-      <div className="bg-card/50 p-4 rounded-2xl border border-white/5 backdrop-blur-md space-y-3">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
-          <div className="relative lg:col-span-2">
+      <div className="bg-card/50 p-5 rounded-2xl border border-white/5 backdrop-blur-md shadow-sm space-y-5 transition-all">
+        <div className="flex flex-col md:flex-row gap-3">
+          <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
               placeholder="Buscar paciente, telefone ou mensagem..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="pl-9 bg-background/50 border-white/10"
+              className="pl-9 bg-background/50 border-white/10 h-11 rounded-xl focus-visible:ring-blue-500/50"
             />
           </div>
-          <DatePickerWithRange date={dateRange} setDate={setDateRange} />
-          <Select value={status} onValueChange={setStatus}>
-            <SelectTrigger className="bg-background/50 border-white/10">
-              <SelectValue placeholder="Status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos os Status</SelectItem>
-              <SelectItem value="queued">Na Fila</SelectItem>
-              <SelectItem value="sending">Enviando</SelectItem>
-              <SelectItem value="delivered">Entregue</SelectItem>
-              <SelectItem value="failed">Falha</SelectItem>
-              <SelectItem value="cancelled">Cancelado</SelectItem>
-            </SelectContent>
-          </Select>
-          <Select value={approval} onValueChange={setApproval}>
-            <SelectTrigger className="bg-background/50 border-white/10">
-              <SelectValue placeholder="Aprovação" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todas Aprovações</SelectItem>
-              <SelectItem value="approved">Aprovados</SelectItem>
-              <SelectItem value="pending">Pendentes</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        {hasFilters && (
-          <div className="flex justify-end">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={clearFilters}
-              className="text-muted-foreground hover:text-foreground h-8"
-            >
-              <FilterX className="w-4 h-4 mr-2" /> Limpar Filtros
-            </Button>
+          <div className="w-full md:w-auto md:min-w-[260px]">
+            <DatePickerWithRange
+              date={dateRange}
+              setDate={setDateRange}
+              className="[&_button]:h-11 [&_button]:rounded-xl [&_button]:bg-background/50"
+            />
           </div>
-        )}
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+          <div className="lg:col-span-2 space-y-2">
+            <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider ml-1">
+              Status de Envio
+            </label>
+            <div className="bg-background/40 p-1.5 rounded-xl border border-white/5 overflow-x-auto hide-scrollbar">
+              <ToggleGroup
+                type="single"
+                value={status}
+                onValueChange={(v) => {
+                  if (v) setStatus(v)
+                }}
+                className="justify-start gap-1 min-w-max"
+              >
+                <ToggleGroupItem
+                  value="all"
+                  className="h-9 rounded-lg px-4 text-sm font-medium data-[state=on]:bg-white/10 data-[state=on]:text-white transition-all hover:bg-white/5"
+                >
+                  Todos
+                </ToggleGroupItem>
+                <ToggleGroupItem
+                  value="queued"
+                  className="h-9 rounded-lg px-4 text-sm font-medium data-[state=on]:bg-blue-500/20 data-[state=on]:text-blue-400 transition-all hover:bg-white/5"
+                >
+                  <Clock className="w-3.5 h-3.5 mr-2" /> Na Fila
+                </ToggleGroupItem>
+                <ToggleGroupItem
+                  value="sending"
+                  className="h-9 rounded-lg px-4 text-sm font-medium data-[state=on]:bg-amber-500/20 data-[state=on]:text-amber-400 transition-all hover:bg-white/5"
+                >
+                  <Send className="w-3.5 h-3.5 mr-2" /> Enviando
+                </ToggleGroupItem>
+                <ToggleGroupItem
+                  value="delivered"
+                  className="h-9 rounded-lg px-4 text-sm font-medium data-[state=on]:bg-emerald-500/20 data-[state=on]:text-emerald-400 transition-all hover:bg-white/5"
+                >
+                  <CheckCircle2 className="w-3.5 h-3.5 mr-2" /> Entregue
+                </ToggleGroupItem>
+                <ToggleGroupItem
+                  value="failed"
+                  className="h-9 rounded-lg px-4 text-sm font-medium data-[state=on]:bg-red-500/20 data-[state=on]:text-red-400 transition-all hover:bg-white/5"
+                >
+                  <AlertCircle className="w-3.5 h-3.5 mr-2" /> Falha
+                </ToggleGroupItem>
+                <ToggleGroupItem
+                  value="cancelled"
+                  className="h-9 rounded-lg px-4 text-sm font-medium data-[state=on]:bg-slate-500/20 data-[state=on]:text-slate-300 transition-all hover:bg-white/5"
+                >
+                  <Ban className="w-3.5 h-3.5 mr-2" /> Cancelado
+                </ToggleGroupItem>
+              </ToggleGroup>
+            </div>
+          </div>
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider ml-1">
+                Aprovação
+              </label>
+              {hasFilters && (
+                <button
+                  onClick={clearFilters}
+                  className="text-xs flex items-center text-muted-foreground hover:text-white transition-colors"
+                >
+                  <FilterX className="w-3 h-3 mr-1" /> Limpar
+                </button>
+              )}
+            </div>
+            <div className="bg-background/40 p-1.5 rounded-xl border border-white/5 overflow-x-auto hide-scrollbar">
+              <ToggleGroup
+                type="single"
+                value={approval}
+                onValueChange={(v) => {
+                  if (v) setApproval(v)
+                }}
+                className="justify-start gap-1 min-w-max"
+              >
+                <ToggleGroupItem
+                  value="all"
+                  className="h-9 rounded-lg px-4 text-sm font-medium data-[state=on]:bg-white/10 data-[state=on]:text-white transition-all hover:bg-white/5"
+                >
+                  Todas
+                </ToggleGroupItem>
+                <ToggleGroupItem
+                  value="approved"
+                  className="h-9 rounded-lg px-4 text-sm font-medium data-[state=on]:bg-emerald-500/20 data-[state=on]:text-emerald-400 transition-all hover:bg-white/5"
+                >
+                  Aprovados
+                </ToggleGroupItem>
+                <ToggleGroupItem
+                  value="pending"
+                  className="h-9 rounded-lg px-4 text-sm font-medium data-[state=on]:bg-amber-500/20 data-[state=on]:text-amber-400 transition-all hover:bg-white/5"
+                >
+                  Pendentes
+                </ToggleGroupItem>
+              </ToggleGroup>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div className="grid gap-3">
@@ -181,38 +251,49 @@ export default function Archive() {
           data.map((item) => (
             <div
               key={item.id}
-              className="bg-card/40 border border-white/5 rounded-xl p-4 hover:bg-card/60 transition-colors"
+              className="bg-card/40 border border-white/5 rounded-2xl p-5 hover:bg-card/60 transition-all hover:-translate-y-0.5 hover:shadow-lg hover:shadow-black/20 group"
             >
               <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
-                <div>
+                <div className="space-y-2">
                   <div className="flex flex-wrap items-center gap-2 mb-1">
-                    <h4 className="font-medium mr-2">{item.patient_name}</h4>
+                    <h4 className="font-heading font-semibold text-lg mr-2 group-hover:text-blue-400 transition-colors">
+                      {item.patient_name}
+                    </h4>
                     {getStatusBadge(item.status)}
                     <Badge
                       variant="outline"
                       className={
                         item.is_approved
-                          ? 'border-emerald-500/30 text-emerald-500'
-                          : 'border-amber-500/30 text-amber-500'
+                          ? 'border-emerald-500/30 text-emerald-400 bg-emerald-500/10'
+                          : 'border-amber-500/30 text-amber-400 bg-amber-500/10'
                       }
                     >
                       {item.is_approved ? 'Aprovado' : 'Pendente'}
                     </Badge>
                   </div>
-                  <p className="text-sm text-muted-foreground font-mono">{item.phone_number}</p>
-                  <div className="mt-3 text-sm italic text-muted-foreground/80 pl-3 border-l-2 border-white/10">
+                  <div className="text-sm text-muted-foreground font-mono bg-background/50 w-fit px-2 py-1 rounded-md">
+                    {item.phone_number}
+                  </div>
+                  <div className="mt-3 text-sm text-muted-foreground/90 pl-4 border-l-2 border-white/10 relative">
+                    <div className="absolute left-[-2px] top-0 bottom-0 w-[2px] bg-gradient-to-b from-blue-500/50 to-transparent rounded-full" />
                     {item.message_body}
                   </div>
                   {item.notes && (
-                    <p className="text-xs text-amber-500/80 mt-2">Motivo/Nota: {item.notes}</p>
+                    <p className="text-xs text-amber-500/80 mt-2 bg-amber-500/10 px-3 py-1.5 rounded-lg inline-block">
+                      Motivo: {item.notes}
+                    </p>
                   )}
                 </div>
-                <div className="text-xs text-muted-foreground whitespace-nowrap bg-background/50 px-3 py-1.5 rounded-lg flex flex-col items-end gap-1">
-                  <span>
+                <div className="text-xs text-muted-foreground whitespace-nowrap bg-background/50 px-4 py-3 rounded-xl flex flex-col items-end gap-1.5 border border-white/5 shadow-inner">
+                  <span className="flex items-center gap-1.5">
+                    <Clock className="w-3.5 h-3.5 opacity-50" />
                     Agendado:{' '}
-                    {format(new Date(item.send_after), 'dd/MM/yyyy HH:mm', { locale: ptBR })}
+                    <span className="font-medium text-foreground/80">
+                      {format(new Date(item.send_after), 'dd/MM/yyyy HH:mm', { locale: ptBR })}
+                    </span>
                   </span>
-                  <span className="opacity-50">
+                  <span className="flex items-center gap-1.5 opacity-60">
+                    <ArchiveIcon className="w-3.5 h-3.5 opacity-50" />
                     Modificado:{' '}
                     {format(new Date(item.updated_at), 'dd/MM/yyyy HH:mm', { locale: ptBR })}
                   </span>
