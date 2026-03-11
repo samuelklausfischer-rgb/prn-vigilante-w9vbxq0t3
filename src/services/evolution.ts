@@ -1,6 +1,8 @@
 import { supabase } from '@/lib/supabase/client'
 import { WhatsAppInstance } from '@/types'
 
+export type { WhatsAppInstance }
+
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
 export const evolutionApi = {
@@ -26,23 +28,20 @@ export const evolutionApi = {
 
   async syncWithWebhook(): Promise<{ success: boolean; message?: string }> {
     try {
-      // Sincronização com o webhook específico
-      const response = await fetch('http://host.docker.internal:5678/webhook/a', {
-        method: 'GET',
-        headers: {
-          Accept: 'application/json',
-        },
-      }).catch((e) => {
-        throw new Error(`Falha de rede ao contatar webhook: ${e.message}`)
-      })
+      const { data: responseData, error: invokeError } =
+        await supabase.functions.invoke('sync-webhook')
 
-      if (!response.ok) {
-        throw new Error(`Webhook retornou status HTTP ${response.status}`)
+      if (invokeError) {
+        throw new Error(`Erro na chamada da Edge Function: ${invokeError.message}`)
       }
 
-      const data = await response.json().catch(() => {
-        throw new Error('Formato de resposta inválido (esperado JSON)')
-      })
+      if (!responseData?.success) {
+        throw new Error(
+          responseData?.error || 'Erro na sincronização: O webhook não pôde ser alcançado.',
+        )
+      }
+
+      const data = responseData.data
 
       // Mapeamento flexível da resposta do webhook
       const instances = Array.isArray(data) ? data : data.data || data.instances || [data]
@@ -77,7 +76,10 @@ export const evolutionApi = {
       return { success: true }
     } catch (err: any) {
       console.warn('Webhook sync error:', err)
-      return { success: false, message: err.message || 'Erro desconhecido.' }
+      return {
+        success: false,
+        message: err.message || 'Erro na sincronização: O webhook não pôde ser alcançado.',
+      }
     }
   },
 

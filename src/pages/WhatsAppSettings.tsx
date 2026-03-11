@@ -50,8 +50,8 @@ export default function WhatsAppSettings() {
     } else {
       if (!silent) {
         toast({
-          title: 'Aviso de Sincronização',
-          description: result.message || 'Falha ao contatar webhook. Usando dados locais.',
+          title: 'Erro na Sincronização',
+          description: result.message || 'Erro na sincronização: O webhook não pôde ser alcançado.',
           variant: 'destructive',
         })
       }
