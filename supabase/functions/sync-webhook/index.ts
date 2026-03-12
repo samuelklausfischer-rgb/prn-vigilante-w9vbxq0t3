@@ -7,10 +7,16 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
-    const response = await fetch('http://host.docker.internal:5678/webhook/a', {
+    // Environment Handling: Allow override via env var for cloud environments,
+    // fallback to internal docker host for local proxying as per acceptance criteria
+    const webhookUrl =
+      Deno.env.get('WEBHOOK_INSTANCES_LIST_URL') ||
+      'http://host.docker.internal:5678/webhook/evolution/instances/list'
+
+    const response = await fetch(webhookUrl, {
       method: 'GET',
       headers: {
-        'Accept': 'application/json',
+        Accept: 'application/json',
       },
     }).catch((e) => {
       throw new Error(`Falha de rede ao contatar webhook: ${e.message}`)
@@ -29,6 +35,8 @@ Deno.serve(async (req: Request) => {
       status: 200,
     })
   } catch (error: any) {
+    // Return 200 with success: false to gracefully handle errors on the frontend
+    // without crashing, allowing the UI to display the error toast.
     return new Response(JSON.stringify({ success: false, error: error.message }), {
       headers: { 'Content-Type': 'application/json', ...corsHeaders },
       status: 200,
