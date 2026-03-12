@@ -51,7 +51,6 @@ export const evolutionApi = {
         return { success: true, message: 'Nenhuma instância recebida do webhook.' }
       }
 
-      // Fetch existing slots to map correctly and find next available slot
       const { data: existingSlots } = await supabase
         .from('whatsapp_instances')
         .select('slot_id, instance_name')
@@ -76,7 +75,7 @@ export const evolutionApi = {
           const inst = rawInst.instance || rawInst
 
           const instanceName =
-            inst.instance_name ?? inst.instanceName ?? inst.name ?? inst.id ?? null
+            inst.instanceName ?? inst.instance_name ?? inst.name ?? inst.id ?? null
           if (!instanceName) return null
 
           let status = 'empty'
@@ -97,7 +96,7 @@ export const evolutionApi = {
           const phoneNumber =
             inst.owner ?? inst.phone_number ?? inst.phoneNumber ?? inst.phone ?? inst.number ?? null
 
-          let slot_id = inst.slot_id ?? inst.slotId
+          let slot_id = inst.slotId ?? inst.slot_id
           if (slot_id === undefined || slot_id === null) {
             slot_id = existingSlotMap.get(instanceName)
             if (slot_id === undefined) {
@@ -130,7 +129,7 @@ export const evolutionApi = {
       console.warn('Webhook sync error:', err)
       return {
         success: false,
-        message: 'Falha ao sincronizar instâncias. Verifique a conexão com o servidor.',
+        message: 'Erro ao sincronizar instâncias. Verifique a conexão com a Evolution API.',
       }
     }
   },

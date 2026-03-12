@@ -42,18 +42,14 @@ export default function WhatsAppSettings() {
     if (result.success) {
       if (!silent) {
         toast({
-          title: 'Sincronização Concluída',
-          description: 'Instâncias sincronizadas com sucesso!',
+          description: 'Instâncias sincronizadas com sucesso.',
         })
       }
       await loadData()
     } else {
       if (!silent) {
         toast({
-          title: 'Erro na Sincronização',
-          description:
-            result.message ||
-            'Falha ao sincronizar instâncias. Verifique a conexão com o servidor.',
+          description: 'Erro ao sincronizar instâncias. Verifique a conexão com a Evolution API.',
           variant: 'destructive',
         })
       }
@@ -66,11 +62,9 @@ export default function WhatsAppSettings() {
       setLoading(true)
       const data = await loadData()
 
-      // Auto-sync se estiver vazio ou como rotina de entrada
       if (data.length === 0 || data.some((i) => i.status === 'initializing')) {
         await handleSyncWithWebhook(true)
       } else {
-        // Background sync silencioso para garantir frescor dos dados
         handleSyncWithWebhook(true)
       }
       setLoading(false)
@@ -261,7 +255,7 @@ export default function WhatsAppSettings() {
                         variant="outline"
                         className="border-amber-500/50 text-amber-400 hover:bg-amber-500/20"
                       >
-                        Escanear QR Code
+                        Gerar QR Code
                       </Button>
                     </div>
                   )}
