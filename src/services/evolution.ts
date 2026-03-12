@@ -158,7 +158,7 @@ export const evolutionApi = {
       const { data: responseData, error: invokeError } = await supabase.functions.invoke(
         'create-instance',
         {
-          body: { instanceName: name, phoneNumber },
+          body: { instanceName: name, phoneNumber, slotId },
         },
       )
 
@@ -166,6 +166,7 @@ export const evolutionApi = {
         return { success: false, error: `Erro de comunicação: ${invokeError.message}` }
       }
 
+      // If webhook returned error, application MUST NOT save or update data
       if (!responseData?.success) {
         return {
           success: false,
@@ -173,14 +174,16 @@ export const evolutionApi = {
         }
       }
 
-      // Map API status to database status
+      // Map API status to database status, defaulting to connecting as per AC
       const apiStatus =
-        responseData.data?.status || responseData.data?.instance?.status || 'disconnected'
-      let mappedStatus = 'disconnected'
-      if (['open', 'connected', 'CONNECTED'].includes(apiStatus)) mappedStatus = 'connected'
-      if (['connecting', 'CONNECTING'].includes(apiStatus)) mappedStatus = 'initializing'
+        responseData.data?.status || responseData.data?.instance?.status || 'connecting'
 
-      // Save to Supabase to persist the data immediately
+      let mappedStatus = 'connecting'
+      if (['open', 'connected', 'CONNECTED'].includes(apiStatus)) mappedStatus = 'connected'
+      else if (['close', 'disconnected', 'DISCONNECTED'].includes(apiStatus))
+        mappedStatus = 'disconnected'
+
+      // Save to Supabase only on success to persist the data immediately
       const { error: dbError } = await supabase.from('whatsapp_instances').upsert(
         {
           slot_id: slotId,

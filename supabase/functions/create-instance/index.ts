@@ -13,27 +13,38 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
-    const { instanceName, phoneNumber } = await req.json()
+    const { instanceName, phoneNumber, slotId } = await req.json()
 
-    if (!instanceName || !phoneNumber) {
-      return new Response(JSON.stringify({ success: false, error: 'Nome da instância e número de telefone são obrigatórios.' }), {
-        headers: { 'Content-Type': 'application/json', ...corsHeaders },
-        status: 200, // Returning 200 so frontend can handle via 'success: false'
-      })
+    if (!instanceName || !phoneNumber || slotId === undefined) {
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: 'Nome da instância, número de telefone e slot_id são obrigatórios.',
+        }),
+        {
+          headers: { 'Content-Type': 'application/json', ...corsHeaders },
+          status: 200, // Returning 200 so frontend can handle via 'success: false'
+        },
+      )
     }
 
-    // Default webhook URL falls back to a tunnel if not provided in environment variables
+    // New webhook URL per acceptance criteria
     const webhookUrl =
       Deno.env.get('WEBHOOK_INSTANCE_CREATE_URL') ||
-      'https://edge-thompson-hoped-expenditure.trycloudflare.com/webhook/evolution/instances/create'
+      'https://edge-thompson-hoped-expenditure.trycloudflare.com/webhook-test/criarintancia'
 
     const response = await fetch(webhookUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Accept': 'application/json',
+        Accept: 'application/json',
       },
-      body: JSON.stringify({ instanceName, phoneNumber })
+      // Payload matching the requirements
+      body: JSON.stringify({
+        instance_name: instanceName,
+        phone_number: phoneNumber,
+        slot_id: slotId,
+      }),
     }).catch((e) => {
       throw new Error(`Falha de rede ao contatar webhook: ${e.message}`)
     })
