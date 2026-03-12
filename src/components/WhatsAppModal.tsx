@@ -51,8 +51,7 @@ export function WhatsAppModal({ instance, open, onOpenChange, onRefresh }: Whats
     if (!instance) return
     setLoading(true)
     try {
-      const url = await evolutionApi.getQrCode(instance.slotId)
-      setQrCodeUrl(url)
+      setQrCodeUrl(await evolutionApi.getQrCode(instance.slotId))
     } catch (e) {
       toast({ title: 'Erro', description: 'Falha ao buscar QR Code.', variant: 'destructive' })
     } finally {
@@ -60,44 +59,17 @@ export function WhatsAppModal({ instance, open, onOpenChange, onRefresh }: Whats
     }
   }
 
-  const handleDisconnect = async () => {
-    if (!instance) return
+  const handleAction = async (
+    action: () => Promise<boolean>,
+    successTitle: string,
+    successDesc: string,
+    close = false,
+  ) => {
     setLoading(true)
-    if (await evolutionApi.disconnect(instance.slotId)) {
-      toast({ title: 'Desconectada', description: 'O aparelho foi desvinculado.' })
+    if (await action()) {
+      toast({ title: successTitle, description: successDesc })
       await onRefresh()
-    }
-    setLoading(false)
-  }
-
-  const handleDelete = async () => {
-    if (!instance) return
-    setLoading(true)
-    if (await evolutionApi.deleteInstance(instance.slotId)) {
-      toast({ title: 'Removida', description: 'O slot foi liberado com sucesso.' })
-      await onRefresh()
-      onOpenChange(false)
-    }
-    setLoading(false)
-  }
-
-  const handleCreate = async () => {
-    if (!instance || !newInstanceName.trim() || !newPhoneNumber.trim()) return
-    setLoading(true)
-    if (await evolutionApi.create(instance.slotId, newInstanceName.trim(), newPhoneNumber.trim())) {
-      toast({ title: 'Slot Configurado', description: 'Aguarde para sincronizar o QR Code.' })
-      await onRefresh()
-    }
-    setLoading(false)
-  }
-
-  const handleSimulateScan = async () => {
-    if (!instance) return
-    setLoading(true)
-    if (await evolutionApi.simulateScan(instance.slotId)) {
-      toast({ title: 'Sincronização Concluída', description: 'WhatsApp conectado!' })
-      await onRefresh()
-      onOpenChange(false)
+      if (close) onOpenChange(false)
     }
     setLoading(false)
   }
@@ -118,15 +90,30 @@ export function WhatsAppModal({ instance, open, onOpenChange, onRefresh }: Whats
 
         <div className="py-6 flex flex-col items-center justify-center min-h-[200px]">
           {instance.status === 'connected' && (
-            <div className="text-center space-y-4 animate-in fade-in zoom-in duration-300">
-              <div className="w-16 h-16 rounded-full bg-emerald-500/10 text-emerald-500 flex items-center justify-center mx-auto">
+            <div className="text-center space-y-4 animate-in fade-in zoom-in w-full">
+              <div className="w-16 h-16 rounded-full bg-emerald-500/10 text-emerald-500 flex items-center justify-center mx-auto mb-2">
                 <CheckCircle2 className="w-8 h-8" />
               </div>
               <div>
-                <h3 className="text-lg font-medium">Conexão Ativa</h3>
-                <p className="text-sm text-muted-foreground mt-1">
-                  Esta instância está conectada e processando mensagens normalmente.
-                </p>
+                <h3 className="text-xl font-bold text-emerald-400">Conexão Ativa</h3>
+                <p className="text-sm text-muted-foreground mt-1">Instância pronta.</p>
+              </div>
+              <div className="mt-6 space-y-3 bg-white/5 rounded-xl p-4 border border-white/10 text-left">
+                <div>
+                  <label className="text-xs text-muted-foreground uppercase font-semibold">
+                    Nome da Instância
+                  </label>
+                  <p className="font-medium text-white">{instance.instanceName}</p>
+                </div>
+                <div>
+                  <label className="text-xs text-muted-foreground uppercase font-semibold">
+                    Telefone Conectado
+                  </label>
+                  <p className="font-mono text-white flex items-center gap-2">
+                    <Smartphone className="w-4 h-4 text-muted-foreground" />
+                    {instance.phoneNumber || 'Desconhecido'}
+                  </p>
+                </div>
               </div>
             </div>
           )}
@@ -139,19 +126,25 @@ export function WhatsAppModal({ instance, open, onOpenChange, onRefresh }: Whats
                   <p className="text-sm">Gerando QR Code seguro...</p>
                 </div>
               ) : (
-                <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4">
                   <div className="bg-white p-4 rounded-xl inline-block shadow-lg mx-auto border-4 border-white/5">
                     <img src={qrCodeUrl} alt="QR Code" className="w-48 h-48 rounded-md" />
                   </div>
                   <p className="text-sm text-muted-foreground max-w-[280px] mx-auto">
-                    Abra o WhatsApp, vá em "Aparelhos conectados" e aponte a câmera para o código
-                    acima.
+                    Abra o WhatsApp e aponte a câmera para o código acima.
                   </p>
                   <Button
                     variant="ghost"
                     size="sm"
                     className="text-blue-400 hover:text-blue-300 mt-2"
-                    onClick={handleSimulateScan}
+                    onClick={() =>
+                      handleAction(
+                        () => evolutionApi.simulateScan(instance.slotId),
+                        'Concluído',
+                        'WhatsApp conectado!',
+                        true,
+                      )
+                    }
                     disabled={loading}
                   >
                     <Zap className="w-4 h-4 mr-2" /> Simular Leitura
@@ -165,15 +158,13 @@ export function WhatsAppModal({ instance, open, onOpenChange, onRefresh }: Whats
             <div className="w-full space-y-4">
               <div className="text-center mb-6">
                 <QrCode className="w-12 h-12 text-muted-foreground/50 mx-auto mb-3" />
-                <p className="text-sm text-muted-foreground">
-                  Configure uma nova instância para este slot para começar.
-                </p>
+                <p className="text-sm text-muted-foreground">Configure uma nova instância.</p>
               </div>
               <div className="space-y-4">
                 <div className="space-y-2 text-left">
-                  <label className="text-sm font-medium">Nome da Instância</label>
+                  <label className="text-sm font-medium">Nome</label>
                   <Input
-                    placeholder="Ex: PRN Operação Sul"
+                    placeholder="Ex: PRN Sul"
                     value={newInstanceName}
                     onChange={(e) => setNewInstanceName(e.target.value)}
                     className="bg-background/50 border-white/10"
@@ -181,9 +172,9 @@ export function WhatsAppModal({ instance, open, onOpenChange, onRefresh }: Whats
                   />
                 </div>
                 <div className="space-y-2 text-left">
-                  <label className="text-sm font-medium">Número de Telefone</label>
+                  <label className="text-sm font-medium">Telefone</label>
                   <Input
-                    placeholder="Ex: +55 11 99999-9999"
+                    placeholder="Ex: 5511999999999"
                     value={newPhoneNumber}
                     onChange={(e) => setNewPhoneNumber(e.target.value)}
                     className="bg-background/50 border-white/10"
@@ -221,17 +212,23 @@ export function WhatsAppModal({ instance, open, onOpenChange, onRefresh }: Whats
                   <AlertDialogHeader>
                     <AlertDialogTitle>Excluir Instância?</AlertDialogTitle>
                     <AlertDialogDescription>
-                      Isso removerá a configuração desta instância ({instance.instanceName}) e
-                      liberará o slot. Esta ação não pode ser desfeita.
+                      Isso removerá a configuração e liberará o slot.
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
                     <AlertDialogCancel className="border-white/10">Cancelar</AlertDialogCancel>
                     <AlertDialogAction
-                      onClick={handleDelete}
+                      onClick={() =>
+                        handleAction(
+                          () => evolutionApi.deleteInstance(instance.slotId),
+                          'Removida',
+                          'O slot foi liberado.',
+                          true,
+                        )
+                      }
                       className="bg-red-600 hover:bg-red-700 text-white"
                     >
-                      Confirmar Exclusão
+                      Confirmar
                     </AlertDialogAction>
                   </AlertDialogFooter>
                 </AlertDialogContent>
@@ -242,7 +239,13 @@ export function WhatsAppModal({ instance, open, onOpenChange, onRefresh }: Whats
             {instance.status === 'connected' && (
               <Button
                 variant="destructive"
-                onClick={handleDisconnect}
+                onClick={() =>
+                  handleAction(
+                    () => evolutionApi.disconnect(instance.slotId),
+                    'Desconectada',
+                    'O aparelho foi desvinculado.',
+                  )
+                }
                 disabled={loading}
                 className="bg-amber-600 hover:bg-amber-700 w-full sm:w-auto"
               >
@@ -251,7 +254,18 @@ export function WhatsAppModal({ instance, open, onOpenChange, onRefresh }: Whats
             )}
             {instance.status === 'empty' && (
               <Button
-                onClick={handleCreate}
+                onClick={() =>
+                  handleAction(
+                    () =>
+                      evolutionApi.create(
+                        instance.slotId,
+                        newInstanceName.trim(),
+                        newPhoneNumber.trim(),
+                      ),
+                    'Slot Configurado',
+                    'Aguarde para sincronizar o QR Code.',
+                  )
+                }
                 disabled={loading || !newInstanceName.trim() || !newPhoneNumber.trim()}
                 className="bg-blue-600 hover:bg-blue-700 w-full sm:w-auto"
               >
@@ -265,7 +279,7 @@ export function WhatsAppModal({ instance, open, onOpenChange, onRefresh }: Whats
                 disabled={loading}
                 className="border-white/10 hover:bg-white/5 w-full sm:w-auto"
               >
-                Atualizar QR Code
+                Atualizar QR
               </Button>
             )}
           </div>

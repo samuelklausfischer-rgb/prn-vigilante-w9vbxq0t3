@@ -1,10 +1,6 @@
 import { supabase } from '@/lib/supabase/client'
 import { WhatsAppInstance } from '@/types'
 
-export type { WhatsAppInstance }
-
-const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
-
 export const evolutionApi = {
   async getInstances(): Promise<WhatsAppInstance[]> {
     const { data, error } = await supabase
@@ -12,13 +8,12 @@ export const evolutionApi = {
       .select('*')
       .order('slot_id', { ascending: true })
 
-    if (error || !data) {
+    if (error) {
       console.error('Failed to fetch instances', error)
-      return []
+      throw error
     }
 
-    return data.map((d: any) => ({
-      id: d.id,
+    return (data || []).map((d: any) => ({
       slotId: d.slot_id,
       instanceName: d.instance_name,
       phoneNumber: d.phone_number,
@@ -129,13 +124,13 @@ export const evolutionApi = {
       console.warn('Webhook sync error:', err)
       return {
         success: false,
-        message: 'Erro ao sincronizar instâncias. Verifique a conexão com a Evolution API.',
+        message: err.message || 'Erro ao sincronizar instâncias. Verifique a conexão.',
       }
     }
   },
 
   async getQrCode(slotId: number): Promise<string> {
-    await delay(1500)
+    await new Promise((resolve) => setTimeout(resolve, 1500))
     return `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=evolution-auth-${slotId}-${Date.now()}`
   },
 
@@ -149,20 +144,24 @@ export const evolutionApi = {
   },
 
   async deleteInstance(slotId: number): Promise<boolean> {
-    const { error } = await supabase
-      .from('whatsapp_instances')
-      .update({ status: 'empty', instance_name: null, phone_number: null })
-      .eq('slot_id', slotId)
+    const { error } = await supabase.from('whatsapp_instances').delete().eq('slot_id', slotId)
 
     return !error
   },
 
   async create(slotId: number, name: string, phoneNumber: string): Promise<boolean> {
-    const { error } = await supabase
-      .from('whatsapp_instances')
-      .update({ status: 'disconnected', instance_name: name, phone_number: phoneNumber })
-      .eq('slot_id', slotId)
+    const { error } = await supabase.from('whatsapp_instances').upsert(
+      {
+        slot_id: slotId,
+        status: 'disconnected',
+        instance_name: name,
+        phone_number: phoneNumber,
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: 'slot_id' },
+    )
 
+    if (error) console.error('Create error', error)
     return !error
   },
 

@@ -2,84 +2,91 @@ import { useState, useEffect } from 'react'
 import { WhatsAppInstance } from '@/types'
 import { evolutionApi } from '@/services/evolution'
 import { WhatsAppModal } from '@/components/WhatsAppModal'
-import {
-  Smartphone,
-  RefreshCw,
-  PlusCircle,
-  CheckCircle2,
-  AlertCircle,
-  Activity,
-  Wifi,
-} from 'lucide-react'
-import { Badge } from '@/components/ui/badge'
+import { WhatsAppSlotCard } from '@/components/WhatsAppSlotCard'
+import { RefreshCw, AlertCircle, Activity, Wifi } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { supabase } from '@/lib/supabase/client'
 import { useToast } from '@/hooks/use-toast'
 
+const TOTAL_SLOTS = 5
+
 export default function WhatsAppSettings() {
   const [instances, setInstances] = useState<WhatsAppInstance[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [dbEmpty, setDbEmpty] = useState(false)
   const [syncing, setSyncing] = useState(false)
   const [selectedInstance, setSelectedInstance] = useState<WhatsAppInstance | null>(null)
   const { toast } = useToast()
 
   const loadData = async () => {
     try {
+      setError(null)
       const data = await evolutionApi.getInstances()
-      setInstances(data)
-      return data
-    } catch (e) {
-      console.error('Failed to load instances', e)
-      return []
+      setDbEmpty(data.length === 0)
+
+      const slots = Array.from({ length: TOTAL_SLOTS }, (_, i) => {
+        const slotId = i + 1
+        return (
+          data.find((d) => d.slotId === slotId) || {
+            slotId,
+            instanceName: null,
+            phoneNumber: null,
+            status: 'empty',
+          }
+        )
+      }) as WhatsAppInstance[]
+
+      setInstances(slots)
+      return { data, slots }
+    } catch (e: any) {
+      setError('Falha ao carregar as instâncias. Verifique a conexão com o banco de dados.')
+      return null
     }
   }
 
   const handleSyncWithWebhook = async (silent = false) => {
     setSyncing(true)
     const result = await evolutionApi.syncWithWebhook()
-
     if (result.success) {
-      if (!silent) {
-        toast({
-          description: 'Instâncias sincronizadas com sucesso.',
-        })
-      }
+      if (!silent) toast({ description: 'Instâncias sincronizadas com sucesso.' })
       await loadData()
     } else {
-      if (!silent) {
-        toast({
-          description: 'Erro ao sincronizar instâncias. Verifique a conexão com a Evolution API.',
-          variant: 'destructive',
-        })
-      }
+      if (!silent)
+        toast({ description: result.message || 'Erro ao sincronizar.', variant: 'destructive' })
     }
     setSyncing(false)
   }
 
   useEffect(() => {
+    let mounted = true
     const init = async () => {
       setLoading(true)
-      const data = await loadData()
-
-      if (data.length === 0 || data.some((i) => i.status === 'initializing')) {
-        await handleSyncWithWebhook(true)
-      } else {
-        handleSyncWithWebhook(true)
+      const result = await loadData()
+      if (!mounted) return
+      if (result) {
+        if (result.data.length === 0 || result.data.some((i) => i.status === 'initializing')) {
+          await handleSyncWithWebhook(true)
+        } else {
+          handleSyncWithWebhook(true)
+        }
       }
       setLoading(false)
     }
 
     init()
-
     const sub = supabase
-      .channel('whatsapp-instances-changes')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'whatsapp_instances' }, () => {
-        loadData()
-      })
+      .channel('wa-instances')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'whatsapp_instances' },
+        () => mounted && loadData(),
+      )
       .subscribe()
 
     return () => {
+      mounted = false
       supabase.removeChannel(sub)
     }
   }, [])
@@ -93,191 +100,81 @@ export default function WhatsAppSettings() {
     }
   }, [instances, selectedInstance])
 
-  const getStatusDisplay = (status: string) => {
-    switch (status) {
-      case 'connected':
-        return {
-          label: 'Conectado',
-          badge: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/50',
-          icon: <CheckCircle2 className="w-5 h-5 text-emerald-400" />,
-          border: 'border-emerald-500/40 shadow-[0_0_20px_rgba(16,185,129,0.15)] bg-emerald-500/5',
-          pulse: 'bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.8)]',
-        }
-      case 'disconnected':
-        return {
-          label: 'Desconectado',
-          badge: 'bg-amber-500/20 text-amber-400 border-amber-500/50',
-          icon: <AlertCircle className="w-5 h-5 text-amber-400" />,
-          border: 'border-amber-500/40 shadow-[0_0_20px_rgba(245,158,11,0.15)] bg-amber-500/5',
-          pulse: 'bg-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.8)]',
-        }
-      case 'initializing':
-        return {
-          label: 'Inicializando',
-          badge: 'bg-blue-500/20 text-blue-400 border-blue-500/50',
-          icon: <RefreshCw className="w-5 h-5 text-blue-400 animate-spin" />,
-          border: 'border-blue-500/40 shadow-[0_0_20px_rgba(59,130,246,0.15)] bg-blue-500/5',
-          pulse: 'bg-blue-400 animate-pulse shadow-[0_0_10px_rgba(59,130,246,0.8)]',
-        }
-      default:
-        return {
-          label: 'Slot Vazio',
-          badge: 'bg-slate-500/20 text-slate-400 border-slate-500/30',
-          icon: <PlusCircle className="w-5 h-5 text-slate-500" />,
-          border: 'border-white/10 hover:border-white/20 bg-card/40',
-          pulse: 'bg-slate-600',
-        }
-    }
-  }
-
   return (
     <div className="space-y-6 animate-fade-in-up">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-card/60 p-6 rounded-2xl border border-white/10 backdrop-blur-xl shadow-2xl relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 via-transparent to-transparent pointer-events-none" />
         <div className="relative z-10">
           <h2 className="text-2xl font-heading font-bold flex items-center gap-3 text-white">
-            <Activity className="w-6 h-6 text-blue-400" />
-            Canais de Comunicação
+            <Activity className="w-6 h-6 text-blue-400" /> Canais de Comunicação
           </h2>
           <p className="text-sm text-muted-foreground mt-1.5 flex items-center gap-2">
-            <Wifi className="w-4 h-4 opacity-70" />
-            Sincronização em tempo real via Webhook ativo.
+            <Wifi className="w-4 h-4 opacity-70" /> Sincronização em tempo real via Webhook ativo.
           </p>
         </div>
         <Button
           onClick={() => handleSyncWithWebhook(false)}
           disabled={loading || syncing}
-          className="rounded-xl border-white/10 bg-blue-600 hover:bg-blue-500 text-white shadow-[0_0_20px_rgba(37,99,235,0.4)] transition-all active:scale-95 z-10"
+          className="rounded-xl border-white/10 bg-blue-600 hover:bg-blue-500 text-white shadow-[0_0_20px_rgba(37,99,235,0.4)] z-10"
         >
           <RefreshCw className={cn('w-4 h-4 mr-2', (loading || syncing) && 'animate-spin')} />
           {syncing ? 'Sincronizando...' : 'Sincronizar Instâncias'}
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {instances.length === 0 && loading
-          ? Array.from({ length: 3 }).map((_, i) => (
-              <div
-                key={i}
-                className="h-48 rounded-2xl bg-card/30 border border-white/5 animate-pulse"
-              />
-            ))
-          : instances.map((instance) => {
-              const display = getStatusDisplay(instance.status)
-              return (
+      {error && (
+        <div className="bg-destructive/10 border border-destructive/20 rounded-2xl p-6 flex flex-col items-center justify-center text-center gap-4 animate-in fade-in">
+          <AlertCircle className="w-10 h-10 text-destructive" />
+          <div>
+            <h3 className="text-lg font-semibold text-destructive">Erro de Conexão</h3>
+            <p className="text-destructive/80 mt-1">{error}</p>
+          </div>
+          <Button
+            onClick={() => loadData()}
+            variant="outline"
+            className="border-destructive/30 text-destructive hover:bg-destructive/20 mt-2"
+          >
+            Tentar Novamente
+          </Button>
+        </div>
+      )}
+
+      {dbEmpty && !loading && !error && (
+        <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl p-4 flex items-center gap-4 text-blue-400 animate-in fade-in">
+          <AlertCircle className="w-5 h-5 shrink-0" />
+          <p className="text-sm">
+            Nenhuma instância encontrada no banco de dados. Configure um slot disponível abaixo ou
+            sincronize com o webhook para importar dados existentes.
+          </p>
+        </div>
+      )}
+
+      {!error && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {loading && instances.length === 0
+            ? Array.from({ length: TOTAL_SLOTS }).map((_, i) => (
                 <div
+                  key={i}
+                  className="h-48 rounded-2xl bg-card/30 border border-white/5 animate-pulse"
+                />
+              ))
+            : instances.map((instance) => (
+                <WhatsAppSlotCard
                   key={instance.slotId}
+                  instance={instance}
                   onClick={() => setSelectedInstance(instance)}
-                  className={cn(
-                    'group relative p-6 rounded-2xl backdrop-blur-md cursor-pointer transition-all duration-500 hover:-translate-y-2 border overflow-hidden',
-                    display.border,
-                  )}
-                >
-                  <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-                    <Smartphone className="w-24 h-24 rotate-12" />
-                  </div>
+                />
+              ))}
+        </div>
+      )}
 
-                  <div className="flex justify-between items-start mb-6 relative z-10">
-                    <div className="p-3 rounded-xl bg-background/80 backdrop-blur-sm border border-white/10 group-hover:scale-110 transition-transform shadow-lg">
-                      {display.icon}
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <span className="flex h-3 w-3 relative">
-                        {instance.status !== 'empty' && (
-                          <span
-                            className={cn(
-                              'animate-ping absolute inline-flex h-full w-full rounded-full opacity-75',
-                              display.pulse,
-                            )}
-                          />
-                        )}
-                        <span
-                          className={cn('relative inline-flex rounded-full h-3 w-3', display.pulse)}
-                        />
-                      </span>
-                      <Badge
-                        variant="outline"
-                        className={cn(
-                          'uppercase tracking-wider text-[10px] font-bold',
-                          display.badge,
-                        )}
-                      >
-                        {display.label}
-                      </Badge>
-                    </div>
-                  </div>
-
-                  <div className="relative z-10 space-y-1">
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className="text-xs font-mono bg-white/10 px-2 py-0.5 rounded text-white/70">
-                        SLOT 0{instance.slotId}
-                      </span>
-                    </div>
-                    <h3
-                      className={cn(
-                        'text-xl font-heading font-bold truncate tracking-tight',
-                        instance.status === 'empty' ? 'text-muted-foreground/50' : 'text-white',
-                      )}
-                    >
-                      {instance.instanceName || 'Slot Disponível'}
-                    </h3>
-
-                    <div className="h-6 mt-1">
-                      {instance.phoneNumber && instance.status !== 'empty' ? (
-                        <p className="text-sm text-muted-foreground/90 font-mono truncate flex items-center gap-1.5">
-                          <Smartphone className="w-3.5 h-3.5 opacity-50" />
-                          {instance.phoneNumber}
-                        </p>
-                      ) : (
-                        <p className="text-sm text-muted-foreground/50 italic">
-                          Nenhum número vinculado
-                        </p>
-                      )}
-                    </div>
-                  </div>
-
-                  <div
-                    className={cn(
-                      'absolute inset-x-0 bottom-0 h-1 transition-all duration-500',
-                      instance.status === 'connected'
-                        ? 'bg-gradient-to-r from-emerald-500 to-transparent'
-                        : instance.status === 'disconnected'
-                          ? 'bg-gradient-to-r from-amber-500 to-transparent'
-                          : instance.status === 'initializing'
-                            ? 'bg-gradient-to-r from-blue-500 to-transparent'
-                            : 'bg-transparent',
-                    )}
-                  />
-
-                  {instance.status === 'disconnected' && (
-                    <div className="absolute inset-0 bg-background/80 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center z-20">
-                      <Button
-                        variant="outline"
-                        className="border-amber-500/50 text-amber-400 hover:bg-amber-500/20"
-                      >
-                        Gerar QR Code
-                      </Button>
-                    </div>
-                  )}
-                  {instance.status === 'empty' && (
-                    <div className="absolute inset-0 bg-background/80 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center z-20">
-                      <Button
-                        variant="outline"
-                        className="border-blue-500/50 text-blue-400 hover:bg-blue-500/20"
-                      >
-                        Configurar Instância
-                      </Button>
-                    </div>
-                  )}
-                </div>
-              )
-            })}
-      </div>
       <WhatsAppModal
         instance={selectedInstance}
         open={!!selectedInstance}
         onOpenChange={(open) => !open && setSelectedInstance(null)}
-        onRefresh={loadData}
+        onRefresh={async () => {
+          await loadData()
+        }}
       />
     </div>
   )
