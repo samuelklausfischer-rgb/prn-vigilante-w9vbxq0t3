@@ -8,7 +8,7 @@ const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 export const evolutionApi = {
   async getInstances(): Promise<WhatsAppInstance[]> {
     const { data, error } = await supabase
-      .from('whatsapp_instances' as any)
+      .from('whatsapp_instances')
       .select('*')
       .order('slot_id', { ascending: true })
 
@@ -37,29 +37,81 @@ export const evolutionApi = {
 
       if (!responseData?.success) {
         throw new Error(
-          responseData?.error || 'Erro na sincronização: O webhook não pôde ser alcançado.',
+          responseData?.error ||
+            'Falha ao sincronizar instâncias. Verifique a conexão com o servidor.',
         )
       }
 
       const data = responseData.data
 
-      // Mapeamento flexível da resposta do webhook
-      const instances = Array.isArray(data) ? data : data.data || data.instances || [data]
+      let instances = Array.isArray(data) ? data : data?.data || data?.instances || [data]
+      if (!Array.isArray(instances)) instances = []
 
       if (!instances || instances.length === 0) {
         return { success: true, message: 'Nenhuma instância recebida do webhook.' }
       }
 
+      // Fetch existing slots to map correctly and find next available slot
+      const { data: existingSlots } = await supabase
+        .from('whatsapp_instances')
+        .select('slot_id, instance_name')
+        .order('slot_id', { ascending: true })
+
+      const existingSlotMap = new Map(
+        (existingSlots || []).map((s: any) => [s.instance_name, s.slot_id]),
+      )
+      const occupiedSlots = new Set((existingSlots || []).map((s: any) => s.slot_id))
+
+      let nextAvailableSlot = 1
+      const getNextSlot = () => {
+        while (occupiedSlots.has(nextAvailableSlot)) {
+          nextAvailableSlot++
+        }
+        occupiedSlots.add(nextAvailableSlot)
+        return nextAvailableSlot
+      }
+
       const toUpsert = instances
-        .map((inst: any) => {
-          const slot_id = inst.slot_id ?? inst.slotId ?? inst.id
-          if (slot_id === undefined) return null
+        .map((rawInst: any) => {
+          const inst = rawInst.instance || rawInst
+
+          const instanceName =
+            inst.instance_name ?? inst.instanceName ?? inst.name ?? inst.id ?? null
+          if (!instanceName) return null
+
+          let status = 'empty'
+          const state = inst.status || inst.state || inst.connectionStatus
+          if (state === 'open' || state === 'connected' || state === 'CONNECTED') {
+            status = 'connected'
+          } else if (state === 'connecting' || state === 'CONNECTING') {
+            status = 'initializing'
+          } else if (
+            state === 'close' ||
+            state === 'disconnected' ||
+            state === 'DISCONNECTED' ||
+            state === 'DISCONNECTING'
+          ) {
+            status = 'disconnected'
+          }
+
+          const phoneNumber =
+            inst.owner ?? inst.phone_number ?? inst.phoneNumber ?? inst.phone ?? inst.number ?? null
+
+          let slot_id = inst.slot_id ?? inst.slotId
+          if (slot_id === undefined || slot_id === null) {
+            slot_id = existingSlotMap.get(instanceName)
+            if (slot_id === undefined) {
+              slot_id = getNextSlot()
+            }
+          }
 
           return {
             slot_id: Number(slot_id),
-            instance_name: inst.instance_name ?? inst.instanceName ?? inst.name ?? null,
-            phone_number: inst.phone_number ?? inst.phoneNumber ?? inst.phone ?? null,
-            status: inst.status ?? 'empty',
+            instance_name: instanceName,
+            phone_number: phoneNumber
+              ? String(phoneNumber).replace(/@s\.whatsapp\.net/g, '')
+              : null,
+            status,
             updated_at: new Date().toISOString(),
           }
         })
@@ -67,7 +119,7 @@ export const evolutionApi = {
 
       if (toUpsert.length > 0) {
         const { error } = await supabase
-          .from('whatsapp_instances' as any)
+          .from('whatsapp_instances')
           .upsert(toUpsert, { onConflict: 'slot_id' })
 
         if (error) throw error
@@ -78,19 +130,19 @@ export const evolutionApi = {
       console.warn('Webhook sync error:', err)
       return {
         success: false,
-        message: err.message || 'Erro na sincronização: O webhook não pôde ser alcançado.',
+        message: 'Falha ao sincronizar instâncias. Verifique a conexão com o servidor.',
       }
     }
   },
 
   async getQrCode(slotId: number): Promise<string> {
-    await delay(1500) // Simulate generating a secure QR code
+    await delay(1500)
     return `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=evolution-auth-${slotId}-${Date.now()}`
   },
 
   async disconnect(slotId: number): Promise<boolean> {
     const { error } = await supabase
-      .from('whatsapp_instances' as any)
+      .from('whatsapp_instances')
       .update({ status: 'disconnected' })
       .eq('slot_id', slotId)
 
@@ -99,7 +151,7 @@ export const evolutionApi = {
 
   async deleteInstance(slotId: number): Promise<boolean> {
     const { error } = await supabase
-      .from('whatsapp_instances' as any)
+      .from('whatsapp_instances')
       .update({ status: 'empty', instance_name: null, phone_number: null })
       .eq('slot_id', slotId)
 
@@ -108,7 +160,7 @@ export const evolutionApi = {
 
   async create(slotId: number, name: string, phoneNumber: string): Promise<boolean> {
     const { error } = await supabase
-      .from('whatsapp_instances' as any)
+      .from('whatsapp_instances')
       .update({ status: 'disconnected', instance_name: name, phone_number: phoneNumber })
       .eq('slot_id', slotId)
 
@@ -117,7 +169,7 @@ export const evolutionApi = {
 
   async simulateScan(slotId: number): Promise<boolean> {
     const { error } = await supabase
-      .from('whatsapp_instances' as any)
+      .from('whatsapp_instances')
       .update({ status: 'connected' })
       .eq('slot_id', slotId)
 

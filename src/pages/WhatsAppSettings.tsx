@@ -43,7 +43,7 @@ export default function WhatsAppSettings() {
       if (!silent) {
         toast({
           title: 'Sincronização Concluída',
-          description: 'Os dados foram atualizados via Webhook com sucesso.',
+          description: 'Instâncias sincronizadas com sucesso!',
         })
       }
       await loadData()
@@ -51,7 +51,9 @@ export default function WhatsAppSettings() {
       if (!silent) {
         toast({
           title: 'Erro na Sincronização',
-          description: result.message || 'Erro na sincronização: O webhook não pôde ser alcançado.',
+          description:
+            result.message ||
+            'Falha ao sincronizar instâncias. Verifique a conexão com o servidor.',
           variant: 'destructive',
         })
       }

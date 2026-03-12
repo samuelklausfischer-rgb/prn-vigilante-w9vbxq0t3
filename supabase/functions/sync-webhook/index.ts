@@ -3,7 +3,8 @@ import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, x-supabase-client-platform, apikey, content-type',
+  'Access-Control-Allow-Headers':
+    'authorization, x-client-info, x-supabase-client-platform, apikey, content-type',
 }
 
 Deno.serve(async (req: Request) => {
@@ -12,14 +13,16 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
-    // Environment Handling: Allow override via env var for cloud environments, 
+    // Environment Handling: Allow override via env var for cloud environments,
     // fallback to the new Cloudflare tunnel URL as per acceptance criteria
-    const webhookUrl = Deno.env.get('WEBHOOK_INSTANCES_LIST_URL') || 'https://edge-thompson-hoped-expenditure.trycloudflare.com/webhook/evolution/instances/list';
+    const webhookUrl =
+      Deno.env.get('WEBHOOK_INSTANCES_LIST_URL') ||
+      'https://edge-thompson-hoped-expenditure.trycloudflare.com/webhook/evolution/instances/list'
 
     const response = await fetch(webhookUrl, {
       method: 'GET',
       headers: {
-        'Accept': 'application/json',
+        Accept: 'application/json',
       },
     }).catch((e) => {
       throw new Error(`Falha de rede ao contatar webhook: ${e.message}`)
@@ -38,7 +41,7 @@ Deno.serve(async (req: Request) => {
       status: 200,
     })
   } catch (error: any) {
-    // Return 200 with success: false to gracefully handle errors on the frontend 
+    // Return 200 with success: false to gracefully handle errors on the frontend
     // without crashing, allowing the UI to display the error toast.
     return new Response(JSON.stringify({ success: false, error: error.message }), {
       headers: { 'Content-Type': 'application/json', ...corsHeaders },
