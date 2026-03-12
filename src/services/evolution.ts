@@ -149,20 +149,61 @@ export const evolutionApi = {
     return !error
   },
 
-  async create(slotId: number, name: string, phoneNumber: string): Promise<boolean> {
-    const { error } = await supabase.from('whatsapp_instances').upsert(
-      {
-        slot_id: slotId,
-        status: 'disconnected',
-        instance_name: name,
-        phone_number: phoneNumber,
-        updated_at: new Date().toISOString(),
-      },
-      { onConflict: 'slot_id' },
-    )
+  async create(
+    slotId: number,
+    name: string,
+    phoneNumber: string,
+  ): Promise<{ success: boolean; error?: string }> {
+    try {
+      const { data: responseData, error: invokeError } = await supabase.functions.invoke(
+        'create-instance',
+        {
+          body: { instanceName: name, phoneNumber },
+        },
+      )
 
-    if (error) console.error('Create error', error)
-    return !error
+      if (invokeError) {
+        return { success: false, error: `Erro de comunicação: ${invokeError.message}` }
+      }
+
+      if (!responseData?.success) {
+        return {
+          success: false,
+          error: responseData?.error || 'Falha ao criar instância na API da Evolution.',
+        }
+      }
+
+      // Map API status to database status
+      const apiStatus =
+        responseData.data?.status || responseData.data?.instance?.status || 'disconnected'
+      let mappedStatus = 'disconnected'
+      if (['open', 'connected', 'CONNECTED'].includes(apiStatus)) mappedStatus = 'connected'
+      if (['connecting', 'CONNECTING'].includes(apiStatus)) mappedStatus = 'initializing'
+
+      // Save to Supabase to persist the data immediately
+      const { error: dbError } = await supabase.from('whatsapp_instances').upsert(
+        {
+          slot_id: slotId,
+          status: mappedStatus,
+          instance_name: name,
+          phone_number: phoneNumber,
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: 'slot_id' },
+      )
+
+      if (dbError) {
+        return {
+          success: false,
+          error: `Instância criada na API, mas erro ao salvar no banco: ${dbError.message}`,
+        }
+      }
+
+      return { success: true }
+    } catch (err: any) {
+      console.error('Create error:', err)
+      return { success: false, error: err.message || 'Erro interno ao tentar criar a instância.' }
+    }
   },
 
   async simulateScan(slotId: number): Promise<boolean> {

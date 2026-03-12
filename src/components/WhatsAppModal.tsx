@@ -60,18 +60,36 @@ export function WhatsAppModal({ instance, open, onOpenChange, onRefresh }: Whats
   }
 
   const handleAction = async (
-    action: () => Promise<boolean>,
+    action: () => Promise<boolean | { success: boolean; error?: string }>,
     successTitle: string,
     successDesc: string,
     close = false,
   ) => {
     setLoading(true)
-    if (await action()) {
-      toast({ title: successTitle, description: successDesc })
-      await onRefresh()
-      if (close) onOpenChange(false)
+    try {
+      const result = await action()
+      const isSuccess = typeof result === 'boolean' ? result : result.success
+
+      if (isSuccess) {
+        toast({ title: successTitle, description: successDesc })
+        await onRefresh()
+        if (close) onOpenChange(false)
+      } else {
+        const errorMsg =
+          typeof result === 'object' && result.error
+            ? result.error
+            : 'Ocorreu um erro ao processar sua solicitação.'
+        toast({ title: 'Ação Falhou', description: errorMsg, variant: 'destructive' })
+      }
+    } catch (error: any) {
+      toast({
+        title: 'Erro Crítico',
+        description: error.message || 'Falha inesperada ao executar a ação.',
+        variant: 'destructive',
+      })
+    } finally {
+      setLoading(false)
     }
-    setLoading(false)
   }
 
   if (!instance) return null
@@ -81,10 +99,17 @@ export function WhatsAppModal({ instance, open, onOpenChange, onRefresh }: Whats
       <DialogContent className="sm:max-w-md border-white/10 bg-card rounded-2xl">
         <DialogHeader>
           <DialogTitle className="font-heading flex items-center gap-2">
-            <Smartphone className="w-5 h-5 text-blue-400" /> Gerenciar Slot {instance.slotId}
+            <Smartphone className="w-5 h-5 text-blue-400" />
+            {instance.status === 'empty'
+              ? 'Criar Nova Instância'
+              : `Gerenciar Slot ${instance.slotId}`}
           </DialogTitle>
           <DialogDescription>
-            {instance.instanceName ? `Instância: ${instance.instanceName}` : 'Slot Disponível'}
+            {instance.status === 'empty'
+              ? 'Configure os dados para adicionar um novo canal.'
+              : instance.instanceName
+                ? `Instância: ${instance.instanceName}`
+                : 'Slot Disponível'}
           </DialogDescription>
         </DialogHeader>
 
@@ -158,11 +183,13 @@ export function WhatsAppModal({ instance, open, onOpenChange, onRefresh }: Whats
             <div className="w-full space-y-4">
               <div className="text-center mb-6">
                 <QrCode className="w-12 h-12 text-muted-foreground/50 mx-auto mb-3" />
-                <p className="text-sm text-muted-foreground">Configure uma nova instância.</p>
+                <p className="text-sm text-muted-foreground">
+                  Adicione os detalhes da nova conexão.
+                </p>
               </div>
               <div className="space-y-4">
                 <div className="space-y-2 text-left">
-                  <label className="text-sm font-medium">Nome</label>
+                  <label className="text-sm font-medium">Nome da Instância</label>
                   <Input
                     placeholder="Ex: PRN Sul"
                     value={newInstanceName}
@@ -172,7 +199,7 @@ export function WhatsAppModal({ instance, open, onOpenChange, onRefresh }: Whats
                   />
                 </div>
                 <div className="space-y-2 text-left">
-                  <label className="text-sm font-medium">Telefone</label>
+                  <label className="text-sm font-medium">Número de Telefone</label>
                   <Input
                     placeholder="Ex: 5511999999999"
                     value={newPhoneNumber}
@@ -194,7 +221,7 @@ export function WhatsAppModal({ instance, open, onOpenChange, onRefresh }: Whats
               disabled={loading}
               className="w-full sm:w-auto"
             >
-              Fechar
+              {instance.status === 'empty' ? 'Cancelar' : 'Fechar'}
             </Button>
             {instance.status !== 'empty' && (
               <AlertDialog>
@@ -262,8 +289,9 @@ export function WhatsAppModal({ instance, open, onOpenChange, onRefresh }: Whats
                         newInstanceName.trim(),
                         newPhoneNumber.trim(),
                       ),
-                    'Slot Configurado',
-                    'Aguarde para sincronizar o QR Code.',
+                    'Instância Criada',
+                    'A nova instância foi configurada com sucesso.',
+                    true,
                   )
                 }
                 disabled={loading || !newInstanceName.trim() || !newPhoneNumber.trim()}
