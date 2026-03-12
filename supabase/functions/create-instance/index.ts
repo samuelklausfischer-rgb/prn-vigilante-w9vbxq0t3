@@ -16,16 +16,10 @@ Deno.serve(async (req: Request) => {
     const { instanceName, phoneNumber } = await req.json()
 
     if (!instanceName || !phoneNumber) {
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error: 'Nome da instância e número de telefone são obrigatórios.',
-        }),
-        {
-          headers: { 'Content-Type': 'application/json', ...corsHeaders },
-          status: 200, // Returning 200 so frontend can handle via 'success: false'
-        },
-      )
+      return new Response(JSON.stringify({ success: false, error: 'Nome da instância e número de telefone são obrigatórios.' }), {
+        headers: { 'Content-Type': 'application/json', ...corsHeaders },
+        status: 200, // Returning 200 so frontend can handle via 'success: false'
+      })
     }
 
     // Default webhook URL falls back to a tunnel if not provided in environment variables
@@ -37,9 +31,9 @@ Deno.serve(async (req: Request) => {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Accept: 'application/json',
+        'Accept': 'application/json',
       },
-      body: JSON.stringify({ instanceName, phoneNumber }),
+      body: JSON.stringify({ instanceName, phoneNumber })
     }).catch((e) => {
       throw new Error(`Falha de rede ao contatar webhook: ${e.message}`)
     })
