@@ -10,7 +10,7 @@ Deno.serve(async (req: Request) => {
     const response = await fetch('http://host.docker.internal:5678/webhook/a', {
       method: 'GET',
       headers: {
-        Accept: 'application/json',
+        'Accept': 'application/json',
       },
     }).catch((e) => {
       throw new Error(`Falha de rede ao contatar webhook: ${e.message}`)
