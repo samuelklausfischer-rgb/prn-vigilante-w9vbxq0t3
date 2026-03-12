@@ -1,6 +1,7 @@
 {
   "_versions": {
     "sync-webhook": 4,
-    "create-instance": 1
+    "create-instance": 1,
+    "functions": 1
   }
 }
