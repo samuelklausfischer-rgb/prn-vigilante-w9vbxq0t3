@@ -2,25 +2,9 @@ import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
 
 import { corsHeaders } from '../_shared/cors.ts'
 
-type QualificationClass =
-  | 'confirmado_positivo'
-  | 'quer_remarcar'
-  | 'nao_pode_comparecer'
-  | 'cancelado'
-  | 'duvida'
-  | 'ambigua'
-  | 'sem_resposta_util'
+type QualificationClass = 'confirmado_positivo' | 'quer_remarcar' | 'nao_pode_comparecer' | 'cancelado' | 'duvida' | 'ambigua' | 'sem_resposta_util'
 
-type JourneyStatus =
-  | 'queued'
-  | 'contacting'
-  | 'delivered_waiting_reply'
-  | 'followup_due'
-  | 'followup_sent'
-  | 'confirmed'
-  | 'pending_manual'
-  | 'cancelled'
-  | 'archived'
+type JourneyStatus = 'queued' | 'contacting' | 'delivered_waiting_reply' | 'followup_due' | 'followup_sent' | 'confirmed' | 'pending_manual' | 'cancelled' | 'archived'
 
 type ProcessClassificationRequest = {
   classification_id: string
@@ -31,11 +15,7 @@ type ProcessClassificationResponse = {
   data?: {
     classification_id: string
     journey_id: string
-    action_taken:
-      | 'auto_confirmed'
-      | 'no_action_needed'
-      | 'skipped_low_confidence'
-      | 'skipped_already_processed'
+    action_taken: 'auto_confirmed' | 'no_action_needed' | 'skipped_low_confidence' | 'skipped_already_processed'
     reason: string
   }
   error?: string
@@ -73,11 +53,7 @@ async function restSelectOne(
   return Array.isArray(rows) && rows.length ? rows[0] : null
 }
 
-async function restPatch(
-  table: string,
-  match: Record<string, string>,
-  patch: Record<string, unknown>,
-): Promise<void> {
+async function restPatch(table: string, match: Record<string, string>, patch: Record<string, unknown>): Promise<void> {
   const { supabaseUrl, serviceKey } = getSupabase()
   const qs = new URLSearchParams()
   for (const [k, v] of Object.entries(match)) qs.set(k, `eq.${v}`)
@@ -124,7 +100,7 @@ function shouldAutoConfirm(
 ): boolean {
   return (
     classification === 'confirmado_positivo' &&
-    confidence >= 0.9 &&
+    confidence >= 0.90 &&
     journeyStatus !== 'confirmed' &&
     journeyStatus !== 'archived'
   )
@@ -179,20 +155,15 @@ function getBearerToken(req: Request): string | null {
   return m?.[1]?.trim() || null
 }
 
-async function requireAuth(
-  req: Request,
-): Promise<{ ok: true; user: unknown } | { ok: false; res: Response }> {
+async function requireAuth(req: Request): Promise<{ ok: true; user: unknown } | { ok: false; res: Response }> {
   const token = getBearerToken(req)
   if (!token) {
     return {
       ok: false,
-      res: new Response(
-        JSON.stringify({ success: false, error: 'Missing Authorization Bearer token' }),
-        {
-          status: 401,
-          headers: { 'Content-Type': 'application/json', ...corsHeaders },
-        },
-      ),
+      res: new Response(JSON.stringify({ success: false, error: 'Missing Authorization Bearer token' }), {
+        status: 401,
+        headers: { 'Content-Type': 'application/json', ...corsHeaders },
+      }),
     }
   }
 
@@ -201,13 +172,10 @@ async function requireAuth(
   if (!supabaseUrl || !supabaseAnonKey) {
     return {
       ok: false,
-      res: new Response(
-        JSON.stringify({ success: false, error: 'Missing SUPABASE_URL/SUPABASE_ANON_KEY' }),
-        {
-          status: 500,
-          headers: { 'Content-Type': 'application/json', ...corsHeaders },
-        },
-      ),
+      res: new Response(JSON.stringify({ success: false, error: 'Missing SUPABASE_URL/SUPABASE_ANON_KEY' }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json', ...corsHeaders },
+      }),
     }
   }
 
@@ -247,7 +215,7 @@ Deno.serve(async (req: Request) => {
     const auth = await requireAuth(req)
     if (!auth.ok) return auth.res
 
-    const body = (await req.json().catch(() => ({}))) as ProcessClassificationRequest
+    const body = await req.json().catch(() => ({})) as ProcessClassificationRequest
     const { classification_id } = body
 
     if (!classification_id) {
@@ -262,9 +230,11 @@ Deno.serve(async (req: Request) => {
 
     console.log(`[process-classification] Processing classification ${classification_id}`)
 
-    const qualification = await restSelectOne('message_qualifications', '*', [
-      ['id', `eq.${classification_id}`],
-    ])
+    const qualification = await restSelectOne(
+      'message_qualifications',
+      '*',
+      [['id', `eq.${classification_id}`]],
+    )
 
     if (!qualification) {
       return new Response(
@@ -296,15 +266,20 @@ Deno.serve(async (req: Request) => {
       )
     }
 
-    const journey = await restSelectOne('patient_journeys', '*', [
-      ['id', `eq.${qualification.journey_id}`],
-    ])
+    const journey = await restSelectOne(
+      'patient_journeys',
+      '*',
+      [['id', `eq.${qualification.journey_id}`]],
+    )
 
     if (!journey) {
-      return new Response(JSON.stringify({ success: false, error: 'Jornada nao encontrada' }), {
-        headers: { 'Content-Type': 'application/json', ...corsHeaders },
-        status: 404,
-      })
+      return new Response(
+        JSON.stringify({ success: false, error: 'Jornada nao encontrada' }),
+        {
+          headers: { 'Content-Type': 'application/json', ...corsHeaders },
+          status: 404,
+        },
+      )
     }
 
     const classification = qualification.classification as QualificationClass
@@ -333,14 +308,8 @@ Deno.serve(async (req: Request) => {
       )
     }
 
-    if (
-      classification === 'confirmado_positivo' &&
-      confidence >= 0.9 &&
-      journeyStatus !== 'confirmed'
-    ) {
-      console.log(
-        `[process-classification] Auto-confirming journey ${journey.id} with confidence ${confidence}`,
-      )
+    if (classification === 'confirmado_positivo' && confidence >= 0.90 && journeyStatus !== 'confirmed') {
+      console.log(`[process-classification] Auto-confirming journey ${journey.id} with confidence ${confidence}`)
 
       await executeAutoConfirmation(journey.id, classification_id, confidence)
       await markAsProcessed(classification_id)
@@ -362,21 +331,15 @@ Deno.serve(async (req: Request) => {
       )
     }
 
-    if (classification === 'confirmado_positivo' && confidence < 0.9) {
-      console.log(
-        `[process-classification] Low confidence (${confidence}) for confirmado_positivo, marking for manual review`,
-      )
+    if (classification === 'confirmado_positivo' && confidence < 0.90) {
+      console.log(`[process-classification] Low confidence (${confidence}) for confirmado_positivo, marking for manual review`)
 
       const updateJourney: Record<string, string | boolean | null> = {
         needs_manual_action: true,
         last_event_at: new Date().toISOString(),
       }
 
-      if (
-        journeyStatus === 'delivered_waiting_reply' ||
-        journeyStatus === 'followup_due' ||
-        journeyStatus === 'followup_sent'
-      ) {
+      if (journeyStatus === 'delivered_waiting_reply' || journeyStatus === 'followup_due' || journeyStatus === 'followup_sent') {
         updateJourney.journey_status = 'pending_manual'
         updateJourney.pending_at = new Date().toISOString()
       }
@@ -401,9 +364,7 @@ Deno.serve(async (req: Request) => {
       )
     }
 
-    console.log(
-      `[process-classification] Classification ${classification} does not require auto-action`,
-    )
+    console.log(`[process-classification] Classification ${classification} does not require auto-action`)
 
     await markAsProcessed(classification_id)
 

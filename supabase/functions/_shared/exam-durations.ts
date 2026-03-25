@@ -25,13 +25,7 @@ export const EXAM_DURATION_RULES: readonly ExamDurationRule[] = [
     key: 'cranio perfusao espectroscopia',
     label: 'cranio perfusao/espectroscopia',
     minutes: 30,
-    aliases: [
-      'cranio perfusao',
-      'cranio expectroscopia',
-      'cranio espectroscopia',
-      'perfusao',
-      'espectroscopia',
-    ],
+    aliases: ['cranio perfusao', 'cranio expectroscopia', 'cranio espectroscopia', 'perfusao', 'espectroscopia'],
   },
   {
     key: 'abdome superior',
@@ -133,14 +127,7 @@ export const EXAM_DURATION_RULES: readonly ExamDurationRule[] = [
     key: 'coluna lombar',
     label: 'coluna lombar/lombo-sacra',
     minutes: 8,
-    aliases: [
-      'lombar',
-      'lombo sacra',
-      'lombo-sacra',
-      'lombossacra',
-      'coluna lombo sacra',
-      'coluna lombossacra',
-    ],
+    aliases: ['lombar', 'lombo sacra', 'lombo-sacra', 'lombossacra', 'coluna lombo sacra', 'coluna lombossacra'],
   },
   {
     key: 'membro superior',

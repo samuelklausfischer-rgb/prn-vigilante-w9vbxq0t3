@@ -16,16 +16,10 @@ Deno.serve(async (req: Request) => {
     const { instanceName, phoneNumber, slotId } = await req.json()
 
     if (!instanceName || !phoneNumber || slotId === undefined) {
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error: 'Nome da instância, número de telefone e slot_id são obrigatórios.',
-        }),
-        {
-          headers: { 'Content-Type': 'application/json', ...corsHeaders },
-          status: 200, // Returning 200 so frontend can handle via 'success: false'
-        },
-      )
+      return new Response(JSON.stringify({ success: false, error: 'Nome da instância, número de telefone e slot_id são obrigatórios.' }), {
+        headers: { 'Content-Type': 'application/json', ...corsHeaders },
+        status: 200, // Returning 200 so frontend can handle via 'success: false'
+      })
     }
 
     // New webhook URL per acceptance criteria
@@ -37,14 +31,14 @@ Deno.serve(async (req: Request) => {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Accept: 'application/json',
+        'Accept': 'application/json',
       },
       // Payload matching the requirements
-      body: JSON.stringify({
-        instance_name: instanceName,
+      body: JSON.stringify({ 
+        instance_name: instanceName, 
         phone_number: phoneNumber,
-        slot_id: slotId,
-      }),
+        slot_id: slotId
+      })
     }).catch((e) => {
       throw new Error(`Falha de rede ao contatar webhook: ${e.message}`)
     })
