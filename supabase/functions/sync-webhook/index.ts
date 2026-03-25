@@ -1,51 +1,24 @@
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
+import { createClient } from 'npm:@supabase/supabase-js@2.39.3'
+import { corsHeaders } from '../_shared/cors.ts'
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-  'Access-Control-Allow-Headers':
-    'authorization, x-client-info, x-supabase-client-platform, apikey, content-type',
-}
-
-Deno.serve(async (req: Request) => {
+Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
-
   try {
-    // Environment Handling: Allow override via env var for cloud environments,
-    // fallback to the new Cloudflare tunnel URL as per acceptance criteria
-    const webhookUrl =
-      Deno.env.get('WEBHOOK_INSTANCES_LIST_URL') ||
-      'https://edge-thompson-hoped-expenditure.trycloudflare.com/webhook/evolution/instances/list'
+    const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? ''
+    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    const supabase = createClient(supabaseUrl, supabaseKey)
 
-    const response = await fetch(webhookUrl, {
-      method: 'GET',
-      headers: {
-        Accept: 'application/json',
-      },
-    }).catch((e) => {
-      throw new Error(`Falha de rede ao contatar webhook: ${e.message}`)
-    })
-
-    if (!response.ok) {
-      throw new Error(`Webhook retornou status HTTP ${response.status}`)
-    }
-
-    const data = await response.json().catch(() => {
-      throw new Error('Formato de resposta inválido (esperado JSON)')
-    })
-
+    const { data } = await supabase.from('whatsapp_instances').select('*')
     return new Response(JSON.stringify({ success: true, data }), {
-      headers: { 'Content-Type': 'application/json', ...corsHeaders },
-      status: 200,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     })
-  } catch (error: any) {
-    // Return 200 with success: false to gracefully handle errors on the frontend
-    // without crashing, allowing the UI to display the error toast.
-    return new Response(JSON.stringify({ success: false, error: error.message }), {
-      headers: { 'Content-Type': 'application/json', ...corsHeaders },
-      status: 200,
+  } catch (err: any) {
+    return new Response(JSON.stringify({ success: false, error: err.message }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      status: 400,
     })
   }
 })
