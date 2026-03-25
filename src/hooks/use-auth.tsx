@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase/client'
 interface AuthContextType {
   user: User | null
   session: Session | null
+  signUp: (email: string, password: string) => Promise<{ error: any }>
   signIn: (email: string, password: string) => Promise<{ error: any }>
   signOut: () => Promise<{ error: any }>
   loading: boolean
@@ -27,9 +28,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
-      // FORBIDDEN: no async/await inside this callback — sync only
-      setSession(session)
-      setUser(session?.user ?? null)
+      if (event === 'SIGNED_OUT') {
+        setSession(null)
+        setUser(null)
+      } else {
+        setSession(session)
+        setUser(session?.user ?? null)
+      }
       setLoading(false)
     })
 
@@ -37,11 +42,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       .getSession()
       .then(({ data: { session }, error }) => {
         if (error) {
-          console.warn('Session check error:', error.message)
-          if (error.message.includes('Refresh Token')) {
-            // Attempt to clear corrupted session state
-            supabase.auth.signOut().catch(() => {})
-          }
+          console.error('Auth session error (e.g. Invalid Refresh Token):', error)
+          // Clear corrupted session state to prevent application crash loops
+          supabase.auth.signOut().catch(() => {})
           setSession(null)
           setUser(null)
         } else {
@@ -51,14 +54,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setLoading(false)
       })
       .catch((err) => {
-        console.error('Unhandled session error:', err)
-        setSession(null)
-        setUser(null)
+        console.error('Unexpected error retrieving session:', err)
         setLoading(false)
       })
 
     return () => subscription.unsubscribe()
   }, [])
+
+  const signUp = async (email: string, password: string) => {
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: { emailRedirectTo: `${window.location.origin}/` },
+    })
+    return { error }
+  }
 
   const signIn = async (email: string, password: string) => {
     const { error } = await supabase.auth.signInWithPassword({ email, password })
@@ -71,7 +81,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }
 
   return (
-    <AuthContext.Provider value={{ user, session, signIn, signOut, loading }}>
+    <AuthContext.Provider value={{ user, session, signUp, signIn, signOut, loading }}>
       {children}
     </AuthContext.Provider>
   )

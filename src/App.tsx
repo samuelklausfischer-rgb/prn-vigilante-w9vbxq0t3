@@ -17,59 +17,67 @@ const PRN_LOGO_BASE64 =
 
 const CorsLogoFix = () => {
   useEffect(() => {
-    // 1. Replace the image src in the DOM to prevent html-to-image from capturing the external URL
-    const replaceLogos = () => {
-      const imgs = document.querySelectorAll('img')
-      imgs.forEach((img) => {
-        if (
-          img.src &&
-          img.src.includes('prndiagnosticos.com.br/wp-content/themes/prnd/assets/images/logo.png')
-        ) {
-          img.src = PRN_LOGO_BASE64
-        }
+    const badUrl = 'prndiagnosticos.com.br/wp-content/themes/prnd/assets/images/logo.png'
+
+    // 1. Intercept Image.src setter to prevent the bad URL from ever being assigned
+    const originalSrcDescriptor = Object.getOwnPropertyDescriptor(HTMLImageElement.prototype, 'src')
+    if (originalSrcDescriptor && originalSrcDescriptor.set) {
+      Object.defineProperty(HTMLImageElement.prototype, 'src', {
+        set: function (value) {
+          if (typeof value === 'string' && value.includes(badUrl)) {
+            originalSrcDescriptor.set.call(this, PRN_LOGO_BASE64)
+          } else {
+            originalSrcDescriptor.set.call(this, value)
+          }
+        },
+        get: originalSrcDescriptor.get,
       })
     }
 
-    replaceLogos()
-
-    const observer = new MutationObserver((mutations) => {
-      let shouldReplace = false
-      for (const mutation of mutations) {
-        if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
-          shouldReplace = true
-          break
-        } else if (mutation.type === 'attributes' && mutation.attributeName === 'src') {
-          shouldReplace = true
-          break
-        }
+    // 2. Intercept setAttribute for edge cases where libraries set it directly
+    const originalSetAttribute = Element.prototype.setAttribute
+    Element.prototype.setAttribute = function (name, value) {
+      if (name === 'src' && typeof value === 'string' && value.includes(badUrl)) {
+        originalSetAttribute.call(this, name, PRN_LOGO_BASE64)
+      } else {
+        originalSetAttribute.call(this, name, value)
       }
-      if (shouldReplace) replaceLogos()
-    })
+    }
 
-    observer.observe(document.body, {
-      childList: true,
-      subtree: true,
-      attributes: true,
-      attributeFilter: ['src'],
-    })
-
-    // 2. Intercept fetch to safely handle any internal calls made by html-to-image
+    // 3. Intercept fetch to safely handle any internal calls made by html-to-image
     const originalFetch = window.fetch
     window.fetch = async (...args) => {
       const [input] = args
       const url = typeof input === 'string' ? input : input instanceof Request ? input.url : ''
-      if (
-        url &&
-        url.includes('prndiagnosticos.com.br/wp-content/themes/prnd/assets/images/logo.png')
-      ) {
-        return originalFetch(PRN_LOGO_BASE64)
+      if (url && url.includes(badUrl)) {
+        // Return a mock response using the base64 data to completely avoid network requests
+        const base64Data = PRN_LOGO_BASE64.split(',')[1]
+        const binaryString = atob(base64Data)
+        const bytes = new Uint8Array(binaryString.length)
+        for (let i = 0; i < binaryString.length; i++) {
+          bytes[i] = binaryString.charCodeAt(i)
+        }
+        return new Response(bytes, {
+          status: 200,
+          headers: { 'Content-Type': 'image/svg+xml' },
+        })
       }
       return originalFetch(...args)
     }
 
+    // 4. Mutate existing nodes already in the DOM just in case
+    document.querySelectorAll('img').forEach((img) => {
+      if (img.src && img.src.includes(badUrl)) {
+        img.src = PRN_LOGO_BASE64
+      }
+    })
+
     return () => {
-      observer.disconnect()
       window.fetch = originalFetch
+      Element.prototype.setAttribute = originalSetAttribute
+      if (originalSrcDescriptor) {
+        Object.defineProperty(HTMLImageElement.prototype, 'src', originalSrcDescriptor)
+      }
     }
   }, [])
 
