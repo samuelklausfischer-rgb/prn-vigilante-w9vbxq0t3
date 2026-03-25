@@ -1,79 +1,84 @@
 import { supabase } from '@/lib/supabase/client'
 import type { PatientQueue, SystemConfig } from '@/types'
 
-export async function fetchQueue(statusFilter?: string[]): Promise<PatientQueue[]> {
-  let query = supabase.from('patients_queue').select('*').order('created_at', { ascending: false })
-
-  if (statusFilter && statusFilter.length > 0) {
-    query = query.in('status', statusFilter)
-  }
-
-  const { data, error } = await query
-
-  if (error) {
-    console.error('Error fetching queue:', error)
+export async function fetchQueue(statusFilter: string[]): Promise<PatientQueue[]> {
+  try {
+    let query = supabase.from('patients_queue').select('*')
+    if (statusFilter && statusFilter.length > 0) {
+      query = query.in('status', statusFilter)
+    }
+    const { data, error } = await query.order('created_at', { ascending: false })
+    if (error) throw error
+    return (data || []) as PatientQueue[]
+  } catch (e) {
+    console.error('Error fetching queue:', e)
     return []
   }
-  return data || []
 }
 
 export async function fetchConfig(): Promise<SystemConfig | null> {
-  const { data, error } = await supabase.from('system_config').select('*').limit(1).maybeSingle()
-
-  if (error && error.code !== 'PGRST116') {
-    console.error('Error fetching config:', error)
+  try {
+    const { data, error } = await supabase.from('system_config').select('*').limit(1).single()
+    if (error) throw error
+    return data as SystemConfig
+  } catch (e) {
+    console.error('Error fetching config:', e)
     return null
   }
-
-  return data || ({ id: 1, is_paused: false } as any)
 }
 
 export async function updateQueueItem(
   id: string,
   updates: Partial<PatientQueue>,
 ): Promise<boolean> {
-  const { error } = await supabase.from('patients_queue').update(updates).eq('id', id)
-
-  if (error) {
-    console.error('Error updating queue item:', error)
+  try {
+    const { error } = await supabase.from('patients_queue').update(updates).eq('id', id)
+    if (error) throw error
+    return true
+  } catch (e) {
+    console.error('Error updating queue item:', e)
     return false
   }
-  return true
 }
 
 export async function toggleSystemPause(is_paused: boolean): Promise<boolean> {
-  const { error } = await supabase.from('system_config').update({ is_paused }).eq('id', 1)
-
-  if (error) {
-    console.error('Error toggling system pause:', error)
+  try {
+    const { error } = await supabase.from('system_config').update({ is_paused }).eq('id', 1)
+    if (error) {
+      const { error: err2 } = await supabase
+        .from('system_config')
+        .update({ is_paused })
+        .neq('id', 0)
+      if (err2) throw err2
+    }
+    return true
+  } catch (e) {
+    console.error('Error toggling system pause:', e)
     return false
   }
-  return true
 }
 
 export async function updateQueueItemsBulk(
   ids: string[],
   updates: Partial<PatientQueue>,
 ): Promise<boolean> {
-  if (!ids || ids.length === 0) return true
-
-  const { error } = await supabase.from('patients_queue').update(updates).in('id', ids)
-
-  if (error) {
-    console.error('Error in updateQueueItemsBulk:', error)
+  try {
+    const { error } = await supabase.from('patients_queue').update(updates).in('id', ids)
+    if (error) throw error
+    return true
+  } catch (e) {
+    console.error('Error updating bulk queue items:', e)
     return false
   }
-  return true
 }
 
 export async function deleteQueueItemsBulk(ids: string[]): Promise<boolean> {
-  if (!ids || ids.length === 0) return true
-
-  const { error } = await supabase.from('patients_queue').delete().in('id', ids)
-
-  if (error) {
-    console.error('Error in deleteQueueItemsBulk:', error)
+  try {
+    const { error } = await supabase.from('patients_queue').delete().in('id', ids)
+    if (error) throw error
+    return true
+  } catch (e) {
+    console.error('Error deleting bulk queue items:', e)
     return false
   }
-  return true
 }
