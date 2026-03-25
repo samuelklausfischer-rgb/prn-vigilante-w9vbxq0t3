@@ -1,11 +1,14 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useAppData } from '@/hooks/use-app-data'
 import { StatCard } from '@/components/StatCard'
 import { QueueList } from '@/components/QueueList'
 import { EditModal } from '@/components/EditModal'
 import { PatientQueue } from '@/types'
 import { useToast } from '@/hooks/use-toast'
-import { Send, Clock, Layers, Loader2, Activity } from 'lucide-react'
+import { Clock, Layers, Loader2, Activity, Smartphone } from 'lucide-react'
+import { evolutionApi } from '@/services/evolution'
+import { supabase } from '@/lib/supabase/client'
+import { cn } from '@/lib/utils'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -23,6 +26,35 @@ export default function Index() {
 
   const [editingItem, setEditingItem] = useState<PatientQueue | null>(null)
   const [cancelId, setCancelId] = useState<string | null>(null)
+  const [connectedInstances, setConnectedInstances] = useState(0)
+
+  useEffect(() => {
+    let mounted = true
+    const fetchInstances = async () => {
+      try {
+        const data = await evolutionApi.getInstances()
+        if (mounted) {
+          setConnectedInstances(data.filter((i) => i.status === 'connected').length)
+        }
+      } catch (e) {
+        console.error('Falha ao carregar instâncias', e)
+      }
+    }
+
+    fetchInstances()
+
+    const sub = supabase
+      .channel('index-instances')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'whatsapp_instances' }, () => {
+        if (mounted) fetchInstances()
+      })
+      .subscribe()
+
+    return () => {
+      mounted = false
+      supabase.removeChannel(sub)
+    }
+  }, [])
 
   const pendingCount = items.filter((i) => i.status === 'queued').length
   const sendingCount = items.filter((i) => i.status === 'sending').length
@@ -73,7 +105,7 @@ export default function Index() {
 
   return (
     <div className="space-y-8 animate-fade-in-up pb-12">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
           title="Volume em Espera"
           value={pendingCount.toString()}
@@ -89,6 +121,18 @@ export default function Index() {
           className="border-blue-500/20 bg-blue-500/5 shadow-[0_0_30px_rgba(59,130,246,0.1)]"
         />
         <StatCard
+          title="Instâncias Ativas"
+          value={`${connectedInstances}/5`}
+          icon={<Smartphone className="w-6 h-6" />}
+          trend={connectedInstances === 0 ? 'Nenhuma conexão' : 'Operacional'}
+          alert={connectedInstances === 0}
+          className={cn(
+            connectedInstances > 0
+              ? 'border-emerald-500/20 bg-emerald-500/5 shadow-[0_0_30px_rgba(16,185,129,0.1)]'
+              : '',
+          )}
+        />
+        <StatCard
           title="Cadência do Sistema"
           value={`${config?.safe_cadence_delay || 0}s`}
           icon={<Clock className="w-6 h-6" />}
@@ -98,7 +142,7 @@ export default function Index() {
       </div>
 
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="space-y-1">
             <h2 className="text-2xl font-heading font-semibold tracking-tight text-slate-100">
               Supervisão de Lotes
@@ -107,7 +151,7 @@ export default function Index() {
               Monitoramento e controle granular de procedimentos agendados.
             </p>
           </div>
-          <span className="hidden sm:flex items-center gap-2 text-[10px] font-mono text-emerald-400 bg-emerald-400/10 px-3 py-1.5 rounded-full border border-emerald-400/20 uppercase tracking-widest shadow-[0_0_15px_rgba(16,185,129,0.15)]">
+          <span className="inline-flex items-center gap-2 text-[10px] font-mono text-emerald-400 bg-emerald-400/10 px-3 py-1.5 rounded-full border border-emerald-400/20 uppercase tracking-widest shadow-[0_0_15px_rgba(16,185,129,0.15)] self-start sm:self-auto">
             <span className="relative flex h-2 w-2">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>

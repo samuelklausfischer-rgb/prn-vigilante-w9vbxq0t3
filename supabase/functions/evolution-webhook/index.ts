@@ -32,7 +32,9 @@ function requireWebhookSecret(req: Request): string | null {
 }
 
 function normalizePhone(s: unknown): string | null {
-  const raw = String(s || '').replace(/\D/g, '').trim()
+  const raw = String(s || '')
+    .replace(/\D/g, '')
+    .trim()
   if (!raw) return null
   return sanitizeBrazilianPhone(raw)
 }
@@ -79,17 +81,30 @@ function extractToPhone(payload: any): string | null {
 }
 
 function detectEventType(payload: any): EventType | null {
-  const t = String(payload?.event || payload?.type || payload?.status || payload?.data?.event || '').toLowerCase()
+  const t = String(
+    payload?.event || payload?.type || payload?.status || payload?.data?.event || '',
+  ).toLowerCase()
   if (!t) return null
   if (t.includes('delivered')) return 'delivered'
   if (t.includes('read') || t.includes('seen')) return 'read'
-  if (t.includes('received') || t.includes('incoming') || (t.includes('message') && t.includes('in'))) return 'replied'
+  if (
+    t.includes('received') ||
+    t.includes('incoming') ||
+    (t.includes('message') && t.includes('in'))
+  )
+    return 'replied'
   if (t.includes('failed') || t.includes('error')) return 'failed'
   return null
 }
 
 function extractInstanceId(payload: any): string | null {
-  return payload?.instance_id || payload?.instanceId || payload?.data?.instance_id || payload?.data?.instanceId || null
+  return (
+    payload?.instance_id ||
+    payload?.instanceId ||
+    payload?.data?.instance_id ||
+    payload?.data?.instanceId ||
+    null
+  )
 }
 
 function extractProviderMessageId(payload: any): string | null {
@@ -108,7 +123,7 @@ function extractProviderMessageId(payload: any): string | null {
 function extractPatientMessageBody(payload: any): string | null {
   const message = payload?.message || payload?.data?.message
   if (!message) return null
-  
+
   const body =
     message?.body ||
     message?.text?.body ||
@@ -118,7 +133,7 @@ function extractPatientMessageBody(payload: any): string | null {
     payload?.text ||
     payload?.message_body ||
     null
-  
+
   return typeof body === 'string' ? body.trim() : null
 }
 
@@ -147,7 +162,11 @@ async function restInsert(table: string, row: Record<string, unknown>) {
   }
 }
 
-async function restPatch(table: string, match: Record<string, string>, patch: Record<string, unknown>) {
+async function restPatch(
+  table: string,
+  match: Record<string, string>,
+  patch: Record<string, unknown>,
+) {
   const { supabaseUrl, serviceKey } = getSupabase()
   const qs = new URLSearchParams()
   for (const [k, v] of Object.entries(match)) qs.set(k, `eq.${v}`)
@@ -210,11 +229,9 @@ async function saveWebhookRaw(
   headers: Record<string, string>,
   dedupeHash: string,
 ): Promise<{ isDuplicate: boolean; rawId?: string }> {
-  const existing = await restSelectOne(
-    'webhook_events_raw',
-    'id,processing_status',
-    [['dedupe_hash', `eq.${dedupeHash}`]],
-  )
+  const existing = await restSelectOne('webhook_events_raw', 'id,processing_status', [
+    ['dedupe_hash', `eq.${dedupeHash}`],
+  ])
 
   if (existing) {
     return { isDuplicate: true, rawId: existing.id }
@@ -248,11 +265,9 @@ async function resolveJourneyMessage(
   let journeyMessage: any = null
 
   if (providerMessageId) {
-    journeyMessage = await restSelectOne(
-      'journey_messages',
-      'id,journey_id,queue_message_id',
-      [['provider_message_id', `eq.${providerMessageId}`]],
-    )
+    journeyMessage = await restSelectOne('journey_messages', 'id,journey_id,queue_message_id', [
+      ['provider_message_id', `eq.${providerMessageId}`],
+    ])
   }
 
   if (journeyMessage) {
@@ -265,25 +280,34 @@ async function resolveJourneyMessage(
   if (toPhone) {
     const v8 = toPhone.length === 13 ? toPhone.substring(0, 4) + toPhone.substring(5) : toPhone
     const phonesToTry = [toPhone, v8]
-    
+
     for (const p of phonesToTry) {
       const queueMessage =
         (await restSelectOne(
           'patients_queue',
           'id,journey_id,send_accepted_at',
-          [['phone_number', `eq.${p}`], ['send_accepted_at', 'not.is.null']],
+          [
+            ['phone_number', `eq.${p}`],
+            ['send_accepted_at', 'not.is.null'],
+          ],
           'send_accepted_at.desc',
         )) ||
         (await restSelectOne(
           'patients_queue',
           'id,journey_id,send_accepted_at',
-          [['phone_2', `eq.${p}`], ['send_accepted_at', 'not.is.null']],
+          [
+            ['phone_2', `eq.${p}`],
+            ['send_accepted_at', 'not.is.null'],
+          ],
           'send_accepted_at.desc',
         )) ||
         (await restSelectOne(
           'patients_queue',
           'id,journey_id,send_accepted_at',
-          [['phone_3', `eq.${p}`], ['send_accepted_at', 'not.is.null']],
+          [
+            ['phone_3', `eq.${p}`],
+            ['send_accepted_at', 'not.is.null'],
+          ],
           'send_accepted_at.desc',
         ))
 
@@ -334,14 +358,21 @@ async function updateJourneyStatus(
   eventAt: string,
 ): Promise<void> {
   if (eventType === 'replied') {
-    await restPatch('patient_journeys', { id: journeyId }, {
-      journey_status: 'delivered_waiting_reply',
-      last_event_at: eventAt,
-    })
+    await restPatch(
+      'patient_journeys',
+      { id: journeyId },
+      {
+        journey_status: 'delivered_waiting_reply',
+        last_event_at: eventAt,
+      },
+    )
   }
 }
 
-async function resolveMessageId(messageId: string | null, toPhone: string | null): Promise<string | null> {
+async function resolveMessageId(
+  messageId: string | null,
+  toPhone: string | null,
+): Promise<string | null> {
   if (messageId) return String(messageId)
   if (!toPhone) return null
 
@@ -353,19 +384,28 @@ async function resolveMessageId(messageId: string | null, toPhone: string | null
       (await restSelectOne(
         'patients_queue',
         'id,send_accepted_at',
-        [['phone_number', `eq.${p}`], ['send_accepted_at', 'not.is.null']],
+        [
+          ['phone_number', `eq.${p}`],
+          ['send_accepted_at', 'not.is.null'],
+        ],
         'send_accepted_at.desc',
       )) ||
       (await restSelectOne(
         'patients_queue',
         'id,send_accepted_at',
-        [['phone_2', `eq.${p}`], ['send_accepted_at', 'not.is.null']],
+        [
+          ['phone_2', `eq.${p}`],
+          ['send_accepted_at', 'not.is.null'],
+        ],
         'send_accepted_at.desc',
       )) ||
       (await restSelectOne(
         'patients_queue',
         'id,send_accepted_at',
-        [['phone_3', `eq.${p}`], ['send_accepted_at', 'not.is.null']],
+        [
+          ['phone_3', `eq.${p}`],
+          ['send_accepted_at', 'not.is.null'],
+        ],
         'send_accepted_at.desc',
       ))
 
@@ -407,7 +447,10 @@ Deno.serve(async (req: Request) => {
     const instanceId = extractInstanceId(payload)
     const eventAt = new Date().toISOString()
 
-    const { messageId: journeyMessageId, journeyId } = await resolveJourneyMessage(providerMessageId, toPhone)
+    const { messageId: journeyMessageId, journeyId } = await resolveJourneyMessage(
+      providerMessageId,
+      toPhone,
+    )
 
     const resolvedMessageId = await resolveMessageId(extractMessageId(payload), toPhone)
 
@@ -427,22 +470,28 @@ Deno.serve(async (req: Request) => {
 
     if (resolvedMessageId) {
       if (eventType === 'delivered') {
-        await restPatch('patients_queue', { id: resolvedMessageId }, {
-          delivered_at: eventAt,
-          last_delivery_status: 'delivered',
-        })
+        await restPatch(
+          'patients_queue',
+          { id: resolvedMessageId },
+          {
+            delivered_at: eventAt,
+            last_delivery_status: 'delivered',
+          },
+        )
       } else if (eventType === 'read') {
         await restPatch('patients_queue', { id: resolvedMessageId }, { read_at: eventAt })
       } else if (eventType === 'replied') {
         await restPatch('patients_queue', { id: resolvedMessageId }, { replied_at: eventAt })
-        
+
         // AUTO-TRIGGER CLASSIFICATION ON REPLY
         if (journeyId && resolvedMessageId) {
           try {
             const messageBody = extractPatientMessageBody(payload as any)
             if (messageBody && messageBody.trim().length > 0) {
-              console.log(`[evolution-webhook] Auto-triggering classification for message ${resolvedMessageId}, journey ${journeyId}`)
-              
+              console.log(
+                `[evolution-webhook] Auto-triggering classification for message ${resolvedMessageId}, journey ${journeyId}`,
+              )
+
               const classifyUrl = `${getSupabase().supabaseUrl}/functions/v1/classify-message`
               const classifyRes = await fetch(classifyUrl, {
                 method: 'POST',
@@ -456,12 +505,16 @@ Deno.serve(async (req: Request) => {
                   message_body: messageBody,
                 }),
               })
-              
+
               if (!classifyRes.ok) {
                 const errorText = await classifyRes.text().catch(() => '')
-                console.error(`[evolution-webhook] Classification failed: ${classifyRes.status} ${errorText}`)
+                console.error(
+                  `[evolution-webhook] Classification failed: ${classifyRes.status} ${errorText}`,
+                )
               } else {
-                console.log(`[evolution-webhook] Classification triggered successfully for message ${resolvedMessageId}`)
+                console.log(
+                  `[evolution-webhook] Classification triggered successfully for message ${resolvedMessageId}`,
+                )
               }
             }
           } catch (e: any) {
@@ -469,11 +522,15 @@ Deno.serve(async (req: Request) => {
           }
         }
       } else if (eventType === 'failed') {
-        await restPatch('patients_queue', { id: resolvedMessageId }, {
-          last_delivery_status: 'failed',
-          needs_second_call: true,
-          second_call_reason: 'failed',
-        })
+        await restPatch(
+          'patients_queue',
+          { id: resolvedMessageId },
+          {
+            last_delivery_status: 'failed',
+            needs_second_call: true,
+            second_call_reason: 'failed',
+          },
+        )
       }
     }
 

@@ -1411,6 +1411,7 @@ ALTER TABLE patients_queue
    - **Crítico:** < 80%
 
 2. **Tempo Médio de Entrega**
+
    ```sql
    SELECT
      DATE(created_at) as date,
@@ -1450,6 +1451,7 @@ ALTER TABLE patients_queue
    - **Crítico:** < 30%
 
 4. **Tempo Médio de Resposta**
+
    ```sql
    SELECT
      DATE(created_at) as date,
@@ -1491,6 +1493,7 @@ ALTER TABLE patients_queue
    - **Crítico:** < 80%
 
 6. **Taxa de Ambiguidade**
+
    ```sql
    SELECT
      DATE(created_at) as date,
@@ -1529,6 +1532,7 @@ ALTER TABLE patients_queue
    - **Crítico:** < 30%
 
 8. **Tempo Médio de Encaixe**
+
    ```sql
    SELECT
      DATE(created_at) as date,
@@ -1671,6 +1675,7 @@ ALTER TABLE patients_queue
    - **Ação:** Alocar mais recursos humanos
 
 8. **Vagas Não Resolvidas > 24h**
+
    ```sql
    SELECT
      COUNT(*) as unresolved_vacancies
