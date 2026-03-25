@@ -44,3 +44,20 @@ export function normalizePhone(phone: string | undefined | null): string {
   if (cleaned.startsWith('55')) return cleaned
   return `55${cleaned}`
 }
+
+/**
+ * Detects the type of a Brazilian phone number
+ * @param phone - Phone number to check
+ * @returns 'mobile', 'landline' or 'invalid'
+ */
+export function getPhoneType(phone: string | undefined | null): 'mobile' | 'landline' | 'invalid' {
+  if (!phone) return 'invalid'
+  const cleaned = phone.replace(/\D/g, '')
+  let localPart = cleaned
+  if (cleaned.startsWith('55')) {
+    localPart = cleaned.substring(2)
+  }
+  if (localPart.length === 10) return 'landline'
+  if (localPart.length === 11) return 'mobile'
+  return 'invalid'
+}

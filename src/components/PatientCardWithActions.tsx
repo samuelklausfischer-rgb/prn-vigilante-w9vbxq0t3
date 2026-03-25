@@ -1,18 +1,10 @@
-import {
-  Calendar,
-  Clock,
-  FileText,
-  MessageSquare,
-  Phone,
-  RotateCcw,
-  Stethoscope,
-} from 'lucide-react'
+import { Calendar, Clock, MessageSquare, Phone, RotateCcw, Stethoscope } from 'lucide-react'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { formatDataExameBr } from '@/lib/utils/data-exame'
-import { formatPhoneBR, getPhoneType } from '@shared/utils/phone-utils'
+import { formatPhoneBR, getPhoneType } from '@/lib/utils'
 import type { PatientQueue } from '@/types'
 
 interface PatientCardWithActionsProps {
