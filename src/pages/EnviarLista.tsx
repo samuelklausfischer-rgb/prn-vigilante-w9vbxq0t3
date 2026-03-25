@@ -14,7 +14,7 @@ import {
   AlertCircle,
   MessageSquare,
 } from 'lucide-react'
-import { normalizePhone } from '../../packages/shared/index.ts'
+import { normalizePhone } from '@/lib/utils'
 import { WhatsAppInstance } from '@/types'
 import { evolutionApi } from '@/services/evolution'
 import {

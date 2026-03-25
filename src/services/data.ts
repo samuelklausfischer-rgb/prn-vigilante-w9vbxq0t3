@@ -1,131 +1,79 @@
 import { supabase } from '@/lib/supabase/client'
-import { PatientQueue, SystemConfig } from '@/types'
+import type { PatientQueue, SystemConfig } from '@/types'
 
-// Mock Fallback Data
-export const MOCK_PATIENTS: PatientQueue[] = [
-  {
-    id: 'm1',
-    patient_name: 'João Silva (Mock)',
-    phone_number: '11999999999',
-    message_body: 'Olá, mock confirm!',
-    status: 'queued',
-    is_approved: false,
-    send_after: new Date().toISOString(),
-    notes: 'Aguardando confirmação manual.',
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-    queue_order: 1,
-    Data_nascimento: '1985-10-20',
-    procedimentos: 'Ressonância Magnética com Contraste',
-    time_proce: '14:30:00',
-  },
-  {
-    id: 'm2',
-    patient_name: 'Maria Santos (Mock)',
-    phone_number: '11988888888',
-    message_body: 'Olá, mock enviado!',
-    status: 'delivered',
-    is_approved: true,
-    send_after: new Date(Date.now() - 3600000).toISOString(),
-    notes: 'Entregue com sucesso.',
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-    queue_order: 2,
-    Data_nascimento: '1992-05-12',
-    procedimentos: 'Ultrassom Abdominal',
-    time_proce: '09:00:00',
-  },
-  {
-    id: 'm3',
-    patient_name: 'Carlos Oliveira (Mock)',
-    phone_number: '11977777777',
-    message_body: 'Olá, preparando envio.',
-    status: 'sending',
-    is_approved: true,
-    send_after: new Date().toISOString(),
-    notes: null,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-    queue_order: 3,
-    Data_nascimento: '1978-03-30',
-    procedimentos: 'Tomografia Computadorizada',
-    time_proce: '16:00:00',
-  },
-]
+export async function fetchQueue(statusFilter?: string[]): Promise<PatientQueue[]> {
+  let query = supabase.from('patients_queue').select('*').order('created_at', { ascending: false })
 
-export const MOCK_CONFIG: SystemConfig = {
-  id: 1,
-  is_paused: false,
-  safe_cadence_delay: 30,
-  updated_at: new Date().toISOString(),
-}
-
-export async function fetchQueue(statusIn: string[]): Promise<PatientQueue[]> {
-  try {
-    const { data, error } = await supabase
-      .from('patients_queue')
-      .select('*')
-      .in('status', statusIn)
-      .order('queue_order', { ascending: true, nullsFirst: false })
-      .order('send_after', { ascending: true })
-
-    if (error) throw error
-    return data as PatientQueue[]
-  } catch (e) {
-    console.warn('Using mock data due to error:', e)
-    return MOCK_PATIENTS.filter((p) => statusIn.includes(p.status)).sort((a, b) => {
-      if (a.queue_order !== null && b.queue_order !== null) return a.queue_order - b.queue_order
-      if (a.queue_order !== null) return -1
-      if (b.queue_order !== null) return 1
-      return new Date(a.send_after).getTime() - new Date(b.send_after).getTime()
-    })
+  if (statusFilter && statusFilter.length > 0) {
+    query = query.in('status', statusFilter)
   }
-}
 
-export async function fetchConfig(): Promise<SystemConfig> {
-  try {
-    const { data, error } = await supabase.from('system_config').select('*').eq('id', 1).single()
+  const { data, error } = await query
 
-    if (error) throw error
-    return data as SystemConfig
-  } catch (e) {
-    console.warn('Using mock config due to error:', e)
-    return MOCK_CONFIG
+  if (error) {
+    console.error('Error fetching queue:', error)
+    return []
   }
+  return data || []
 }
 
-export async function updateQueueItem(id: string, updates: Partial<PatientQueue>) {
-  try {
-    const { error } = await supabase.from('patients_queue').update(updates).eq('id', id)
-    if (error) throw error
-    return true
-  } catch (e) {
-    console.error('Error updating item', e)
+export async function fetchConfig(): Promise<SystemConfig | null> {
+  const { data, error } = await supabase.from('system_config').select('*').limit(1).maybeSingle()
+
+  if (error && error.code !== 'PGRST116') {
+    console.error('Error fetching config:', error)
+    return null
+  }
+
+  return data || ({ id: 1, is_paused: false } as any)
+}
+
+export async function updateQueueItem(
+  id: string,
+  updates: Partial<PatientQueue>,
+): Promise<boolean> {
+  const { error } = await supabase.from('patients_queue').update(updates).eq('id', id)
+
+  if (error) {
+    console.error('Error updating queue item:', error)
     return false
   }
+  return true
 }
 
-export async function updateQueueOrders(updates: { id: string; queue_order: number }[]) {
-  try {
-    await Promise.all(
-      updates.map((u) =>
-        supabase.from('patients_queue').update({ queue_order: u.queue_order }).eq('id', u.id),
-      ),
-    )
-    return true
-  } catch (e) {
-    console.error('Error updating queue orders', e)
+export async function toggleSystemPause(is_paused: boolean): Promise<boolean> {
+  const { error } = await supabase.from('system_config').update({ is_paused }).eq('id', 1)
+
+  if (error) {
+    console.error('Error toggling system pause:', error)
     return false
   }
+  return true
 }
 
-export async function toggleSystemPause(is_paused: boolean) {
-  try {
-    const { error } = await supabase.from('system_config').update({ is_paused }).eq('id', 1)
-    if (error) throw error
-    return true
-  } catch (e) {
-    console.error('Error pausing system', e)
+export async function updateQueueItemsBulk(
+  ids: string[],
+  updates: Partial<PatientQueue>,
+): Promise<boolean> {
+  if (!ids || ids.length === 0) return true
+
+  const { error } = await supabase.from('patients_queue').update(updates).in('id', ids)
+
+  if (error) {
+    console.error('Error in updateQueueItemsBulk:', error)
     return false
   }
+  return true
+}
+
+export async function deleteQueueItemsBulk(ids: string[]): Promise<boolean> {
+  if (!ids || ids.length === 0) return true
+
+  const { error } = await supabase.from('patients_queue').delete().in('id', ids)
+
+  if (error) {
+    console.error('Error in deleteQueueItemsBulk:', error)
+    return false
+  }
+  return true
 }

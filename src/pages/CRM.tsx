@@ -18,7 +18,7 @@ import { Badge } from '@/components/ui/badge'
 import { fetchKanbanData, searchKanbanCards } from '@/services/crm'
 import type { KanbanCard, KanbanColumn } from '@/types'
 import { formatDataExameBr } from '@/lib/utils/data-exame'
-import { formatPhoneBR } from '@shared/utils/phone-utils'
+import { formatPhoneBR } from '@/lib/utils'
 
 const COLUMN_CONFIG: Record<KanbanColumn, { title: string; color: string; icon: any }> = {
   aguardando_envio: { title: 'Aguardando Envio', color: 'border-blue-500/30', icon: Clock },

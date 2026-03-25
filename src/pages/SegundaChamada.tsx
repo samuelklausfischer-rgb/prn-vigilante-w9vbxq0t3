@@ -15,7 +15,6 @@ import { updateQueueItemsBulk, deleteQueueItemsBulk } from '@/services/data'
 import { archiveSelectedPatients } from '@/services/analytics'
 import { getPatientConversation, type ConversationData } from '@/services/conversation'
 import type { PatientCategory, PatientQueue } from '@/types'
-import { categorizePatients } from '@shared/utils/patient-utils'
 
 const tabOrder: Array<{
   key: PatientCategory
@@ -35,6 +34,42 @@ function appendCompletedNote(notes?: string | null) {
   const current = String(notes || '').trim()
   if (current.toLowerCase().includes('concluido_manual')) return current
   return current ? `${current} | concluido_manual` : 'concluido_manual'
+}
+
+function categorizePatients(patients: PatientQueue[]) {
+  const result: Record<PatientCategory, PatientQueue[]> = {
+    respondido: [],
+    pendente: [],
+    falha: [],
+    critico: [],
+    fixo: [],
+    concluido: [],
+    historico: [],
+  }
+
+  patients.forEach((patient) => {
+    const notes = (patient.notes || '').toLowerCase()
+    const isConcluido = notes.includes('concluido_manual') || patient.status === 'completed'
+    const isHistorico = patient.status === 'archived'
+
+    if (isHistorico) {
+      result.historico.push(patient)
+    } else if (isConcluido) {
+      result.concluido.push(patient)
+    } else if (patient.status === 'failed') {
+      result.falha.push(patient)
+    } else if (patient.phone_ladder_exhausted || patient.status === 'pending_manual') {
+      result.critico.push(patient)
+    } else if (patient.phone_number?.replace(/\D/g, '').length === 10) {
+      result.fixo.push(patient)
+    } else if (patient.has_reply) {
+      result.respondido.push(patient)
+    } else {
+      result.pendente.push(patient)
+    }
+  })
+
+  return result
 }
 
 function filterPatients(patients: PatientQueue[], search: string, filterDate: string) {
