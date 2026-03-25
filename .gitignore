@@ -1,0 +1,41 @@
+# Dependency directories
+node_modules/
+dist/
+dev-dist/
+build/
+.next/
+out/
+.pnpm-store/
+.npm/
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# Logs and system files
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.DS_Store
+Thumbs.db
+
+# Build artifacts
+*.bun-build
+.189f8db*
+.bun-build
+
+# Project-specific exclusions
+temp_*.ts
+test_*.js
+debug_*.ts
+nul
+.obsidian/
+.oxfmtrc.json
+.oxlintrc.json
+.skip.config.json
+.agent-skills/
+.agents/

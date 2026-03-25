@@ -1,0 +1,10 @@
+{
+  "_versions": {
+    "sync-webhook": 4,
+    "create-instance": 2,
+    "organize-patient-list": 1,
+    "evolution-webhook": 1,
+    "functions": 1,
+    "process-classification": 1
+  }
+}

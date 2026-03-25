@@ -1,0 +1,55 @@
+/**
+ * 📦 Frontend Types — Re-export from Shared Package
+ *
+ * Este arquivo agora importa tudo do pacote compartilhado.
+ * Qualquer tipo novo deve ser adicionado em packages/shared/types.ts
+ */
+
+export type {
+  QueueStatus,
+  PatientCategory,
+  InstanceStatus,
+  MessageLogStatus,
+  ConsentStatus,
+  BlockReason,
+  ConsentSource,
+  JourneyStatus,
+  MessageDirection,
+  MessageKind,
+  MessageLifecycleStatus,
+  QualificationClass,
+  QualificationAction,
+  ManualPriority,
+  JourneyEventSource,
+  PatientQueue,
+  SystemConfig,
+  WhatsAppInstance,
+  MessageLog,
+  WorkerHeartbeat,
+  PatientConsent,
+  MessageBlock,
+  PatientJourney,
+  JourneyMessage,
+  WebhookEventRaw,
+  MessageQualification,
+  JourneyEvent,
+  StrategicFollowupRow,
+  VacancyCandidateRow,
+  JourneyTimelineItem,
+  ClaimedMessage,
+  SendResult,
+  ExpiredLock,
+  RealtimeMetrics,
+  ExpiredLockView,
+  WorkerStatusSummary,
+  FailureInsight,
+  DateRangeFilter,
+  AnalyticsDaily,
+  AnalyticsSummary,
+  AnalyticsProcedureSummary,
+  ArchivePreview,
+  RetryPolicy,
+  AntiBanConfig,
+} from '../../packages/shared/types'
+
+export type { KanbanCard, KanbanColumn, KanbanBoardData } from '../../packages/shared/types'

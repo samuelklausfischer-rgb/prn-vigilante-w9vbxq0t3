@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mapa do Ecossistema PRN-Vigilante</title>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root {
+            --bg: #09090b;
+            --card: #18181b;
+            --primary: #3b82f6;
+            --secondary: #10b981;
+            --accent: #f59e0b;
+            --text: #fafafa;
+            --text-muted: #a1a1aa;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2rem;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1000px;
+            width: 100%;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(to right, #3b82f6, #10b981);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        p.subtitle {
+            color: var(--text-muted);
+            margin-bottom: 3rem;
+            font-size: 1.1rem;
+        }
+
+        .ecosystem {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+            position: relative;
+            align-items: center;
+        }
+
+        .node {
+            background: var(--card);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 24px;
+            padding: 2rem;
+            width: 100%;
+            max-width: 450px;
+            position: relative;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: default;
+            z-index: 2;
+        }
+
+        .node:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+        }
+
+        .icon-box {
+            width: 60px;
+            height: 60px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem;
+        }
+
+        .brain { background: rgba(59, 130, 246, 0.2); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.4); }
+        .heart { background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4); }
+        .muscle { background: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.4); }
+
+        .node h3 {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .node p {
+            color: var(--text-muted);
+            line-height: 1.5;
+            font-size: 0.95rem;
+        }
+
+        .connector {
+            width: 4px;
+            height: 60px;
+            background: linear-gradient(to bottom, var(--primary), var(--secondary));
+            margin: -0.5rem 0;
+            position: relative;
+            z-index: 1;
+        }
+
+        .connector-2 {
+            background: linear-gradient(to bottom, var(--secondary), var(--accent));
+        }
+
+        .arrow-down {
+            position: absolute;
+            bottom: -5px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0; 
+            height: 0; 
+            border-left: 8px solid transparent;
+            border-right: 8px solid transparent;
+            border-top: 10px solid var(--secondary);
+        }
+
+        .connector-2 .arrow-down {
+            border-top-color: var(--accent);
+        }
+
+        .floating-elements {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            overflow: hidden;
+            z-index: 0;
+        }
+
+        .blob {
+            position: absolute;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(59, 130, 246, 0.15) 0%, transparent 70%);
+            border-radius: 50%;
+            filter: blur(40px);
+            animation: move 20s infinite alternate;
+        }
+
+        @keyframes move {
+            from { transform: translate(-10%, -10%); }
+            to { transform: translate(110%, 110%); }
+        }
+
+        .flow-card {
+            margin-top: 4rem;
+            background: rgba(255,255,255,0.03);
+            border-radius: 20px;
+            padding: 1.5rem;
+            border: 1px dashed rgba(255,255,255,0.1);
+        }
+
+        .flow-card h4 {
+            margin-bottom: 1rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 0.8rem;
+        }
+
+        .steps {
+            display: flex;
+            justify-content: space-between;
+            gap: 1rem;
+        }
+
+        .step {
+            flex: 1;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .step b { color: white; display: block; margin-bottom: 4px; }
+
+        @media (max-width: 600px) {
+            .steps { flex-direction: column; text-align: left; }
+            .node { padding: 1.5rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="floating-elements">
+        <div class="blob" style="top: 10%; left: 20%;"></div>
+        <div class="blob" style="top: 60%; right: 10%; background: radial-gradient(circle, rgba(16, 185, 129, 0.1) 0%, transparent 70%);"></div>
+    </div>
+
+    <div class="container">
+        <h1>PRN-Vigilante</h1>
+        <p class="subtitle">Como funciona o seu sistema de forma simples</p>
+
+        <div class="ecosystem">
+            <!-- Cérebro -->
+            <div class="node">
+                <div class="icon-box brain">
+                    <i data-lucide="layout"></i>
+                </div>
+                <h3>1. O Cérebro (Painel)</h3>
+                <p>Onde você vê tudo e dá as ordens. É o site onde você gerencia suas contas e agenda as mensagens que quer enviar.</p>
+                <i style="font-size: 0.75rem; color: #60a5fa; margin-top: 10px; display: block;">Localizado em /src</i>
+            </div>
+
+            <!-- Conector 1 -->
+            <div class="connector"><div class="arrow-down"></div></div>
+
+            <!-- Coração -->
+            <div class="node">
+                <div class="icon-box heart">
+                    <i data-lucide="database"></i>
+                </div>
+                <h3>2. O Coração (Banco de Dados)</h3>
+                <p>Onde as ordens são guardadas com segurança. Ele recebe o que o Cérebro mandou e avisa os Músculos que há trabalho a fazer.</p>
+                <i style="font-size: 0.75rem; color: #34d399; margin-top: 10px; display: block;">Localizado em /supabase</i>
+            </div>
+
+            <!-- Conector 2 -->
+            <div class="connector connector-2"><div class="arrow-down"></div></div>
+
+            <!-- Músculos -->
+            <div class="node">
+                <div class="icon-box muscle">
+                    <i data-lucide="zap"></i>
+                </div>
+                <h3>3. Os Músculos (Automação)</h3>
+                <p>Onde o trabalho acontece. Ele lê o que está guardado no Coração e faz o envio real pelo WhatsApp, cuidando da segurança para não ser banido.</p>
+                <i style="font-size: 0.75rem; color: #fbbf24; margin-top: 10px; display: block;">Localizado em /automation</i>
+            </div>
+        </div>
+
+        <div class="flow-card">
+            <h4>O Ciclo do Envio</h4>
+            <div class="steps">
+                <div class="step">
+                    <b>Passo 1</b>
+                    Você agenda uma mensagem no seu Painel.
+                </div>
+                <div class="step">
+                    <b>Passo 2</b>
+                    O Banco de Dados guarda o pedido "na fila".
+                </div>
+                <div class="step">
+                    <b>Passo 3</b>
+                    O Motor de Automação vê a fila e envia para o cliente.
+                </div>
+            </div>
+        </div>
+
+        <footer style="margin-top: 4rem; color: var(--text-muted); font-size: 0.8rem; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 2rem;">
+            PRN-Vigilante &copy; 2026 • Arquitetura Modular Profissional
+        </footer>
+    </div>
+
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>
