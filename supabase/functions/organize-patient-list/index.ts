@@ -87,13 +87,20 @@ function formatBrFromIso(iso: string): string {
 }
 
 function parseBrDateToIso(value: string): string | null {
-  const m = String(value || '').trim().match(/^(\d{2})\/(\d{2})\/(\d{4})$/)
+  const m = String(value || '')
+    .trim()
+    .match(/^(\d{2})\/(\d{2})\/(\d{4})$/)
   if (!m) return null
   const [, dd, mm, yyyy] = m
   return `${yyyy}-${mm}-${dd}`
 }
 
-function buildMessageBody(params: { data_exame_iso: string; horario: string; nome?: string; procedimentos?: string }): string {
+function buildMessageBody(params: {
+  data_exame_iso: string
+  horario: string
+  nome?: string
+  procedimentos?: string
+}): string {
   const dataBr = formatBrFromIso(params.data_exame_iso)
   const nome = params.nome?.trim() || 'NAO INFORMADO'
   const procedimentos = params.procedimentos?.trim() || 'NAO INFORMADO'
@@ -138,15 +145,20 @@ function getBearerToken(req: Request): string | null {
   return m?.[1]?.trim() || null
 }
 
-async function requireAuth(req: Request): Promise<{ ok: true; user: unknown } | { ok: false; res: Response }> {
+async function requireAuth(
+  req: Request,
+): Promise<{ ok: true; user: unknown } | { ok: false; res: Response }> {
   const token = getBearerToken(req)
   if (!token) {
     return {
       ok: false,
-      res: new Response(JSON.stringify({ code: 401, message: 'Missing Authorization Bearer token' }), {
-        status: 401,
-        headers: { 'Content-Type': 'application/json', ...corsHeaders },
-      }),
+      res: new Response(
+        JSON.stringify({ code: 401, message: 'Missing Authorization Bearer token' }),
+        {
+          status: 401,
+          headers: { 'Content-Type': 'application/json', ...corsHeaders },
+        },
+      ),
     }
   }
 
@@ -155,10 +167,13 @@ async function requireAuth(req: Request): Promise<{ ok: true; user: unknown } | 
   if (!supabaseUrl || !supabaseAnonKey) {
     return {
       ok: false,
-      res: new Response(JSON.stringify({ code: 500, message: 'Missing SUPABASE_URL/SUPABASE_ANON_KEY' }), {
-        status: 500,
-        headers: { 'Content-Type': 'application/json', ...corsHeaders },
-      }),
+      res: new Response(
+        JSON.stringify({ code: 500, message: 'Missing SUPABASE_URL/SUPABASE_ANON_KEY' }),
+        {
+          status: 500,
+          headers: { 'Content-Type': 'application/json', ...corsHeaders },
+        },
+      ),
     }
   }
 
@@ -236,7 +251,11 @@ function getPrompt(rawText: string) {
   ].join('\n')
 }
 
-function resolveGLMBaseUrl(rawUrl: string | undefined): { baseUrl: string; model: string; provider: 'bigmodel' | 'aimlapi' } {
+function resolveGLMBaseUrl(rawUrl: string | undefined): {
+  baseUrl: string
+  model: string
+  provider: 'bigmodel' | 'aimlapi'
+} {
   const defaultBigModelUrl = 'https://open.bigmodel.cn/api/paas/v4'
   const defaultModel = 'glm-4-flash'
 
@@ -246,11 +265,19 @@ function resolveGLMBaseUrl(rawUrl: string | undefined): { baseUrl: string; model
 
   const normalized = rawUrl.toLowerCase().trim()
   if (normalized.includes('aimlapi.com')) {
-    return { baseUrl: 'https://api.aimlapi.com/v1', model: 'zhipu/glm-4-flash', provider: 'aimlapi' }
+    return {
+      baseUrl: 'https://api.aimlapi.com/v1',
+      model: 'zhipu/glm-4-flash',
+      provider: 'aimlapi',
+    }
   }
 
   if (normalized.includes('bigmodel.cn') || normalized.includes('open.bigmodel')) {
-    return { baseUrl: 'https://open.bigmodel.cn/api/paas/v4', model: defaultModel, provider: 'bigmodel' }
+    return {
+      baseUrl: 'https://open.bigmodel.cn/api/paas/v4',
+      model: defaultModel,
+      provider: 'bigmodel',
+    }
   }
 
   if (normalized.includes('z-ai.com')) {
@@ -348,7 +375,9 @@ async function callOpenAI(
   })
     .catch((e) => {
       if (e?.name === 'AbortError') {
-        throw new Error(`LLM timeout apos ${Math.round(timeoutMs / 1000)}s${opts?.attemptLabel ? ` (${opts.attemptLabel})` : ''}.`)
+        throw new Error(
+          `LLM timeout apos ${Math.round(timeoutMs / 1000)}s${opts?.attemptLabel ? ` (${opts.attemptLabel})` : ''}.`,
+        )
       }
       throw e
     })
@@ -362,13 +391,21 @@ async function callOpenAI(
   const json = await res.json()
   const content = json?.choices?.[0]?.message?.content
   if (!content) throw new Error('LLM retornou conteudo vazio.')
-  logStep('llm_response_received', { attempt: opts?.attemptLabel || 'tentativa_1', contentLength: String(content).length })
+  logStep('llm_response_received', {
+    attempt: opts?.attemptLabel || 'tentativa_1',
+    contentLength: String(content).length,
+  })
   return String(content)
 }
 
 async function callLLMWithRetry(prompt: string) {
   try {
-    return await callOpenAI(prompt, { maxTokens: 2200, timeoutMs: 60_000, temperature: 0.1, attemptLabel: 'tentativa_1' })
+    return await callOpenAI(prompt, {
+      maxTokens: 2200,
+      timeoutMs: 60_000,
+      temperature: 0.1,
+      attemptLabel: 'tentativa_1',
+    })
   } catch (e: any) {
     const msg = String(e?.message || '')
     const shouldRetry =
@@ -395,10 +432,16 @@ async function callLLMWithRetry(prompt: string) {
 }
 
 function safeJsonParse(text: string): any {
-  const cleaned = String(text || '').trim().replace(/^```json\s*/i, '').replace(/^```/i, '').replace(/```$/i, '').trim()
+  const cleaned = String(text || '')
+    .trim()
+    .replace(/^```json\s*/i, '')
+    .replace(/^```/i, '')
+    .replace(/```$/i, '')
+    .trim()
   const start = cleaned.indexOf('{')
   const end = cleaned.lastIndexOf('}')
-  if (start === -1 || end === -1 || end <= start) throw new Error('Resposta do LLM nao contem JSON.')
+  if (start === -1 || end === -1 || end <= start)
+    throw new Error('Resposta do LLM nao contem JSON.')
   const slice = cleaned.slice(start, end + 1)
   try {
     return JSON.parse(slice)
@@ -421,7 +464,9 @@ function durationToLabel(minutes: number | null): string {
 }
 
 function parseTempoToMinutes(input: string | null | undefined): number | null {
-  const s = String(input || '').trim().toLowerCase()
+  const s = String(input || '')
+    .trim()
+    .toLowerCase()
   if (!s || /tempo de exame nao definido|tempo de exame não definido/i.test(s)) return null
   const hhmmss = s.match(/^(\d{2}):(\d{2})(?::\d{2})?$/)
   if (hhmmss) return Number.parseInt(hhmmss[1], 10) * 60 + Number.parseInt(hhmmss[2], 10)
@@ -471,7 +516,9 @@ function chunkBlocksBySize(blocks: string[], maxBlocks: number, maxChars: number
 }
 
 function normalizeBlockForLabels(block: string): string[] {
-  const labelsPattern = KNOWN_LABELS.map((label) => label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')
+  const labelsPattern = KNOWN_LABELS.map((label) =>
+    label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'),
+  ).join('|')
   const normalized = block
     .replace(/\r\n/g, '\n')
     .replace(/\t+/g, '\n')
@@ -518,9 +565,15 @@ function normalizeProcedureText(input: string): string {
 
 function hasContaminatedName(value: string): boolean {
   const normalized = normalizeAscii(value)
-  return ['telefone', 'procedimento', 'cid', 'data hora', 'unidade solicitante', 'vaga solicitada', 'origem'].some((token) =>
-    normalized.includes(token),
-  )
+  return [
+    'telefone',
+    'procedimento',
+    'cid',
+    'data hora',
+    'unidade solicitante',
+    'vaga solicitada',
+    'origem',
+  ].some((token) => normalized.includes(token))
 }
 
 function uniqueStrings(values: string[]): string[] {
@@ -549,9 +602,14 @@ function extractProcedureList(section: string): string[] {
       if (!line) return false
       const normalized = normalizeAscii(line)
       if (!normalized.includes('ressonancia magnetica')) return false
-      return !['cid 10', 'data hora', 'unidade solicitante', 'vaga solicitada', 'vaga consumida', 'chave'].some((token) =>
-        normalized.includes(token),
-      )
+      return ![
+        'cid 10',
+        'data hora',
+        'unidade solicitante',
+        'vaga solicitada',
+        'vaga consumida',
+        'chave',
+      ].some((token) => normalized.includes(token))
     })
   return uniqueStrings(lines)
 }
@@ -584,7 +642,9 @@ function parseDataHora(section: string): { data_exame: string; slot_base: string
 }
 
 function splitSisregBlocks(rawText: string): { header: string; blocks: string[] } {
-  const lines = String(rawText || '').replace(/\r\n/g, '\n').split('\n')
+  const lines = String(rawText || '')
+    .replace(/\r\n/g, '\n')
+    .split('\n')
   const startIndexes: number[] = []
 
   for (let i = 0; i < lines.length; i += 1) {
@@ -653,7 +713,8 @@ function parseStructuredReportPatients(rawText: string): ParsedReportPatient[] {
     const procedimentos = extractProcedureList((fields['Procedimento(s):'] || []).join('\n'))
     const dataHora = parseDataHora((fields['Data/Hora:'] || []).join(' '))
 
-    if (!patientName || hasContaminatedName(patientName) || !dataHora || procedimentos.length === 0) return
+    if (!patientName || hasContaminatedName(patientName) || !dataHora || procedimentos.length === 0)
+      return
 
     parsed.push({
       patient_name: patientName,
@@ -681,9 +742,17 @@ function parseSimplePatientBlocks(rawText: string): ParsedSimplePatient[] {
     const birth = ((fields['Nascimento:'] || [])[0] || '').replace(/\s+/g, ' ').trim() || null
     const phones = extractPhones((fields['Telefone(s):'] || []).join('\n'))
     const procedimentos = extractProcedureList((fields['Procedimento(s):'] || []).join('\n'))
-    const horario = extractExplicitTime([...(fields['Horário:'] || []), ...(fields['Horario:'] || [])].join(' '))
+    const horario = extractExplicitTime(
+      [...(fields['Horário:'] || []), ...(fields['Horario:'] || [])].join(' '),
+    )
 
-    if (!patientName || hasContaminatedName(patientName) || phones.length === 0 || procedimentos.length === 0) return
+    if (
+      !patientName ||
+      hasContaminatedName(patientName) ||
+      phones.length === 0 ||
+      procedimentos.length === 0
+    )
+      return
 
     parsed.push({
       patient_name: patientName,
@@ -721,7 +790,11 @@ function consolidateSimplePatients(rows: ParsedSimplePatient[]): ParsedSimplePat
   return [...merged.values()].sort((a, b) => a.source_order - b.source_order)
 }
 
-function scheduleSimplePatients(rows: ParsedSimplePatient[], data_exame: string, startAt = '07:00'): { agenda_date: string; patients: PatientAgendaItem[] } {
+function scheduleSimplePatients(
+  rows: ParsedSimplePatient[],
+  data_exame: string,
+  startAt = '07:00',
+): { agenda_date: string; patients: PatientAgendaItem[] } {
   const patients: PatientAgendaItem[] = []
   let cursor = startAt
 
@@ -730,7 +803,11 @@ function scheduleSimplePatients(rows: ParsedSimplePatient[], data_exame: string,
     const horario_inicio = row.horario || cursor
     const horario_final = totalMinutes == null ? '' : addMinutesToHHMM(horario_inicio, totalMinutes)
     const status_agenda: AgendaStatus =
-      totalMinutes == null || !horario_final ? 'fora_da_janela' : isWithinWindow(horario_final) ? 'agendado_dentro_janela' : 'fora_da_janela'
+      totalMinutes == null || !horario_final
+        ? 'fora_da_janela'
+        : isWithinWindow(horario_final)
+          ? 'agendado_dentro_janela'
+          : 'fora_da_janela'
 
     const phones = uniqueStrings(row.phones)
     const procedimentos = row.procedimentos.join('\n')
@@ -766,7 +843,9 @@ function consolidateParsedPatients(rows: ParsedReportPatient[]): ParsedReportPat
   const merged = new Map<string, ParsedReportPatient>()
 
   for (const row of rows) {
-    const key = [normalizeAscii(row.patient_name), row.Data_nascimento || '', row.data_exame].join('|')
+    const key = [normalizeAscii(row.patient_name), row.Data_nascimento || '', row.data_exame].join(
+      '|',
+    )
     const existing = merged.get(key)
     if (!existing) {
       merged.set(key, {
@@ -781,14 +860,18 @@ function consolidateParsedPatients(rows: ParsedReportPatient[]): ParsedReportPat
     existing.procedimentos = uniqueStrings([...existing.procedimentos, ...row.procedimentos])
     existing.source_order = Math.min(existing.source_order, row.source_order)
     if (existing.slot_base !== row.slot_base) {
-      existing.slot_base = existing.source_order === row.source_order ? row.slot_base : existing.slot_base
+      existing.slot_base =
+        existing.source_order === row.source_order ? row.slot_base : existing.slot_base
     }
   }
 
   return [...merged.values()].sort((a, b) => a.source_order - b.source_order)
 }
 
-function scheduleParsedPatients(rows: ParsedReportPatient[]): { agenda_date: string; patients: PatientAgendaItem[] } {
+function scheduleParsedPatients(rows: ParsedReportPatient[]): {
+  agenda_date: string
+  patients: PatientAgendaItem[]
+} {
   const slotOrder = ['07:00', '13:00', '19:00']
   const grouped = new Map<string, ParsedReportPatient[]>()
   for (const row of rows) {
@@ -819,7 +902,11 @@ function scheduleParsedPatients(rows: ParsedReportPatient[]): { agenda_date: str
       const horario_inicio = cursor
       const horario_final = totalMinutes == null ? '' : addMinutesToHHMM(cursor, totalMinutes)
       const status_agenda: AgendaStatus =
-        totalMinutes == null || !horario_final ? 'fora_da_janela' : isWithinWindow(horario_final) ? 'agendado_dentro_janela' : 'fora_da_janela'
+        totalMinutes == null || !horario_final
+          ? 'fora_da_janela'
+          : isWithinWindow(horario_final)
+            ? 'agendado_dentro_janela'
+            : 'fora_da_janela'
 
       const phones = uniqueStrings(row.phones)
       const procedimentos = row.procedimentos.join('\n')
@@ -853,7 +940,11 @@ function scheduleParsedPatients(rows: ParsedReportPatient[]): { agenda_date: str
   return { agenda_date, patients }
 }
 
-function normalizePatientsAndSchedule(agenda_date: string, patientsRaw: any[], startAt: string): PatientAgendaItem[] {
+function normalizePatientsAndSchedule(
+  agenda_date: string,
+  patientsRaw: any[],
+  startAt: string,
+): PatientAgendaItem[] {
   let cursor = startAt
   const patients: PatientAgendaItem[] = []
 
@@ -864,7 +955,11 @@ function normalizePatientsAndSchedule(agenda_date: string, patientsRaw: any[], s
     const horario_inicio = String(p?.horario_inicio || cursor).trim()
     const horario_final = minutes == null ? '' : addMinutesToHHMM(horario_inicio, minutes)
     const status_agenda: AgendaStatus =
-      minutes == null || !horario_final ? 'fora_da_janela' : isWithinWindow(horario_final) ? 'agendado_dentro_janela' : 'fora_da_janela'
+      minutes == null || !horario_final
+        ? 'fora_da_janela'
+        : isWithinWindow(horario_final)
+          ? 'agendado_dentro_janela'
+          : 'fora_da_janela'
     const msgHorario = String(p?.horario_inicio || horario_inicio).trim()
 
     patients.push({
@@ -910,7 +1005,10 @@ Deno.serve(async (req: Request) => {
 
     const body = await req.json().catch(() => ({}))
     const rawText = String(body?.rawText || '').trim()
-    const manualExamDate = parseBrDateToIso(String(body?.manualExamDate || '').trim()) || String(body?.manualExamDate || '').trim() || ''
+    const manualExamDate =
+      parseBrDateToIso(String(body?.manualExamDate || '').trim()) ||
+      String(body?.manualExamDate || '').trim() ||
+      ''
     if (!rawText) {
       return new Response(JSON.stringify({ success: false, error: 'rawText e obrigatorio.' }), {
         headers: { 'Content-Type': 'application/json', ...corsHeaders },
@@ -933,10 +1031,17 @@ Deno.serve(async (req: Request) => {
     const parsedSimple = consolidateSimplePatients(parseSimplePatientBlocks(rawText))
     if (parsedSimple.length > 0) {
       if (!manualExamDate) {
-        return new Response(JSON.stringify({ success: false, error: 'Lista reconhecida, mas sem data do exame. Informe a data manualmente no campo da tela.' }), {
-          headers: { 'Content-Type': 'application/json', ...corsHeaders },
-          status: 400,
-        })
+        return new Response(
+          JSON.stringify({
+            success: false,
+            error:
+              'Lista reconhecida, mas sem data do exame. Informe a data manualmente no campo da tela.',
+          }),
+          {
+            headers: { 'Content-Type': 'application/json', ...corsHeaders },
+            status: 400,
+          },
+        )
       }
 
       logStep('simple_parser_success', { patientsDetected: parsedSimple.length, manualExamDate })
@@ -960,7 +1065,11 @@ Deno.serve(async (req: Request) => {
       const chunk = chunks[index]
       const chunkText = [header, ...chunk].filter(Boolean).join('\n\n').trim()
       const prompt = getPrompt(chunkText)
-      logStep('processing_chunk', { chunkIndex: index + 1, chunkCount: chunks.length, chunkLength: chunkText.length })
+      logStep('processing_chunk', {
+        chunkIndex: index + 1,
+        chunkCount: chunks.length,
+        chunkLength: chunkText.length,
+      })
       const llmText = await callLLMWithRetry(prompt)
       const parsed = safeJsonParse(llmText)
 
@@ -975,16 +1084,21 @@ Deno.serve(async (req: Request) => {
       if (last?.horario_final) startAt = last.horario_final
     }
 
-    return new Response(JSON.stringify({ success: true, data: { agenda_date, patients: allPatients } }), {
-      headers: { 'Content-Type': 'application/json', ...corsHeaders },
-      status: 200,
-    })
+    return new Response(
+      JSON.stringify({ success: true, data: { agenda_date, patients: allPatients } }),
+      {
+        headers: { 'Content-Type': 'application/json', ...corsHeaders },
+        status: 200,
+      },
+    )
   } catch (error: any) {
     const msg = String(error?.message || 'Erro interno')
     logStep('request_failed', { error: msg })
     const status = /timeout/i.test(msg)
       ? 504
-      : /LLM HTTP|Resposta do LLM|conteudo vazio|conteúdo vazio|JSON invalido|JSON invalido|nao contem JSON|não contém JSON/i.test(msg)
+      : /LLM HTTP|Resposta do LLM|conteudo vazio|conteúdo vazio|JSON invalido|JSON invalido|nao contem JSON|não contém JSON/i.test(
+            msg,
+          )
         ? 502
         : 500
 

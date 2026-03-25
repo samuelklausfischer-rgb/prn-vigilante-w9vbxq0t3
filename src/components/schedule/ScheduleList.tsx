@@ -13,7 +13,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { ScheduleItem, getGapClassificationInfo, type GapClassification } from '@/services/schedule'
-import { formatPhoneBR } from '@shared/utils/phone-utils'
+import { formatPhoneBR } from '@/lib/utils'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 

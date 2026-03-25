@@ -55,6 +55,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       })
       .catch((err) => {
         console.error('Unexpected error retrieving session:', err)
+        // Extra fallback against fatal crashes due to corrupt local storage state
+        supabase.auth.signOut().catch(() => {})
+        setSession(null)
+        setUser(null)
         setLoading(false)
       })
 

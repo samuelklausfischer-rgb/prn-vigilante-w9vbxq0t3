@@ -39,6 +39,7 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog'
 import { cn } from '@/lib/utils'
+import { PrnLogo } from '@/components/ui/logo'
 
 function AppSidebar() {
   const location = useLocation()
@@ -60,11 +61,7 @@ function AppSidebar() {
     <Sidebar className="border-r border-white/5 bg-card/90 backdrop-blur-xl">
       <SidebarHeader className="p-5 flex flex-col gap-6 border-b border-white/5 pb-6">
         <div className="flex items-center justify-center w-full px-2 pt-1 shrink-0">
-          <img
-            src="https://prndiagnosticos.com.br/wp-content/themes/prnd/assets/images/logo.png"
-            alt="PRN Diagnósticos"
-            className="h-10 sm:h-11 w-auto max-w-[200px] object-contain mix-blend-screen grayscale invert brightness-200 contrast-200 transition-opacity hover:opacity-90"
-          />
+          <PrnLogo className="h-10 sm:h-11 max-w-[200px] text-white opacity-80 transition-opacity hover:opacity-100" />
         </div>
         <div className="flex flex-row items-center gap-3 px-1">
           <div className="bg-blue-500/20 border border-blue-500/30 text-blue-400 p-1.5 rounded-lg shrink-0">
@@ -167,11 +164,7 @@ function TopBar() {
       <div className="flex items-center gap-4">
         <SidebarTrigger className="text-muted-foreground hover:text-white" />
         <div className="flex items-center sm:hidden h-full mt-1">
-          <img
-            src="https://prndiagnosticos.com.br/wp-content/themes/prnd/assets/images/logo.png"
-            alt="PRN"
-            className="h-6 w-auto object-contain mix-blend-screen grayscale invert brightness-200 contrast-200"
-          />
+          <PrnLogo className="h-6 text-white opacity-80" />
         </div>
         <h1 className="font-heading font-semibold text-lg hidden sm:block">{pageTitle}</h1>
       </div>

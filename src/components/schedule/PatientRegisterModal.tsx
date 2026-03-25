@@ -30,7 +30,7 @@ import {
 } from '@/components/ui/select'
 import { useToast } from '@/hooks/use-toast'
 import { enqueuePatient, type ScheduleItem } from '@/services/schedule'
-import { buildSaraMessage } from '@shared/templates/sara-message'
+import { buildSaraMessage } from '@/lib/templates/sara-message'
 import { format, parse, isValid } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 

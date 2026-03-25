@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { useToast } from '@/hooks/use-toast'
+import { PrnLogo } from '@/components/ui/logo'
 
 export default function AuthPage() {
   const [email, setEmail] = useState('')
@@ -40,11 +41,7 @@ export default function AuthPage() {
       <Card className="w-full max-w-md z-10 border-white/10 shadow-2xl backdrop-blur-glass bg-card/90 rounded-2xl">
         <CardHeader className="space-y-3 pb-6 text-center">
           <div className="flex items-center justify-center mx-auto mb-4">
-            <img
-              src="https://prndiagnosticos.com.br/wp-content/themes/prnd/assets/images/logo.png"
-              alt="PRN Diagnósticos Logo"
-              className="h-16 w-auto object-contain invert hue-rotate-180 brightness-150 mix-blend-screen drop-shadow-sm"
-            />
+            <PrnLogo className="h-14 text-white opacity-90 drop-shadow-md" />
           </div>
           <CardTitle className="text-2xl font-heading tracking-tight">PRN Vigilante</CardTitle>
           <CardDescription>Painel de Supervisão e Controle de Mensagens</CardDescription>
