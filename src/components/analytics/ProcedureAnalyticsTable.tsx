@@ -26,8 +26,8 @@ export function ProcedureAnalyticsTable({ data }: ProcedureAnalyticsTableProps) 
           </tr>
         </thead>
         <tbody>
-          {data.map((row) => (
-            <tr key={row.procedimento} className="border-t border-white/5">
+          {data.map((row, index) => (
+            <tr key={`${row.procedimento}-${index}`} className="border-t border-white/5">
               <td className="px-4 py-3 text-foreground">{row.procedimento}</td>
               <td className="px-4 py-3 text-right">{row.enviadas}</td>
               <td className="px-4 py-3 text-right text-emerald-400">{row.sucesso}</td>
