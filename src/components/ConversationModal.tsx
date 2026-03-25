@@ -1,10 +1,5 @@
 import { ArrowLeft, Clock, FileText, Loader2, MoreVertical, Phone, User } from 'lucide-react'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import {
   ConversationMessage,
@@ -48,14 +43,10 @@ function MessageBubble({ message }: { message: ConversationMessage }) {
   }
 
   return (
-    <div
-      className={`flex ${isSent ? 'justify-end' : 'justify-start'} mb-3`}
-    >
+    <div className={`flex ${isSent ? 'justify-end' : 'justify-start'} mb-3`}>
       <div
         className={`max-w-[75%] rounded-lg px-3 py-2 text-sm shadow-sm ${
-          isSent
-            ? 'bg-[#DCF8C6] text-gray-800'
-            : 'bg-white text-gray-800'
+          isSent ? 'bg-[#DCF8C6] text-gray-800' : 'bg-white text-gray-800'
         }`}
         style={{
           borderRadius: isSent ? '0 8px 8px 8px' : '8px 8px 8px 0',
@@ -64,9 +55,7 @@ function MessageBubble({ message }: { message: ConversationMessage }) {
         <div className="flex items-start gap-2">
           {!isSent && <User className="mt-0.5 h-4 w-4 flex-shrink-0 text-blue-500" />}
           <div className="flex-1">
-            <p className="whitespace-pre-wrap break-words leading-relaxed">
-              {message.messageBody}
-            </p>
+            <p className="whitespace-pre-wrap break-words leading-relaxed">{message.messageBody}</p>
             <div
               className={`mt-1 flex items-center text-[11px] text-gray-500 ${
                 isSent ? 'justify-end' : 'justify-start'
@@ -110,7 +99,7 @@ export function ConversationModal({
       acc[dateKey].push(msg)
       return acc
     },
-    {}
+    {},
   )
 
   const formatDateHeader = (dateStr?: string | null, timeStr?: string | null) => {
@@ -130,7 +119,7 @@ export function ConversationModal({
         style={{
           background: 'linear-gradient(to bottom, #E5DDD5 0%, #E5DDD5 100%)',
           backgroundImage:
-            'url("data:image/svg+xml,%3Csvg width=\'60\' height=\'60\' viewBox=\'0 0 60 60\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'none\' fill-rule=\'evenodd\'%3E%3Cg fill=\'%23ffffff\' fill-opacity=\'0.05\'%3E%3Cpath d=\'M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")',
+            "url(\"data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E\")",
         }}
       >
         {/* Header estilo WhatsApp */}
@@ -147,8 +136,7 @@ export function ConversationModal({
                 {conversation.patientName}
               </DialogTitle>
               <p className="mt-0.5 text-xs text-white/80">
-                {formatDateHeader(conversation.dataExame)}
-                {' '}
+                {formatDateHeader(conversation.dataExame)}{' '}
                 {formatTimeHeader(conversation.horarioInicio)}
                 {' • '}
                 {conversation.procedimentos || ''}
@@ -170,9 +158,7 @@ export function ConversationModal({
             ) : conversation.messages.length === 0 ? (
               <div className="flex h-full flex-col items-center justify-center text-center">
                 <FileText className="mb-3 h-12 w-12 text-gray-400" />
-                <p className="text-sm text-gray-600">
-                  Nenhuma mensagem encontrada
-                </p>
+                <p className="text-sm text-gray-600">Nenhuma mensagem encontrada</p>
               </div>
             ) : (
               <>

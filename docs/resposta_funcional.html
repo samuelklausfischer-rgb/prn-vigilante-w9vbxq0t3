@@ -1,138 +1,201 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Status Funcional: A Sara Pode Falar?</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+      rel="stylesheet"
+    />
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
-        body { font-family: 'Inter', sans-serif; background-color: #0f172a; color: white; }
-        .glass-card { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); }
-        .green-glow { text-shadow: 0 0 20px rgba(52, 211, 153, 0.8); }
-        
-        /* Animação do Pulso */
-        .ping-circle { animation: ping 2s cubic-bezier(0, 0, 0.2, 1) infinite; }
-        @keyframes ping {
-            75%, 100% { transform: scale(2); opacity: 0; }
+      @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+      body {
+        font-family: 'Inter', sans-serif;
+        background-color: #0f172a;
+        color: white;
+      }
+      .glass-card {
+        background: rgba(30, 41, 59, 0.7);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+      }
+      .green-glow {
+        text-shadow: 0 0 20px rgba(52, 211, 153, 0.8);
+      }
+
+      /* Animação do Pulso */
+      .ping-circle {
+        animation: ping 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+      }
+      @keyframes ping {
+        75%,
+        100% {
+          transform: scale(2);
+          opacity: 0;
         }
+      }
     </style>
-</head>
-<body class="min-h-screen relative overflow-x-hidden antialiased flex flex-col items-center py-12 px-4">
-    
+  </head>
+  <body
+    class="min-h-screen relative overflow-x-hidden antialiased flex flex-col items-center py-12 px-4"
+  >
     <!-- Background Mágico -->
     <div class="fixed inset-0 bg-[#0B1120] -z-20"></div>
-    <div class="fixed top-0 inset-x-0 h-[500px] bg-gradient-to-b from-emerald-500/10 to-transparent -z-10 blur-3xl mix-blend-screen pointer-events-none"></div>
+    <div
+      class="fixed top-0 inset-x-0 h-[500px] bg-gradient-to-b from-emerald-500/10 to-transparent -z-10 blur-3xl mix-blend-screen pointer-events-none"
+    ></div>
 
     <div class="w-full max-w-5xl relative z-10">
+      <!-- RESPOSTA DIRETA (HERO) -->
+      <header class="text-center mb-16">
+        <div class="inline-flex items-center justify-center relative mb-6">
+          <!-- Bolinha de Status Online -->
+          <span class="absolute flex h-6 w-6 -top-2 -right-2">
+            <span
+              class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"
+            ></span>
+            <span
+              class="relative inline-flex rounded-full h-6 w-6 bg-emerald-500 border-2 border-[#0B1120]"
+            ></span>
+          </span>
 
-        <!-- RESPOSTA DIRETA (HERO) -->
-        <header class="text-center mb-16">
-            <div class="inline-flex items-center justify-center relative mb-6">
-                <!-- Bolinha de Status Online -->
-                <span class="absolute flex h-6 w-6 -top-2 -right-2">
-                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                    <span class="relative inline-flex rounded-full h-6 w-6 bg-emerald-500 border-2 border-[#0B1120]"></span>
-                </span>
-                
-                <h1 class="text-5xl md:text-7xl font-extrabold text-white tracking-tight drop-shadow-md pb-2">
-                    SIM!
-                </h1>
+          <h1
+            class="text-5xl md:text-7xl font-extrabold text-white tracking-tight drop-shadow-md pb-2"
+          >
+            SIM!
+          </h1>
+        </div>
+
+        <h2 class="text-2xl md:text-3xl font-medium text-slate-300 mb-6 max-w-3xl mx-auto">
+          Você
+          <strong class="text-emerald-400 green-glow"
+            >já pode fazer testes reais de disparo agora mesmo</strong
+          >
+          se quiser!
+        </h2>
+        <p
+          class="text-lg text-slate-400 max-w-2xl mx-auto leading-relaxed border-t border-slate-700/50 pt-6"
+        >
+          O que construímos não é só teoria. O sistema é
+          <strong>100% funcional neste exato segundo</strong> para enviar mensagens, respeitar os
+          delays da Sara e registrar tudo no banco de dados.
+        </p>
+      </header>
+
+      <!-- A METÁFORA DO CARRO -->
+      <div class="glass-card rounded-3xl p-8 mb-12 shadow-2xl relative overflow-hidden">
+        <!-- Decoração do Card -->
+        <div
+          class="absolute top-0 right-0 w-64 h-64 bg-emerald-500/10 rounded-full blur-[80px] pointer-events-none"
+        ></div>
+
+        <div class="flex flex-col md:flex-row items-center gap-10">
+          <!-- Lado Esquerdo: O Carro -->
+          <div class="w-full md:w-1/2">
+            <div class="flex items-center gap-4 mb-4">
+              <div
+                class="p-3 rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
+              >
+                <i class="fa-solid fa-car-side text-2xl"></i>
+              </div>
+              <h3 class="text-2xl font-bold text-white">O Carro (O que temos)</h3>
             </div>
-            
-            <h2 class="text-2xl md:text-3xl font-medium text-slate-300 mb-6 max-w-3xl mx-auto">
-                Você <strong class="text-emerald-400 green-glow">já pode fazer testes reais de disparo agora mesmo</strong> se quiser!
-            </h2>
-            <p class="text-lg text-slate-400 max-w-2xl mx-auto leading-relaxed border-t border-slate-700/50 pt-6">
-                O que construímos não é só teoria. O sistema é <strong>100% funcional neste exato segundo</strong> para enviar mensagens, respeitar os delays da Sara e registrar tudo no banco de dados. 
-            </p>
-        </header>
-
-        <!-- A METÁFORA DO CARRO -->
-        <div class="glass-card rounded-3xl p-8 mb-12 shadow-2xl relative overflow-hidden">
-             <!-- Decoração do Card -->
-             <div class="absolute top-0 right-0 w-64 h-64 bg-emerald-500/10 rounded-full blur-[80px] pointer-events-none"></div>
-
-            <div class="flex flex-col md:flex-row items-center gap-10">
-                <!-- Lado Esquerdo: O Carro -->
-                <div class="w-full md:w-1/2">
-                    <div class="flex items-center gap-4 mb-4">
-                        <div class="p-3 rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-                            <i class="fa-solid fa-car-side text-2xl"></i>
-                        </div>
-                        <h3 class="text-2xl font-bold text-white">O Carro (O que temos)</h3>
-                    </div>
-                    <ul class="space-y-4 text-slate-300">
-                        <li class="flex items-start gap-3">
-                            <i class="fa-solid fa-check text-emerald-400 mt-1"></i>
-                            <span>O Motor liga e engata (O Worker liga e conecta)</span>
-                        </li>
-                        <li class="flex items-start gap-3">
-                            <i class="fa-solid fa-check text-emerald-400 mt-1"></i>
-                            <span>O Acelerador funciona (Puxa do banco e manda pro Whats)</span>
-                        </li>
-                        <li class="flex items-start gap-3">
-                            <i class="fa-solid fa-check text-emerald-400 mt-1"></i>
-                            <span>O Painel interno acende (Registra os logs no Supabase)</span>
-                        </li>
-                    </ul>
-                    <div class="mt-6 p-4 bg-emerald-900/30 border border-emerald-500/30 rounded-xl">
-                        <p class="text-emerald-300 font-medium"><i class="fa-solid fa-play mr-2"></i> Você pode colocar a chave hoje e dar uma volta.</p>
-                    </div>
-                </div>
-
-                <!-- Divisória -->
-                <div class="hidden md:block w-px h-64 bg-slate-700 mx-4"></div>
-                <div class="md:hidden h-px w-full bg-slate-700 my-2"></div>
-
-                <!-- Lado Direito: A Garagem/Rua -->
-                <div class="w-full md:w-1/2">
-                    <div class="flex items-center gap-4 mb-4">
-                        <div class="p-3 rounded-xl bg-sky-500/20 text-sky-400 border border-sky-500/30">
-                            <i class="fa-solid fa-road text-2xl"></i>
-                        </div>
-                        <h3 class="text-2xl font-bold text-white">A Rua (O que falta)</h3>
-                    </div>
-                    <p class="text-slate-400 mb-4 font-medium italic">São os "acessórios" para deixar o carro na rua sozinho:</p>
-                    <ul class="space-y-4 text-slate-300">
-                        <li class="flex items-start gap-3 opacity-80">
-                            <i class="fa-regular fa-clock text-sky-400 mt-1"></i>
-                            <span><strong>Escutar (Webhook):</strong> O limpador de parabrisa automático. O carro anda sem ele? Sim! Mas se na rua alguem mandar "SAIR", o carro não sabe parar de buzinar sozinho ainda.</span>
-                        </li>
-                        <li class="flex items-start gap-3 opacity-80">
-                            <i class="fa-regular fa-clock text-sky-400 mt-1"></i>
-                            <span><strong>Dashboards React:</strong> A tela multimídia chique pro passageiro. Hoje você só pode ver a velocidade abrindo o capô do carro (olhando direto nas tabelas do Supabase).</span>
-                        </li>
-                        <li class="flex items-start gap-3 opacity-80">
-                            <i class="fa-regular fa-clock text-sky-400 mt-1"></i>
-                            <span><strong>Hospedagem 24h:</strong> O botão de piloto automático solto na nuvem. Hoje o carro precisa que estejamos sentados no terminal do seu Windows acelerando (`npm run dev`).</span>
-                        </li>
-                    </ul>
-                </div>
+            <ul class="space-y-4 text-slate-300">
+              <li class="flex items-start gap-3">
+                <i class="fa-solid fa-check text-emerald-400 mt-1"></i>
+                <span>O Motor liga e engata (O Worker liga e conecta)</span>
+              </li>
+              <li class="flex items-start gap-3">
+                <i class="fa-solid fa-check text-emerald-400 mt-1"></i>
+                <span>O Acelerador funciona (Puxa do banco e manda pro Whats)</span>
+              </li>
+              <li class="flex items-start gap-3">
+                <i class="fa-solid fa-check text-emerald-400 mt-1"></i>
+                <span>O Painel interno acende (Registra os logs no Supabase)</span>
+              </li>
+            </ul>
+            <div class="mt-6 p-4 bg-emerald-900/30 border border-emerald-500/30 rounded-xl">
+              <p class="text-emerald-300 font-medium">
+                <i class="fa-solid fa-play mr-2"></i> Você pode colocar a chave hoje e dar uma
+                volta.
+              </p>
             </div>
-        </div>
+          </div>
 
-        <!-- O QUE PRECISO AGORA -->
-        <div class="bg-gradient-to-r from-slate-800 to-slate-900 rounded-2xl p-8 border-l-4 border-emerald-500 shadow-lg">
-            <h3 class="text-2xl font-bold text-white mb-2">Respondendo sua pergunta final:</h3>
-            <p class="text-xl text-slate-300 leading-relaxed font-light">
-                "O que preceisamos é algo funcional no momento".<br>
-                <strong class="text-white mt-2 block">O sistema é perfeitamente funcional para rodarmos um teste real AGORA MESMO.</strong>
+          <!-- Divisória -->
+          <div class="hidden md:block w-px h-64 bg-slate-700 mx-4"></div>
+          <div class="md:hidden h-px w-full bg-slate-700 my-2"></div>
+
+          <!-- Lado Direito: A Garagem/Rua -->
+          <div class="w-full md:w-1/2">
+            <div class="flex items-center gap-4 mb-4">
+              <div class="p-3 rounded-xl bg-sky-500/20 text-sky-400 border border-sky-500/30">
+                <i class="fa-solid fa-road text-2xl"></i>
+              </div>
+              <h3 class="text-2xl font-bold text-white">A Rua (O que falta)</h3>
+            </div>
+            <p class="text-slate-400 mb-4 font-medium italic">
+              São os "acessórios" para deixar o carro na rua sozinho:
             </p>
-            <p class="text-slate-400 mt-4">
-                As "falhas" e "pontes" que mencionei não são erros do código. São as tarefas complementares do escopo para transformar o seu código funcional em um "Produto de Prateleira (SaaS)", para a secretária usar de olhos fechados.
-            </p>
+            <ul class="space-y-4 text-slate-300">
+              <li class="flex items-start gap-3 opacity-80">
+                <i class="fa-regular fa-clock text-sky-400 mt-1"></i>
+                <span
+                  ><strong>Escutar (Webhook):</strong> O limpador de parabrisa automático. O carro
+                  anda sem ele? Sim! Mas se na rua alguem mandar "SAIR", o carro não sabe parar de
+                  buzinar sozinho ainda.</span
+                >
+              </li>
+              <li class="flex items-start gap-3 opacity-80">
+                <i class="fa-regular fa-clock text-sky-400 mt-1"></i>
+                <span
+                  ><strong>Dashboards React:</strong> A tela multimídia chique pro passageiro. Hoje
+                  você só pode ver a velocidade abrindo o capô do carro (olhando direto nas tabelas
+                  do Supabase).</span
+                >
+              </li>
+              <li class="flex items-start gap-3 opacity-80">
+                <i class="fa-regular fa-clock text-sky-400 mt-1"></i>
+                <span
+                  ><strong>Hospedagem 24h:</strong> O botão de piloto automático solto na nuvem.
+                  Hoje o carro precisa que estejamos sentados no terminal do seu Windows acelerando
+                  (`npm run dev`).</span
+                >
+              </li>
+            </ul>
+          </div>
         </div>
+      </div>
 
-        <!-- Próximo Passo -->
-        <div class="mt-12 text-center">
-            <button class="px-8 py-4 bg-emerald-500 hover:bg-emerald-400 text-slate-900 font-bold rounded-xl shadow-[0_0_20px_rgba(16,185,129,0.4)] transition-all hover:-translate-y-1 text-lg">
-                <i class="fa-solid fa-rocket mr-2"></i> Vamos para o Disparo de Teste Real?
-            </button>
-        </div>
+      <!-- O QUE PRECISO AGORA -->
+      <div
+        class="bg-gradient-to-r from-slate-800 to-slate-900 rounded-2xl p-8 border-l-4 border-emerald-500 shadow-lg"
+      >
+        <h3 class="text-2xl font-bold text-white mb-2">Respondendo sua pergunta final:</h3>
+        <p class="text-xl text-slate-300 leading-relaxed font-light">
+          "O que preceisamos é algo funcional no momento".<br />
+          <strong class="text-white mt-2 block"
+            >O sistema é perfeitamente funcional para rodarmos um teste real AGORA MESMO.</strong
+          >
+        </p>
+        <p class="text-slate-400 mt-4">
+          As "falhas" e "pontes" que mencionei não são erros do código. São as tarefas
+          complementares do escopo para transformar o seu código funcional em um "Produto de
+          Prateleira (SaaS)", para a secretária usar de olhos fechados.
+        </p>
+      </div>
 
+      <!-- Próximo Passo -->
+      <div class="mt-12 text-center">
+        <button
+          class="px-8 py-4 bg-emerald-500 hover:bg-emerald-400 text-slate-900 font-bold rounded-xl shadow-[0_0_20px_rgba(16,185,129,0.4)] transition-all hover:-translate-y-1 text-lg"
+        >
+          <i class="fa-solid fa-rocket mr-2"></i> Vamos para o Disparo de Teste Real?
+        </button>
+      </div>
     </div>
-</body>
+  </body>
 </html>

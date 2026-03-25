@@ -5,7 +5,15 @@ import { Textarea } from '@/components/ui/textarea'
 import { Input } from '@/components/ui/input'
 import { useToast } from '@/hooks/use-toast'
 import { formatDataExameBr, isValidDataExame, normalizeDataExame } from '@/lib/utils/data-exame'
-import { Loader2, Wand2, RefreshCw, CheckCircle2, AlertTriangle, AlertCircle, MessageSquare } from 'lucide-react'
+import {
+  Loader2,
+  Wand2,
+  RefreshCw,
+  CheckCircle2,
+  AlertTriangle,
+  AlertCircle,
+  MessageSquare,
+} from 'lucide-react'
 import { normalizePhone } from '../../packages/shared/index.ts'
 import { WhatsAppInstance } from '@/types'
 import { evolutionApi } from '@/services/evolution'
@@ -91,7 +99,9 @@ function hasBlockingIssues(patients: PatientAgendaItem[]) {
 
 function isSuspiciousName(value: string) {
   const normalized = String(value || '').toLowerCase()
-  return ['telefone', 'procedimento', 'cid', 'data/hora', 'unidade solicitante', 'origem'].some((token) => normalized.includes(token))
+  return ['telefone', 'procedimento', 'cid', 'data/hora', 'unidade solicitante', 'origem'].some(
+    (token) => normalized.includes(token),
+  )
 }
 
 function displayField(value?: string | null) {
@@ -105,7 +115,10 @@ export default function EnviarLista() {
   const [manualExamDate, setManualExamDate] = useState('')
   const [loading, setLoading] = useState(false)
   const [inserting, setInserting] = useState(false)
-  const [result, setResult] = useState<{ agenda_date?: string; patients: PatientAgendaItem[] } | null>(null)
+  const [result, setResult] = useState<{
+    agenda_date?: string
+    patients: PatientAgendaItem[]
+  } | null>(null)
   const [instances, setInstances] = useState<WhatsAppInstance[]>([])
   const [selectedInstanceId, setSelectedInstanceId] = useState<string | null>(null)
 
@@ -130,12 +143,20 @@ export default function EnviarLista() {
 
   const handleGenerate = async () => {
     if (!rawText.trim()) {
-      toast({ title: 'Lista vazia', description: 'Cole a lista desorganizada antes de gerar.', variant: 'destructive' })
+      toast({
+        title: 'Lista vazia',
+        description: 'Cole a lista desorganizada antes de gerar.',
+        variant: 'destructive',
+      })
       return
     }
 
     if (manualExamDate && !isValidDataExame(manualExamDate)) {
-      toast({ title: 'Data invalida', description: 'Informe a data do exame no formato DD/MM/AAAA.', variant: 'destructive' })
+      toast({
+        title: 'Data invalida',
+        description: 'Informe a data do exame no formato DD/MM/AAAA.',
+        variant: 'destructive',
+      })
       return
     }
 
@@ -148,14 +169,23 @@ export default function EnviarLista() {
         throw new Error('Sessão ausente/expirada. Faça login novamente antes de gerar.')
       }
 
-      const invokePromise = supabase.functions.invoke<OrganizeListResponse>('organize-patient-list', {
-        body: { rawText, manualExamDate: normalizeDataExame(manualExamDate) || manualExamDate || null },
-        headers: { Authorization: `Bearer ${accessToken}` },
-      })
+      const invokePromise = supabase.functions.invoke<OrganizeListResponse>(
+        'organize-patient-list',
+        {
+          body: {
+            rawText,
+            manualExamDate: normalizeDataExame(manualExamDate) || manualExamDate || null,
+          },
+          headers: { Authorization: `Bearer ${accessToken}` },
+        },
+      )
 
       const timeoutMs = 120_000
       const timeoutPromise = new Promise<never>((_, reject) => {
-        window.setTimeout(() => reject(new Error('Tempo limite ao gerar (lista grande). Tente novamente.')), timeoutMs)
+        window.setTimeout(
+          () => reject(new Error('Tempo limite ao gerar (lista grande). Tente novamente.')),
+          timeoutMs,
+        )
       })
 
       if (rawText.split('\n').length > 80) {
@@ -176,7 +206,10 @@ export default function EnviarLista() {
       }
 
       setResult(data.data)
-      toast({ title: 'Gerado', description: `Agenda gerada com ${data.data.patients.length} paciente(s).` })
+      toast({
+        title: 'Gerado',
+        description: `Agenda gerada com ${data.data.patients.length} paciente(s).`,
+      })
     } catch (e: any) {
       setResult(null)
       const msg = await getEdgeFunctionErrorMessage(e)
@@ -238,7 +271,10 @@ export default function EnviarLista() {
           throw error
         }
 
-        if (rpcResult?.status === 'duplicate_recent' || rpcResult?.status === 'duplicate_original') {
+        if (
+          rpcResult?.status === 'duplicate_recent' ||
+          rpcResult?.status === 'duplicate_original'
+        ) {
           patientsWithWarnings[i] = { ...p, warning: 'duplicado_recente_na_fila' }
           duplicateCount++
           continue
@@ -256,8 +292,11 @@ export default function EnviarLista() {
       setResult({ ...result, patients: patientsWithWarnings })
 
       const messages = []
-      const selectedInstanceName = instances.find((i: any) => i.id === selectedInstanceId)?.instanceName || 'instância selecionada'
-      if (successCount > 0) messages.push(`${successCount} paciente(s) inserido(s) via ${selectedInstanceName}`)
+      const selectedInstanceName =
+        instances.find((i: any) => i.id === selectedInstanceId)?.instanceName ||
+        'instância selecionada'
+      if (successCount > 0)
+        messages.push(`${successCount} paciente(s) inserido(s) via ${selectedInstanceName}`)
       if (duplicateCount > 0) messages.push(`${duplicateCount} duplicado(s) recente(s)`)
 
       toast({ title: 'Processamento concluído', description: messages.join('. ') })
@@ -267,7 +306,11 @@ export default function EnviarLista() {
         setRawText('')
       }
     } catch (e: any) {
-      toast({ title: 'Falha ao inserir', description: e.message || 'Erro inesperado.', variant: 'destructive' })
+      toast({
+        title: 'Falha ao inserir',
+        description: e.message || 'Erro inesperado.',
+        variant: 'destructive',
+      })
     } finally {
       setInserting(false)
     }
@@ -278,7 +321,8 @@ export default function EnviarLista() {
       <div className="rounded-2xl border border-white/10 bg-card/60 p-6">
         <h2 className="font-heading text-xl font-bold text-white">Enviar lista</h2>
         <p className="text-sm text-muted-foreground mt-1">
-          Cole a lista desorganizada. A IA vai organizar e gerar as mensagens. Você revisa e aprova para inserir no banco.
+          Cole a lista desorganizada. A IA vai organizar e gerar as mensagens. Você revisa e aprova
+          para inserir no banco.
         </p>
       </div>
 
@@ -287,15 +331,27 @@ export default function EnviarLista() {
           <div className="flex items-center justify-between gap-3">
             <div>
               <h3 className="text-sm font-semibold text-white">Lista desorganizada</h3>
-              <p className="text-xs text-muted-foreground">Sem inventar dados. Se a data nao vier no texto, informe abaixo.</p>
+              <p className="text-xs text-muted-foreground">
+                Sem inventar dados. Se a data nao vier no texto, informe abaixo.
+              </p>
             </div>
-            <Button onClick={handleGenerate} disabled={loading} className="bg-blue-600 hover:bg-blue-700">
-              {loading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Wand2 className="w-4 h-4 mr-2" />}
+            <Button
+              onClick={handleGenerate}
+              disabled={loading}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              {loading ? (
+                <Loader2 className="w-4 h-4 animate-spin mr-2" />
+              ) : (
+                <Wand2 className="w-4 h-4 mr-2" />
+              )}
               Gerar
             </Button>
           </div>
           <div className="space-y-2">
-            <label className="text-xs font-medium text-slate-200">Data do exame (opcional quando ja vier no texto)</label>
+            <label className="text-xs font-medium text-slate-200">
+              Data do exame (opcional quando ja vier no texto)
+            </label>
             <Input
               value={manualExamDate}
               onChange={(e) => setManualExamDate(e.target.value)}
@@ -305,23 +361,33 @@ export default function EnviarLista() {
           </div>
 
           <div className="space-y-2">
-            <label className="text-xs font-medium text-slate-200">Canal de WhatsApp (Instância)</label>
+            <label className="text-xs font-medium text-slate-200">
+              Canal de WhatsApp (Instância)
+            </label>
             <Select
               value={selectedInstanceId || undefined}
               onValueChange={(val) => setSelectedInstanceId(val)}
             >
               <SelectTrigger className="bg-black/30 border-white/10 text-white">
-                <SelectValue placeholder={instances.length === 0 ? "Nenhum canal conectado" : "Selecione o canal..."} />
+                <SelectValue
+                  placeholder={
+                    instances.length === 0 ? 'Nenhum canal conectado' : 'Selecione o canal...'
+                  }
+                />
               </SelectTrigger>
               <SelectContent className="bg-[#1a1b1e] border-white/10 text-white">
                 {instances.length === 0 ? (
-                  <SelectItem value="none" disabled>Nenhum canal conectado</SelectItem>
+                  <SelectItem value="none" disabled>
+                    Nenhum canal conectado
+                  </SelectItem>
                 ) : (
                   instances.map((inst: any) => (
                     <SelectItem key={inst.id} value={inst.id}>
                       <div className="flex items-center gap-2">
                         <MessageSquare className="w-4 h-4 text-emerald-400" />
-                        <span>{inst.instanceName} {inst.phoneNumber ? `(${inst.phoneNumber})` : ''}</span>
+                        <span>
+                          {inst.instanceName} {inst.phoneNumber ? `(${inst.phoneNumber})` : ''}
+                        </span>
                       </div>
                     </SelectItem>
                   ))
@@ -348,10 +414,17 @@ export default function EnviarLista() {
           <div className="flex items-center justify-between gap-3">
             <div>
               <h3 className="text-sm font-semibold text-white">Preview</h3>
-              <p className="text-xs text-muted-foreground">Aprovação só libera se não houver bloqueios.</p>
+              <p className="text-xs text-muted-foreground">
+                Aprovação só libera se não houver bloqueios.
+              </p>
             </div>
             <div className="flex gap-2">
-              <Button variant="outline" onClick={handleReject} disabled={!result || loading} className="border-white/10">
+              <Button
+                variant="outline"
+                onClick={handleReject}
+                disabled={!result || loading}
+                className="border-white/10"
+              >
                 <RefreshCw className="w-4 h-4 mr-2" /> Recusar
               </Button>
               <Button
@@ -359,7 +432,11 @@ export default function EnviarLista() {
                 disabled={!result || inserting || issues.blocked}
                 className="bg-emerald-600 hover:bg-emerald-700 disabled:opacity-60"
               >
-                {inserting ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <CheckCircle2 className="w-4 h-4 mr-2" />}
+                {inserting ? (
+                  <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                ) : (
+                  <CheckCircle2 className="w-4 h-4 mr-2" />
+                )}
                 Aprovar
               </Button>
             </div>
@@ -385,92 +462,138 @@ export default function EnviarLista() {
                 </div>
               )}
 
-                <div className="space-y-3 max-h-[420px] overflow-y-auto pr-1">
-                  {result.patients.map((p, idx) => (
-                    <div key={idx} className={`rounded-2xl border ${p.warning ? 'border-amber-500/50 bg-amber-500/5' : 'border-white/10 bg-black/20'} p-4 space-y-2`}>
-                      <div className="flex flex-wrap items-center justify-between gap-2">
-                        <div className="flex items-center gap-2">
-                          {p.warning && <AlertCircle className="w-4 h-4 text-amber-400" />}
-                          <div>
-                            <div className="text-sm font-semibold text-white">{p.patient_name}</div>
-                            <div className="text-[11px] text-muted-foreground">Cadastro estruturado para gravacao no banco</div>
+              <div className="space-y-3 max-h-[420px] overflow-y-auto pr-1">
+                {result.patients.map((p, idx) => (
+                  <div
+                    key={idx}
+                    className={`rounded-2xl border ${p.warning ? 'border-amber-500/50 bg-amber-500/5' : 'border-white/10 bg-black/20'} p-4 space-y-2`}
+                  >
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <div className="flex items-center gap-2">
+                        {p.warning && <AlertCircle className="w-4 h-4 text-amber-400" />}
+                        <div>
+                          <div className="text-sm font-semibold text-white">{p.patient_name}</div>
+                          <div className="text-[11px] text-muted-foreground">
+                            Cadastro estruturado para gravacao no banco
                           </div>
                         </div>
-                        <div className="text-xs font-mono text-slate-300">
-                          {formatDataExameBr(p.data_exame)} • {p.horario_inicio}–{p.horario_final}
-                       </div>
-                     </div>
-                     {p.warning === 'duplicado_recente_na_fila' && (
-                       <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-2 text-xs text-amber-200">
-                         Paciente duplicado na fila recente
-                       </div>
-                     )}
-                      {isSuspiciousName(p.patient_name) && (
-                        <div className="rounded-lg border border-red-500/30 bg-red-500/10 p-2 text-xs text-red-200">
-                          O campo nome parece contaminado com texto de outros campos. Revise antes de aprovar.
+                      </div>
+                      <div className="text-xs font-mono text-slate-300">
+                        {formatDataExameBr(p.data_exame)} • {p.horario_inicio}–{p.horario_final}
+                      </div>
+                    </div>
+                    {p.warning === 'duplicado_recente_na_fila' && (
+                      <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-2 text-xs text-amber-200">
+                        Paciente duplicado na fila recente
+                      </div>
+                    )}
+                    {isSuspiciousName(p.patient_name) && (
+                      <div className="rounded-lg border border-red-500/30 bg-red-500/10 p-2 text-xs text-red-200">
+                        O campo nome parece contaminado com texto de outros campos. Revise antes de
+                        aprovar.
+                      </div>
+                    )}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                      <div className="rounded-xl border border-white/10 bg-black/30 p-3 space-y-1">
+                        <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                          Nome
                         </div>
-                      )}
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                        <div className="rounded-xl border border-white/10 bg-black/30 p-3 space-y-1">
-                          <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Nome</div>
-                          <div className="text-sm text-slate-100">{displayField(p.patient_name)}</div>
+                        <div className="text-sm text-slate-100">{displayField(p.patient_name)}</div>
+                      </div>
+                      <div className="rounded-xl border border-white/10 bg-black/30 p-3 space-y-1">
+                        <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                          Data de nascimento
                         </div>
-                        <div className="rounded-xl border border-white/10 bg-black/30 p-3 space-y-1">
-                          <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Data de nascimento</div>
-                          <div className="text-sm text-slate-100">{displayField(p.Data_nascimento)}</div>
-                        </div>
-                        <div className="rounded-xl border border-white/10 bg-black/30 p-3 space-y-1">
-                          <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Telefone principal</div>
-                          <div className="text-sm text-slate-100">{displayField(p.phone_number)}</div>
-                        </div>
-                        <div className="rounded-xl border border-white/10 bg-black/30 p-3 space-y-1">
-                          <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Telefone 2</div>
-                          <div className="text-sm text-slate-100">{displayField(p.phone_2)}</div>
-                        </div>
-                        <div className="rounded-xl border border-white/10 bg-black/30 p-3 space-y-1">
-                          <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Telefone 3</div>
-                          <div className="text-sm text-slate-100">{displayField(p.phone_3)}</div>
-                        </div>
-                        <div className="rounded-xl border border-white/10 bg-black/30 p-3 space-y-1">
-                          <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Data do exame</div>
-                          <div className="text-sm text-slate-100">{displayField(formatDataExameBr(p.data_exame))}</div>
-                        </div>
-                        <div className="rounded-xl border border-white/10 bg-black/30 p-3 space-y-1">
-                          <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Horario inicial</div>
-                          <div className="text-sm text-slate-100">{displayField(p.horario_inicio)}</div>
-                        </div>
-                        <div className="rounded-xl border border-white/10 bg-black/30 p-3 space-y-1">
-                          <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Horario final</div>
-                          <div className="text-sm text-slate-100">{displayField(p.horario_final)}</div>
-                        </div>
-                        <div className="rounded-xl border border-white/10 bg-black/30 p-3 space-y-1 md:col-span-2">
-                          <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Procedimentos</div>
-                          <div className="text-sm text-slate-100 whitespace-pre-wrap">{displayField(p.procedimentos)}</div>
+                        <div className="text-sm text-slate-100">
+                          {displayField(p.Data_nascimento)}
                         </div>
                       </div>
-                      <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                        <div className="rounded-xl border border-white/10 bg-black/30 p-2">
-                          <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Time proce</div>
-                          <div className="text-xs font-mono text-slate-200">{p.time_proce}</div>
+                      <div className="rounded-xl border border-white/10 bg-black/30 p-3 space-y-1">
+                        <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                          Telefone principal
                         </div>
-                        <div className="rounded-xl border border-white/10 bg-black/30 p-2">
-                          <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Tempo total</div>
-                          <div className="text-xs font-mono text-slate-200">{p.tempo_total || p.time_proce}</div>
+                        <div className="text-sm text-slate-100">{displayField(p.phone_number)}</div>
+                      </div>
+                      <div className="rounded-xl border border-white/10 bg-black/30 p-3 space-y-1">
+                        <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                          Telefone 2
                         </div>
-                        <div className="rounded-xl border border-white/10 bg-black/30 p-2">
-                          <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Status</div>
-                          <div className="text-xs font-mono text-slate-200">{p.status_agenda}</div>
+                        <div className="text-sm text-slate-100">{displayField(p.phone_2)}</div>
+                      </div>
+                      <div className="rounded-xl border border-white/10 bg-black/30 p-3 space-y-1">
+                        <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                          Telefone 3
                         </div>
-                     </div>
-                     <div className="rounded-xl border border-white/10 bg-black/30 p-2">
-                       <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">
-                         Message body (WhatsApp)
-                       </div>
-                       <Textarea value={p.message_body} readOnly className="min-h-[120px] bg-black/40 border-white/10 text-xs" />
-                     </div>
-                   </div>
-                 ))}
-               </div>
+                        <div className="text-sm text-slate-100">{displayField(p.phone_3)}</div>
+                      </div>
+                      <div className="rounded-xl border border-white/10 bg-black/30 p-3 space-y-1">
+                        <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                          Data do exame
+                        </div>
+                        <div className="text-sm text-slate-100">
+                          {displayField(formatDataExameBr(p.data_exame))}
+                        </div>
+                      </div>
+                      <div className="rounded-xl border border-white/10 bg-black/30 p-3 space-y-1">
+                        <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                          Horario inicial
+                        </div>
+                        <div className="text-sm text-slate-100">
+                          {displayField(p.horario_inicio)}
+                        </div>
+                      </div>
+                      <div className="rounded-xl border border-white/10 bg-black/30 p-3 space-y-1">
+                        <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                          Horario final
+                        </div>
+                        <div className="text-sm text-slate-100">
+                          {displayField(p.horario_final)}
+                        </div>
+                      </div>
+                      <div className="rounded-xl border border-white/10 bg-black/30 p-3 space-y-1 md:col-span-2">
+                        <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                          Procedimentos
+                        </div>
+                        <div className="text-sm text-slate-100 whitespace-pre-wrap">
+                          {displayField(p.procedimentos)}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                      <div className="rounded-xl border border-white/10 bg-black/30 p-2">
+                        <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                          Time proce
+                        </div>
+                        <div className="text-xs font-mono text-slate-200">{p.time_proce}</div>
+                      </div>
+                      <div className="rounded-xl border border-white/10 bg-black/30 p-2">
+                        <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                          Tempo total
+                        </div>
+                        <div className="text-xs font-mono text-slate-200">
+                          {p.tempo_total || p.time_proce}
+                        </div>
+                      </div>
+                      <div className="rounded-xl border border-white/10 bg-black/30 p-2">
+                        <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                          Status
+                        </div>
+                        <div className="text-xs font-mono text-slate-200">{p.status_agenda}</div>
+                      </div>
+                    </div>
+                    <div className="rounded-xl border border-white/10 bg-black/30 p-2">
+                      <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">
+                        Message body (WhatsApp)
+                      </div>
+                      <Textarea
+                        value={p.message_body}
+                        readOnly
+                        className="min-h-[120px] bg-black/40 border-white/10 text-xs"
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
             </>
           )}
         </div>
@@ -478,4 +601,3 @@ export default function EnviarLista() {
     </div>
   )
 }
-

@@ -36,6 +36,7 @@ Este documento contém todas as instruções **OBRIGATÓRIAS** que devem ser seg
 ## 1. Template SARA - buildSaraMessage()
 
 ### Localização
+
 `packages/shared/templates/sara-message.ts`
 
 ### ❌ NÃO FAÇA
@@ -90,8 +91,8 @@ import { buildSaraMessage } from '@/../../packages/shared/templates/sara-message
 
 const message = buildSaraMessage({
   data_exame_iso: '2026-03-18',
-  dataBr: '18/03/2026',  // opcional
-  horario: '14:30–15:00'
+  dataBr: '18/03/2026', // opcional
+  horario: '14:30–15:00',
 })
 
 // Resultado: Template completo com 0 tokens adicionais
@@ -109,6 +110,7 @@ const message = buildSaraMessage({
 ## 2. Durações de Exames - getExamDuration()
 
 ### Localização
+
 `packages/shared/config/exam-durations.ts`
 
 ### ❌ NÃO FAÇA
@@ -138,7 +140,11 @@ Tabela de tempos (keywords):
 
 ```typescript
 // ✅ Importar e usar as funções otimizadas
-import { getExamDuration, getExamDurationsTable, EXAM_DURATIONS } from '@/../../packages/shared/config/exam-durations'
+import {
+  getExamDuration,
+  getExamDurationsTable,
+  EXAM_DURATIONS,
+} from '@/../../packages/shared/config/exam-durations'
 
 // Para duração individual:
 const duration = getExamDuration('Ressonância Magnética de Crânio')
@@ -165,6 +171,7 @@ const cervicalDuration = EXAM_DURATIONS['coluna cervical']
 ## 3. Formatação de Data - formatBrFromIso()
 
 ### Localização
+
 `packages/shared/templates/sara-message.ts`
 
 ### ✅ FAÇA
@@ -242,12 +249,15 @@ prn-vigilante/
 ## 🎯 Regras de Ouro
 
 ### 1. Verificação Obrigatória
+
 **ANTES de criar qualquer código:**
+
 1. Verifique se a funcionalidade existe em `packages/shared/`
 2. Se existir, importe e use a função existente
 3. Se não existir, considere adicionar ao `packages/shared/` antes de criar duplicata
 
 ### 2. Prioridade de Economia
+
 - **ALTA:** Reutilizar templates SARA (~2,400 tokens)
 - **MÉDIA:** Reutilizar tabelas de configuração (~200 tokens)
 - **BAIXA:** Criar pequenos helpers (< 50 tokens)
@@ -255,6 +265,7 @@ prn-vigilante/
 ### 3. Padrão de Importação
 
 **Para Frontend (src/) - Usando alias @shared (RECOMENDADO):**
+
 ```typescript
 // Via alias @shared (mais limpo e consistente)
 import { buildSaraMessage } from '@shared/templates/sara-message'
@@ -266,21 +277,28 @@ import { buildSaraMessage, getExamDuration, formatBrFromIso } from '@shared'
 ```
 
 **Para Frontend (src/) - Via caminho relativo (alternativa):**
+
 ```typescript
 import { buildSaraMessage } from '../../../packages/shared/templates/sara-message'
 ```
 
 **Para Edge Function (supabase/):**
+
 ```typescript
-import { buildSaraMessage, getExamDurationsTable } from '../../packages/shared/templates/sara-message.ts'
+import {
+  buildSaraMessage,
+  getExamDurationsTable,
+} from '../../packages/shared/templates/sara-message.ts'
 ```
 
 **Para Automation (automation/):**
+
 ```typescript
 import { buildSaraMessage } from '../../../packages/shared/templates/sara-message'
 ```
 
 ### 4. Manutenção de Código
+
 - Quando atualizar template SARA, atualize apenas `packages/shared/templates/sara-message.ts`
 - Não atualize múltiplos arquivos com o mesmo código
 - Documente mudanças em `TOKEN_OPTIMIZATION_PHASE_1.md`
@@ -290,11 +308,13 @@ import { buildSaraMessage } from '../../../packages/shared/templates/sara-messag
 ## 📚 Documentação Adicional
 
 ### Obrigatória para Ler
+
 - ✅ `TOKEN_OPTIMIZATION_PHASE_1.md` - Detalhes completos das otimizações implementadas
 - ✅ `resumo_contexto.md` - Contexto geral do projeto
 - ✅ `ANALISE_SUBAGENTES.md` - Análise técnica de como sub-agentes funcionam
 
 ### Complementar
+
 - `docs/MAPA_DO_PROJETO.md` - Arquitetura tri-modular
 - `.agents/workflows/setup-automacao.md` - Exemplo de workflow
 - `.agents/workflows/use-optimizations.md` - Workflow de verificação de otimizações
@@ -305,6 +325,7 @@ import { buildSaraMessage } from '../../../packages/shared/templates/sara-messag
 ## 🚀 Checklist de Verificação
 
 ### Antes de Implementar
+
 - [ ] Li este documento AGENTS.md inteiro
 - [ ] Li TOKEN_OPTIMIZATION_PHASE_1.md
 - [ ] Verifiquei se a funcionalidade existe em packages/shared/
@@ -312,12 +333,14 @@ import { buildSaraMessage } from '../../../packages/shared/templates/sara-messag
 - [ ] Se não existia, considerei adicionar ao packages/shared/
 
 ### Durante Implementação
+
 - [ ] Estou usando buildSaraMessage() para templates SARA
 - [ ] Estou usando getExamDuration() para consultas de duração
 - [ ] Estou usando formatBrFromIso() para formatação de data
 - [ ] Não criei código duplicado
 
 ### Após Implementação
+
 - [ ] Verifiquei se economizei tokens
 - [ ] Documentei mudanças se necessário
 - [ ] Testei o código
@@ -327,19 +350,25 @@ import { buildSaraMessage } from '../../../packages/shared/templates/sara-messag
 ## ❓ Dúvidas Frequentes
 
 ### Q: Posso modificar o template SARA?
+
 **A:** Sim, mas **SOMENTE** em `packages/shared/templates/sara-message.ts`. Modificar o template em múltiplos lugares criará redundância.
 
 ### Q: Posso adicionar novos exames à tabela?
+
 **A:** Sim, adicione em `packages/shared/config/exam-durations.ts`. Não crie uma tabela separada.
 
 ### Q: Como sei se uma funcionalidade já existe?
-**A:** 
+
+**A:**
+
 1. Verifique `packages/shared/` primeiro
 2. Consulte `TOKEN_OPTIMIZATION_PHASE_1.md` para lista completa
 3. Use `grep` ou `glob` para buscar por palavras-chave
 
 ### Q: O que fazer se preciso criar uma nova funcionalidade reutilizável?
-**A:** 
+
+**A:**
+
 1. Crie em `packages/shared/` no local apropriado
 2. Exporte em `packages/shared/index.ts`
 3. Documente em `TOKEN_OPTIMIZATION_PHASE_1.md`
@@ -350,12 +379,14 @@ import { buildSaraMessage } from '../../../packages/shared/templates/sara-messag
 ## 🔄 Versão e Histórico
 
 ### v1.1 (18/03/2026)
+
 - Adicionado alias `@shared` para frontend
 - Atualizado padrão de importação com `@shared`
 - Corrigido erro de import em AddPatientModal.tsx
 - Instruções adicionais para uso de alias
 
 ### v1.0 (18/03/2026)
+
 - Documentação inicial completa
 - Instruções para buildSaraMessage()
 - Instruções para getExamDuration()
@@ -370,6 +401,7 @@ import { buildSaraMessage } from '../../../packages/shared/templates/sara-messag
 ## 📞 Suporte
 
 Se tiver dúvidas sobre como usar as otimizações:
+
 1. Consulte `TOKEN_OPTIMIZATION_PHASE_1.md`
 2. Verifique os arquivos em `packages/shared/`
 3. Consulte `ANALISE_SUBAGENTES.md` para análise técnica

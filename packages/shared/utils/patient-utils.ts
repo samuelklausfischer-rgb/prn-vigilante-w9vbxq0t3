@@ -2,7 +2,9 @@ import type { PatientCategory, PatientQueue } from '../types'
 import { isLandline } from './phone-utils'
 
 export function isCompletedPatient(patient: PatientQueue): boolean {
-  return String(patient.notes || '').toLowerCase().includes('concluido')
+  return String(patient.notes || '')
+    .toLowerCase()
+    .includes('concluido')
 }
 
 export function isCriticalPatient(patient: PatientQueue): boolean {
@@ -22,13 +24,17 @@ export function getPatientCategory(patient: PatientQueue): PatientCategory {
   if (patient.replied_at || patient.current_outcome) return 'respondido'
 
   // 2. Fixo (Identificado por regra de número ou flag da automação)
-  if (patient.is_landline || patient.second_call_reason === 'landline_only' || isLandline(patient.phone_number)) {
+  if (
+    patient.is_landline ||
+    patient.second_call_reason === 'landline_only' ||
+    isLandline(patient.phone_number)
+  ) {
     return 'fixo'
   }
 
   // 3. Crítico (Tentativas esgotadas ou falha em múltiplos números)
-  const isCritical = 
-    Number(patient.attempt_count || 0) >= 3 || 
+  const isCritical =
+    Number(patient.attempt_count || 0) >= 3 ||
     patient.second_call_reason === 'not_received_retry_phone2' ||
     (patient.status === 'failed' && !patient.phone_2)
 
@@ -44,7 +50,9 @@ export function getPatientCategory(patient: PatientQueue): PatientCategory {
   return 'historico'
 }
 
-export function categorizePatients(patients: PatientQueue[]): Record<PatientCategory, PatientQueue[]> {
+export function categorizePatients(
+  patients: PatientQueue[],
+): Record<PatientCategory, PatientQueue[]> {
   return {
     pendente: patients.filter((patient) => getPatientCategory(patient) === 'pendente'),
     falha: patients.filter((patient) => getPatientCategory(patient) === 'falha'),

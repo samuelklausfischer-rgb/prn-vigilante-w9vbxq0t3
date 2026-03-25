@@ -6,7 +6,11 @@ interface ProcedureAnalyticsTableProps {
 
 export function ProcedureAnalyticsTable({ data }: ProcedureAnalyticsTableProps) {
   if (data.length === 0) {
-    return <div className="rounded-2xl border border-dashed border-white/10 p-6 text-sm text-muted-foreground">Sem dados agregados por procedimento neste intervalo.</div>
+    return (
+      <div className="rounded-2xl border border-dashed border-white/10 p-6 text-sm text-muted-foreground">
+        Sem dados agregados por procedimento neste intervalo.
+      </div>
+    )
   }
 
   return (

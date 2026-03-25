@@ -24,11 +24,7 @@ export function isValidDataExame(input: string | null | undefined): boolean {
   const [y, m, d] = iso.split('-').map((p) => Number.parseInt(p, 10))
   if (!y || !m || !d) return false
   const dt = new Date(Date.UTC(y, m - 1, d))
-  return (
-    dt.getUTCFullYear() === y &&
-    dt.getUTCMonth() === m - 1 &&
-    dt.getUTCDate() === d
-  )
+  return dt.getUTCFullYear() === y && dt.getUTCMonth() === m - 1 && dt.getUTCDate() === d
 }
 
 export function formatDataExameBr(input: string | null | undefined): string {
@@ -37,4 +33,3 @@ export function formatDataExameBr(input: string | null | undefined): string {
   const [yyyy, mm, dd] = iso.split('-')
   return `${dd}/${mm}/${yyyy}`
 }
-

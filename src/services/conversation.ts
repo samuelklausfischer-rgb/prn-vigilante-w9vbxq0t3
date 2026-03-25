@@ -26,18 +26,16 @@ export interface ConversationData {
   messages: ConversationMessage[]
 }
 
-export async function getPatientConversation(
-  patientId: string,
-): Promise<ConversationData | null> {
+export async function getPatientConversation(patientId: string): Promise<ConversationData | null> {
   try {
     // Buscar dados do paciente principal
-    const { data: patient, error: patientError } = await supabase
+    const { data: patient, error: patientError } = (await supabase
       .from('patients_queue')
       .select(
         'id,patient_name,journey_id,phone_number,phone_2,phone_3,data_exame,horario_inicio,procedimentos,message_body,status,created_at,delivered_at,read_at,replied_at,current_outcome,origin_queue_id,dedupe_kind',
       )
       .eq('id', patientId)
-      .single() as any
+      .single()) as any
 
     if (patientError) {
       console.error('Erro ao buscar paciente:', patientError)
@@ -101,14 +99,16 @@ export async function getPatientConversation(
       .select(
         'id,patient_name,phone_number,message_body,status,created_at,delivered_at,read_at,replied_at,current_outcome,origin_queue_id,dedupe_kind',
       )
-      .or(`origin_queue_id.eq.${patientId},origin_queue_id.eq.${patientData.origin_queue_id || 'null'}`)
+      .or(
+        `origin_queue_id.eq.${patientId},origin_queue_id.eq.${patientData.origin_queue_id || 'null'}`,
+      )
       .order('created_at', { ascending: true })
       .limit(50)
 
     if (!relatedError && relatedMessages) {
       for (const msg of relatedMessages) {
         const msgData = msg as any
-        
+
         // Ignorar se for o próprio paciente (já adicionado)
         if (msgData.id === patientId) continue
 

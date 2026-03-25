@@ -7,7 +7,8 @@ import { createClient } from '@supabase/supabase-js'
 
 // Configurações
 const supabaseUrl = process.env.VITE_SUPABASE_URL || 'https://yrvorowhddgmwcxrovkg.supabase.co'
-const supabaseKey = process.env.VITE_SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_PUBLISHABLE_KEY || ''
+const supabaseKey =
+  process.env.VITE_SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_PUBLISHABLE_KEY || ''
 
 // Criar cliente
 const supabase = createClient(supabaseUrl, supabaseKey)
@@ -64,7 +65,7 @@ async function runMigration() {
 
     // 7. Criar índice horario_final
     `CREATE INDEX IF NOT EXISTS idx_patients_queue_horario_final
-     ON patients_queue(horario_final) WHERE horario_final IS NOT NULL`
+     ON patients_queue(horario_final) WHERE horario_final IS NOT NULL`,
   ]
 
   // Executar cada comando

@@ -96,7 +96,9 @@ export async function searchKanbanCards(search: string): Promise<KanbanCard[]> {
     const { data, error } = await supabase
       .from('strategic_followup_overview')
       .select('*')
-      .or(`patient_name.ilike.%${query}%,canonical_phone.ilike.%${query}%,procedimentos.ilike.%${query}%`)
+      .or(
+        `patient_name.ilike.%${query}%,canonical_phone.ilike.%${query}%,procedimentos.ilike.%${query}%`,
+      )
       .limit(50)
 
     if (error) throw error

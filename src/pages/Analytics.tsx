@@ -15,7 +15,9 @@ function buildDefaultRange(): DateRangeFilter {
 function Panel({ title, children }: { title: string; children: ReactNode }) {
   return (
     <div className="rounded-3xl border border-white/10 bg-card/55 p-5 shadow-xl shadow-black/10 backdrop-blur-sm">
-      <div className="mb-4 text-sm font-semibold uppercase tracking-[0.16em] text-muted-foreground">{title}</div>
+      <div className="mb-4 text-sm font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+        {title}
+      </div>
       {children}
     </div>
   )
@@ -23,7 +25,9 @@ function Panel({ title, children }: { title: string; children: ReactNode }) {
 
 export default function Analytics() {
   const [range, setRange] = useState<DateRangeFilter>(buildDefaultRange())
-  const [preset, setPreset] = useState<'yesterday' | 'today' | 'last7' | 'last14' | 'last30' | 'custom'>('today')
+  const [preset, setPreset] = useState<
+    'yesterday' | 'today' | 'last7' | 'last14' | 'last30' | 'custom'
+  >('today')
   const { analytics, loading, error } = useAnalytics(30, range)
 
   return (
@@ -34,9 +38,12 @@ export default function Analytics() {
             <BarChart3 className="h-3.5 w-3.5" />
             Analytics
           </div>
-          <h1 className="mt-3 text-3xl font-bold tracking-tight text-white">Painel principal de desempenho</h1>
+          <h1 className="mt-3 text-3xl font-bold tracking-tight text-white">
+            Painel principal de desempenho
+          </h1>
           <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-            Acompanhe volume disparado, taxa de sucesso e comportamento por procedimento sem misturar com a fila operacional.
+            Acompanhe volume disparado, taxa de sucesso e comportamento por procedimento sem
+            misturar com a fila operacional.
           </p>
         </div>
         <DateRangePicker
@@ -61,10 +68,29 @@ export default function Analytics() {
       ) : analytics ? (
         <>
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-            <SummaryCard title="Total disparado" value={analytics.total_enviadas} change={analytics.change_enviadas} color="blue" />
-            <SummaryCard title="Sucesso" value={analytics.sucesso} change={analytics.change_sucesso} color="green" />
-            <SummaryCard title="Falha" value={analytics.falha} change={analytics.change_falha} color="red" />
-            <SummaryCard title="Taxa de sucesso" value={`${analytics.taxa_sucesso}%`} change={analytics.change_taxa_sucesso} />
+            <SummaryCard
+              title="Total disparado"
+              value={analytics.total_enviadas}
+              change={analytics.change_enviadas}
+              color="blue"
+            />
+            <SummaryCard
+              title="Sucesso"
+              value={analytics.sucesso}
+              change={analytics.change_sucesso}
+              color="green"
+            />
+            <SummaryCard
+              title="Falha"
+              value={analytics.falha}
+              change={analytics.change_falha}
+              color="red"
+            />
+            <SummaryCard
+              title="Taxa de sucesso"
+              value={`${analytics.taxa_sucesso}%`}
+              change={analytics.change_taxa_sucesso}
+            />
           </div>
 
           <div className="grid gap-6 xl:grid-cols-2">

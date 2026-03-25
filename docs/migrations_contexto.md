@@ -9,6 +9,7 @@
 ## 📌 O QUE FOI FEITO
 
 ### 1. Análise Completa com 7 Sub-Agentes
+
 - ✅ Arquiteto de Sistema - Diagrama de arquitetura e componentes
 - ✅ Engenheiro de Banco - Schema e queries SQL
 - ✅ Especialista Evolution API - Driver completo
@@ -18,9 +19,11 @@
 - ✅ Especialista Humanização - Delays, spinning, split
 
 ### 2. Documentação Visual
+
 - ✅ HTML criado: `docs/planejamento_automacao.html` (clique duplo para abrir)
 
 ### 3. Planejamento de Migrações SQL
+
 - ✅ 2 tabelas existentes precisam de ALTER TABLE
 - ✅ 4 novas tabelas precisam ser criadas
 - ✅ 5 índices para performance
@@ -35,7 +38,9 @@
 ### Tabelas Existentes - ALTER TABLE
 
 #### 1. patients_queue
+
 **Campos a adicionar:**
+
 ```sql
 -- Controle de concorrência
 ALTER TABLE patients_queue
@@ -45,12 +50,15 @@ ADD COLUMN IF NOT EXISTS attempt_count INTEGER DEFAULT 0;
 ```
 
 **Por que?**
+
 - `locked_by`: Garante que só um worker processe cada mensagem (SKIP LOCKED)
 - `locked_at`: Para detectar locks expirados (worker crashou)
 - `attempt_count`: Tentar novamente até 3x antes de falhar permanentemente
 
 #### 2. whatsapp_instances
+
 **Campos a adicionar:**
+
 ```sql
 -- Métricas de uso para rotação e delay
 ALTER TABLE whatsapp_instances
@@ -59,6 +67,7 @@ ADD COLUMN IF NOT EXISTS messages_sent_count INTEGER DEFAULT 0;
 ```
 
 **Por que?**
+
 - `last_message_at`: Calcular delay desde último envio (anti-ban 3-12min)
 - `messages_sent_count`: Distribuir carga (instância menos usada primeiro)
 
@@ -67,6 +76,7 @@ ADD COLUMN IF NOT EXISTS messages_sent_count INTEGER DEFAULT 0;
 ### Novas Tabelas - CREATE TABLE
 
 #### 3. message_logs
+
 **Propósito:** Auditar todo envio para compliance e métricas
 
 ```sql
@@ -91,6 +101,7 @@ CREATE TABLE message_logs (
 ```
 
 #### 4. worker_heartbeats
+
 **Propósito:** Monitorar workers ativos e detectar crashes
 
 ```sql
@@ -118,6 +129,7 @@ CREATE TABLE worker_heartbeats (
 ```
 
 #### 5. patient_consent
+
 **Propósito:** LGPD - Consentimento explícito do paciente
 
 ```sql
@@ -144,6 +156,7 @@ CREATE TABLE patient_consent (
 ```
 
 #### 6. message_blocks
+
 **Propósito:** Bloquear envios (opt-out - resposta "SAIR")
 
 ```sql
@@ -197,6 +210,7 @@ ON message_blocks(phone_number);
 ### Funções SQL - CREATE FUNCTION
 
 #### Função 1: claim_next_message
+
 **Propósito:** Selecionar próxima mensagem e travar atômicamente
 
 ```sql
@@ -273,6 +287,7 @@ $$ LANGUAGE plpgsql;
 ```
 
 #### Função 2: release_expired_locks
+
 **Propósito:** Liberar mensagens travadas se worker crashou
 
 ```sql
@@ -347,12 +362,14 @@ WHERE locked_by IS NOT NULL
 ### Instruções para Voltar:
 
 **Opção 1: Executar Migrations como Arquivo SQL**
+
 ```
 "Execute as 15 operações SQL das migrações planejadas em docs/migrations_contexto.md.
 Arquivo para criar: supabase/migrations/20260313_automation_features.sql"
 ```
 
 **Opção 2: Migrations Separadas por Prioridade**
+
 ```
 "Crie os arquivos de migração separados:
 1. supabase/migrations/20260313190000_automation_core_fields.sql (ALTER TABLEs)
@@ -363,6 +380,7 @@ Arquivo para criar: supabase/migrations/20260313_automation_features.sql"
 ```
 
 **Opção 3: Passo a Passo com Validação**
+
 ```
 "Execute as migrações SQL passo a passo, validando cada uma:
 1. Primeiro: ALTER TABLE patients_queue
@@ -379,12 +397,14 @@ Valide cada uma após executar"
 ## 🎯 PRÓXIMOS PASSOS (QUANDO RETOMAR)
 
 ### Fase 1: Executar Migrations (Task 1)
+
 - [ ] Criar arquivo SQL em `/supabase/migrations/`
 - [ ] Executar migrations no Supabase
 - [ ] Validar que tabelas e campos foram criados
 - [ ] Testar funções SQL manualmente
 
 ### Fase 2: Continuar com Tasks 2-8
+
 - [ ] Task 2: Criar estrutura de pastas `/automation/src/`
 - [ ] Task 3: Definir Types TypeScript
 - [ ] Task 4: Implementar Drivers Supabase
@@ -394,19 +414,20 @@ Valide cada uma após executar"
 - [ ] Task 8: Worker Engine
 
 ### Fase 3: Continuar Tasks 9-20
+
 - Resiliência, Observabilidade, Humanização
 
 ---
 
 ## 📊 RESUMO
 
-| Item | Quantidade | Status |
-|------|------------|--------|
-| Sub-agentes concluídos | 7/7 | ✅ |
-| HTML de planejamento | 1 | ✅ |
-| Tasks definidas | 20 | ✅ |
-| Operações SQL pendentes | 15 | ⏳ |
-| Implementação código | 0 | ❌ |
+| Item                    | Quantidade | Status |
+| ----------------------- | ---------- | ------ |
+| Sub-agentes concluídos  | 7/7        | ✅     |
+| HTML de planejamento    | 1          | ✅     |
+| Tasks definidas         | 20         | ✅     |
+| Operações SQL pendentes | 15         | ⏳     |
+| Implementação código    | 0          | ❌     |
 
 ---
 

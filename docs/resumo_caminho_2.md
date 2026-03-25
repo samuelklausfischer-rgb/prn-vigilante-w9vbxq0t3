@@ -9,21 +9,21 @@
 
 ### Modificações
 
-| Arquivo | Modificação | Status |
-|---------|------------|--------|
-| `automation/.env` | SERVICE_ROLE_KEY, DRY_RUN=true, configs de worker | ✅ |
-| `automation/src/core/worker-engine.ts` | Leitura flag DRY_RUN, log informativo, passar flag para queue | ✅ |
-| `automation/src/core/queue-manager.ts` | Parâmetro dryRun, simulação sem envio real | ✅ |
-| `automation/src/services/supabase.ts` | Parâmetro dryRun em markMessageDelivered | ✅ |
-| `automation/src/index.ts` | Suporte a modo diagnóstico --diag | ✅ |
+| Arquivo                                | Modificação                                                   | Status |
+| -------------------------------------- | ------------------------------------------------------------- | ------ |
+| `automation/.env`                      | SERVICE_ROLE_KEY, DRY_RUN=true, configs de worker             | ✅     |
+| `automation/src/core/worker-engine.ts` | Leitura flag DRY_RUN, log informativo, passar flag para queue | ✅     |
+| `automation/src/core/queue-manager.ts` | Parâmetro dryRun, simulação sem envio real                    | ✅     |
+| `automation/src/services/supabase.ts`  | Parâmetro dryRun em markMessageDelivered                      | ✅     |
+| `automation/src/index.ts`              | Suporte a modo diagnóstico --diag                             | ✅     |
 
 ### Novos Arquivos
 
-| Arquivo | Propósito | Status |
-|---------|----------|--------|
-| `automation/src/diagnostic.ts` | Funções de diagnóstico do sistema | ✅ |
-| `docs/dry_run_test_messages.sql` | Script SQL para teste | ✅ |
-| `docs/guia_dry_run_validacao.md` | Guia completo de execução | ✅ |
+| Arquivo                          | Propósito                         | Status |
+| -------------------------------- | --------------------------------- | ------ |
+| `automation/src/diagnostic.ts`   | Funções de diagnóstico do sistema | ✅     |
+| `docs/dry_run_test_messages.sql` | Script SQL para teste             | ✅     |
+| `docs/guia_dry_run_validacao.md` | Guia completo de execução         | ✅     |
 
 ---
 
@@ -53,11 +53,13 @@
 ## 🚀 COMO USAR
 
 ### Executar Diagnóstico
+
 ```bash
 bun run automation/src/index.ts --diag
 ```
 
 ### Rodar Worker em Dry Run
+
 ```bash
 # 1. Executar migrations no Supabase (se não aplicadas)
 # 2. Inserir mensagens de teste (docs/dry_run_test_messages.sql)
@@ -66,6 +68,7 @@ bun run automation/src/index.ts
 ```
 
 ### Validar Round-Robin
+
 ```sql
 -- Verificar rotation_index após testes
 SELECT id, instance_name, rotation_index, messages_sent_count
@@ -105,11 +108,13 @@ Pós-execução:
 Após validar dry run com sucesso:
 
 **Opção 1:** Teste real (Caminho 3)
+
 - Fornecer número real
 - Desativar dry run
 - Enviar 1 mensagem real
 
 **Opção 2:** Produção completa (Caminho 4)
+
 - Integrar LGPD/consentimento
 - Implementar delay dinâmico
 - Implementar circuit breaker

@@ -29,8 +29,12 @@ export interface ProcessResult {
 }
 
 export class QueueManager {
-  private readonly bypassHumanizerPhone = String(process.env.BYPASS_HUMANIZER_TEST_PHONE || '').replace(/\D/g, '')
-  private readonly bypassHumanizerTag = String(process.env.BYPASS_HUMANIZER_TEST_TAG || '').trim().toLowerCase()
+  private readonly bypassHumanizerPhone = String(
+    process.env.BYPASS_HUMANIZER_TEST_PHONE || '',
+  ).replace(/\D/g, '')
+  private readonly bypassHumanizerTag = String(process.env.BYPASS_HUMANIZER_TEST_TAG || '')
+    .trim()
+    .toLowerCase()
 
   constructor(
     private readonly instanceSelector = new InstanceSelector(),
@@ -100,12 +104,15 @@ export class QueueManager {
       const selectedInstance = await this.instanceSelector.resolveFromClaim(message)
 
       if (!selectedInstance) {
-        console.warn(`[${timestamp()}] ⚠️ Mensagem sem instancia valida (afinidade bloqueada ou offline)`, {
-          messageId: message.id,
-          workerId,
-          claimedInstance: message.instance_name,
-          lockedInstanceId: message.locked_instance_id,
-        })
+        console.warn(
+          `[${timestamp()}] ⚠️ Mensagem sem instancia valida (afinidade bloqueada ou offline)`,
+          {
+            messageId: message.id,
+            workerId,
+            claimedInstance: message.instance_name,
+            lockedInstanceId: message.locked_instance_id,
+          },
+        )
         await markMessageFailed(
           message.id,
           message.locked_instance_id
@@ -125,9 +132,12 @@ export class QueueManager {
       // Se é um novo vínculo (sem afinidade prévia), gravar no banco
       if (!selectedInstance.isAffinityMatch) {
         await saveLockInstanceAffinity(message.id, selectedInstance.id)
-        console.log(`[${timestamp()}] 🔗 Afinidade gravada: ${selectedInstance.instanceName} → ${maskPhone(message.phone_number)}`, {
-          messageId: message.id,
-        })
+        console.log(
+          `[${timestamp()}] 🔗 Afinidade gravada: ${selectedInstance.instanceName} → ${maskPhone(message.phone_number)}`,
+          {
+            messageId: message.id,
+          },
+        )
       }
 
       // ──────────────────────────────────────
@@ -151,11 +161,14 @@ export class QueueManager {
         await updateWhatsAppCheckResult(message.id, hasWhatsApp)
 
         if (!hasWhatsApp) {
-          console.warn(`[${timestamp()}] 📵 Número NÃO tem WhatsApp (fixo/inválido). Acionando escada de telefones.`, {
-            messageId: message.id,
-            phone: maskPhone(message.phone_number),
-            phoneAttemptIndex: message.phone_attempt_index || 1,
-          })
+          console.warn(
+            `[${timestamp()}] 📵 Número NÃO tem WhatsApp (fixo/inválido). Acionando escada de telefones.`,
+            {
+              messageId: message.id,
+              phone: maskPhone(message.phone_number),
+              phoneAttemptIndex: message.phone_attempt_index || 1,
+            },
+          )
 
           // Calcular delay aleatório de 2-4 minutos para o próximo telefone
           const delayMinutes = Math.floor(Math.random() * 3) + 2
@@ -249,11 +262,15 @@ export class QueueManager {
 
       // ========== MODO DRY RUN ==========
       if (dryRun) {
-        console.log(`[${timestamp()}] 🔍 [DRY RUN] Simulando envio para ${maskPhone(message.phone_number)}`)
+        console.log(
+          `[${timestamp()}] 🔍 [DRY RUN] Simulando envio para ${maskPhone(message.phone_number)}`,
+        )
         console.log(`[${timestamp()}] 🔍 [DRY RUN] Instância: ${selectedInstance.instanceName}`)
-        console.log(`[${timestamp()}] 🔍 [DRY RUN] Mensagem: ${message.message_body.substring(0, 50)}...`)
+        console.log(
+          `[${timestamp()}] 🔍 [DRY RUN] Mensagem: ${message.message_body.substring(0, 50)}...`,
+        )
 
-        await new Promise(resolve => setTimeout(resolve, Math.random() * 500 + 200))
+        await new Promise((resolve) => setTimeout(resolve, Math.random() * 500 + 200))
 
         const durationMs = Math.floor(Math.random() * 300 + 100)
         await markMessageDelivered(
@@ -278,7 +295,7 @@ export class QueueManager {
       // 5. Validação de Formato WhatsApp (8 vs 9 dígitos)
       // ──────────────────────────────────────
       let finalPhoneNumber = message.phone_number
-      
+
       // Se não validado ou sem formato definido, valida agora
       if (!message.whatsapp_valid || !message.whatsapp_validated_format) {
         const validation = await validatePhoneForWhatsApp(
@@ -288,9 +305,12 @@ export class QueueManager {
 
         if (validation.valid && validation.phone) {
           finalPhoneNumber = validation.phone
-          console.log(`[${timestamp()}] 🎯 Formato validado: ${validation.format} (${maskPhone(finalPhoneNumber)})`, {
-            messageId: message.id,
-          })
+          console.log(
+            `[${timestamp()}] 🎯 Formato validado: ${validation.format} (${maskPhone(finalPhoneNumber)})`,
+            {
+              messageId: message.id,
+            },
+          )
 
           // Atualiza no banco para uso futuro (follow-ups, etc)
           await supabase
@@ -302,10 +322,13 @@ export class QueueManager {
             })
             .eq('id', message.id)
         } else {
-          console.warn(`[${timestamp()}] ❌ Nenhum formato de WhatsApp encontrado para ${maskPhone(message.phone_number)}`, {
-            messageId: message.id,
-          })
-          
+          console.warn(
+            `[${timestamp()}] ❌ Nenhum formato de WhatsApp encontrado para ${maskPhone(message.phone_number)}`,
+            {
+              messageId: message.id,
+            },
+          )
+
           // Marca como inválido para evitar checks repetidos
           await supabase
             .from('patients_queue')
@@ -314,17 +337,20 @@ export class QueueManager {
               whatsapp_checked_at: new Date().toISOString(),
             })
             .eq('id', message.id)
-            
+
           // Por segurança (fail-open), vamos continuar com o número original se o check falhar totalmente.
           finalPhoneNumber = message.phone_number
         }
       } else {
         // Já validado anteriormente, garante o formato correto
-        finalPhoneNumber = message.whatsapp_validated_format === '9_digits' 
-          ? force9Digit(message.phone_number)
-          : force8Digit(message.phone_number)
-          
-        console.log(`[${timestamp()}] ♻️ Usando formato validado em cache: ${message.whatsapp_validated_format} (${maskPhone(finalPhoneNumber)})`)
+        finalPhoneNumber =
+          message.whatsapp_validated_format === '9_digits'
+            ? force9Digit(message.phone_number)
+            : force8Digit(message.phone_number)
+
+        console.log(
+          `[${timestamp()}] ♻️ Usando formato validado em cache: ${message.whatsapp_validated_format} (${maskPhone(finalPhoneNumber)})`,
+        )
       }
 
       // ──────────────────────────────────────
@@ -391,11 +417,14 @@ export class QueueManager {
       )
 
       if (!accepted) {
-        console.error(`[${timestamp()}] ⚠️ Evolution aceitou, mas não foi possível marcar mensagem como aceita no banco`, {
-          messageId: message.id,
-          workerId,
-          instanceName: selectedInstance.instanceName,
-        })
+        console.error(
+          `[${timestamp()}] ⚠️ Evolution aceitou, mas não foi possível marcar mensagem como aceita no banco`,
+          {
+            messageId: message.id,
+            workerId,
+            instanceName: selectedInstance.instanceName,
+          },
+        )
         return {
           processed: true,
           messageId: message.id,
@@ -408,13 +437,15 @@ export class QueueManager {
       const trackingMessageId = providerMessageId || message.id
       const instanceName = selectedInstance.instanceName
 
-      syncDeliveryStatus(trackingMessageId, message.id, cleanNumber, instanceName).catch((error) => {
-        console.error(`[${timestamp()}] ❌ Erro na sincronização de status`, {
-          messageId: message.id,
-          patientName: message.patient_name,
-          error: error instanceof Error ? error.message : String(error),
-        })
-      })
+      syncDeliveryStatus(trackingMessageId, message.id, cleanNumber, instanceName).catch(
+        (error) => {
+          console.error(`[${timestamp()}] ❌ Erro na sincronização de status`, {
+            messageId: message.id,
+            patientName: message.patient_name,
+            error: error instanceof Error ? error.message : String(error),
+          })
+        },
+      )
 
       return {
         processed: true,
@@ -434,12 +465,14 @@ export class QueueManager {
    * Determina se devemos fazer o check proativo de WhatsApp.
    * Não faz se já foi checado nas últimas 24 horas.
    */
-  private shouldPerformWhatsAppCheck(message: ClaimedMessage & { whatsapp_checked_at?: string | null }): boolean {
+  private shouldPerformWhatsAppCheck(
+    message: ClaimedMessage & { whatsapp_checked_at?: string | null },
+  ): boolean {
     const checkedAt = (message as any).whatsapp_checked_at
     if (!checkedAt) return true
 
     const lastCheck = new Date(checkedAt).getTime()
-    const twentyFourHoursAgo = Date.now() - (24 * 60 * 60 * 1000)
+    const twentyFourHoursAgo = Date.now() - 24 * 60 * 60 * 1000
 
     return lastCheck < twentyFourHoursAgo
   }

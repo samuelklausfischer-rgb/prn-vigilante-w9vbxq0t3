@@ -8,13 +8,16 @@
 ## 🚀 ANTES DE COMEÇAR
 
 ### Pré-requisitos:
+
 - [ ] Acesso ao Supabase Dashboard (https://app.supabase.com/project/SEU-PROJETO)
 - [ ] Acesso ao SQL Editor (menu lateral)
 - [ ] Confirmar que você tem a URL do projeto
 - [ ] Ter 1+ instância de WhatsApp conectada no Evolution
 
 ### Backup Recomendado:
+
 Antes de começar, considere fazer um backup do projeto. O Supabase não tem "snapshot" simples, mas você pode:
+
 - Exportar schema atual (SQL Editor → New Query → SELECT pg_dump... )
 - Ou simplesmente anotar que as migrations podem ser revertidas (rollback)
 
@@ -27,6 +30,7 @@ Antes de começar, considere fazer um backup do projeto. O Supabase não tem "sn
 **Objetivo:** Adicionar campos de controle à fila e instâncias
 
 **Comando SQL:**
+
 ```sql
 -- ========================================
 -- MIGRAÇÃO: Core Fields da Automação
@@ -68,6 +72,7 @@ ORDER BY table_name, column_name;
 ```
 
 **Validação:**
+
 - Execute o comando SQL acima
 - Verifique se não houve erros
 - Valide que 7 colunas foram listadas na tabela de verificação
@@ -81,6 +86,7 @@ ORDER BY table_name, column_name;
 **Objetivo:** Criar tabelas de logs, heartbeats, consentimento e bloqueios
 
 **Comando SQL:**
+
 ```sql
 -- ========================================
 -- MIGRAÇÃO: Novas Tabelas da Automação
@@ -259,6 +265,7 @@ ORDER BY table_name, ordinal_position;
 ```
 
 **Validação:**
+
 - Execute o comando SQL acima
 - Verifique se não houve erros
 - Valide que 4 tabelas foram criadas e cada uma tem as colunas corretas
@@ -272,6 +279,7 @@ ORDER BY table_name, ordinal_position;
 **Objetivo:** Criar índices de performance
 
 **Comando SQL:**
+
 ```sql
 -- ========================================
 -- MIGRAÇÃO: Índices de Performance
@@ -334,6 +342,7 @@ ORDER BY tablename, indexname;
 ```
 
 **Validação:**
+
 - Execute o comando SQL acima
 - Verifique se não houve erros
 - Valide que 6 índices foram criados
@@ -347,6 +356,7 @@ ORDER BY tablename, indexname;
 **Objetivo:** Criar funções SQL para processamento da fila
 
 **Comando SQL:**
+
 ```sql
 -- ========================================
 -- MIGRAÇÃO: Funções SQL da Automação
@@ -479,6 +489,7 @@ WHERE routine_schema = 'public'
 ```
 
 **Validação:**
+
 - Execute o comando SQL acima
 - Verifique se não houve erros
 - Valide que 2 funções foram listadas na verificação final
@@ -493,6 +504,7 @@ WHERE routine_schema = 'public'
 **Objetivo:** Criar views para dashboard e monitoramento
 
 **Comando SQL:**
+
 ```sql
 -- ========================================
 -- MIGRAÇÃO: Views para Dashboard e Operação
@@ -585,6 +597,7 @@ ORDER BY viewname;
 ```
 
 **Validação:**
+
 - Execute o comando SQL acima
 - Verifique se não houve erros
 - Valide que 4 views foram criadas
@@ -599,6 +612,7 @@ ORDER BY viewname;
 **Objetivo:** Adicionar campo rotation_index para round-robin
 
 **Comando SQL:**
+
 ```sql
 -- ========================================
 -- MIGRAÇÃO: Índice de Rotação Round-Robin
@@ -631,6 +645,7 @@ ORDER BY table_name, column_name;
 ```
 
 **Validação:**
+
 - Execute o comando SQL acima
 - Verifique se não houve erros
 - Valide que a coluna rotation_index foi criada
@@ -645,6 +660,7 @@ ORDER BY table_name, column_name;
 **Objetivo:** Substituir função claim_next_message para usar round-robin
 
 **Comando SQL:**
+
 ```sql
 -- ========================================
 -- MIGRAÇÃO: Corrige claim_next_message para Round-Robin
@@ -734,6 +750,7 @@ SELECT * FROM claim_next_message('test-worker', 3);
 ```
 
 **Validação:**
+
 - Execute o comando SQL acima
 - Verifique se não houve erros
 - Valide que a função foi atualizada
@@ -817,6 +834,7 @@ ORDER BY viewname;
 ```
 
 **Resultado esperado da validação final:**
+
 - 6 tabelas listadas (2 existing, 4 new)
 - 7 índices listados
 - 2 funções listadas
@@ -943,11 +961,13 @@ ALTER TABLE patients_queue DROP COLUMN IF EXISTS locked_by;
 **Risco:** Baixo (migrations usam IF NOT EXISTS e CREATE OR REPLACE)
 
 **Se tudo der certo:**
+
 - O worker da automação terá banco completo para operar
 - As migrations 1-7 estarão aplicadas
 - O sistema estará pronto para testar dry run e depois envio real
 
 **Se algo der errado:**
+
 - Use o script de rollback acima na ordem inversa
 - Cada migration pode ser revertida individualmente se necessário
 

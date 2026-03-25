@@ -15,7 +15,12 @@ const toneClasses = {
 
 export function TabCounter({ count, tone = 'default' }: TabCounterProps) {
   return (
-    <span className={cn('ml-2 inline-flex min-w-6 items-center justify-center rounded-full px-2 py-0.5 text-[11px] font-semibold', toneClasses[tone])}>
+    <span
+      className={cn(
+        'ml-2 inline-flex min-w-6 items-center justify-center rounded-full px-2 py-0.5 text-[11px] font-semibold',
+        toneClasses[tone],
+      )}
+    >
       {count}
     </span>
   )

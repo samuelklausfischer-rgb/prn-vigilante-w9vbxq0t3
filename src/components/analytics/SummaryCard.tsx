@@ -20,9 +20,16 @@ export function SummaryCard({ title, value, change, color = 'default' }: Summary
 
   return (
     <div className="rounded-2xl border border-white/10 bg-card/60 p-5 shadow-lg shadow-black/10 backdrop-blur-sm">
-      <div className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">{title}</div>
+      <div className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+        {title}
+      </div>
       <div className={cn('mt-3 text-3xl font-bold', colorMap[color])}>{value}</div>
-      <div className={cn('mt-3 flex items-center gap-2 text-sm', isPositive ? 'text-emerald-400' : 'text-red-400')}>
+      <div
+        className={cn(
+          'mt-3 flex items-center gap-2 text-sm',
+          isPositive ? 'text-emerald-400' : 'text-red-400',
+        )}
+      >
         {isPositive ? <TrendingUp className="h-4 w-4" /> : <TrendingDown className="h-4 w-4" />}
         <span>{change}</span>
         <span className="text-muted-foreground">vs janela anterior</span>

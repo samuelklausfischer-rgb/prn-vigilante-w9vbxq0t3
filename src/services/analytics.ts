@@ -1,7 +1,10 @@
 import { supabase } from '@/lib/supabase/client'
 import type { AnalyticsDaily, AnalyticsSummary, ArchivePreview, DateRangeFilter } from '@/types'
 
-function sumField(data: AnalyticsDaily[], field: keyof Pick<AnalyticsDaily, 'total_enviadas' | 'sucesso' | 'falha' | 'cancelada'>) {
+function sumField(
+  data: AnalyticsDaily[],
+  field: keyof Pick<AnalyticsDaily, 'total_enviadas' | 'sucesso' | 'falha' | 'cancelada'>,
+) {
   return data.reduce((total, item) => total + Number(item[field] || 0), 0)
 }
 
@@ -29,7 +32,8 @@ function aggregateProcedures(dailyData: AnalyticsDaily[]) {
     .map(([procedimento, counters]) => ({
       procedimento,
       ...counters,
-      taxa_sucesso: counters.enviadas > 0 ? ((counters.sucesso / counters.enviadas) * 100).toFixed(1) : '0.0',
+      taxa_sucesso:
+        counters.enviadas > 0 ? ((counters.sucesso / counters.enviadas) * 100).toFixed(1) : '0.0',
     }))
     .sort((left, right) => right.enviadas - left.enviadas)
 }
@@ -60,12 +64,14 @@ export async function fetchAnalyticsSummary(dateRange: DateRangeFilter): Promise
 
   const currentWindow = dailyData.slice(-7)
   const previousWindow = dailyData.slice(-14, -7)
-  const currentSuccessRate = sumField(currentWindow, 'total_enviadas') > 0
-    ? (sumField(currentWindow, 'sucesso') / sumField(currentWindow, 'total_enviadas')) * 100
-    : 0
-  const previousSuccessRate = sumField(previousWindow, 'total_enviadas') > 0
-    ? (sumField(previousWindow, 'sucesso') / sumField(previousWindow, 'total_enviadas')) * 100
-    : 0
+  const currentSuccessRate =
+    sumField(currentWindow, 'total_enviadas') > 0
+      ? (sumField(currentWindow, 'sucesso') / sumField(currentWindow, 'total_enviadas')) * 100
+      : 0
+  const previousSuccessRate =
+    sumField(previousWindow, 'total_enviadas') > 0
+      ? (sumField(previousWindow, 'sucesso') / sumField(previousWindow, 'total_enviadas')) * 100
+      : 0
 
   return {
     total_enviadas,
@@ -73,9 +79,18 @@ export async function fetchAnalyticsSummary(dateRange: DateRangeFilter): Promise
     falha,
     cancelada,
     taxa_sucesso,
-    change_enviadas: calculateChange(sumField(currentWindow, 'total_enviadas'), sumField(previousWindow, 'total_enviadas')),
-    change_sucesso: calculateChange(sumField(currentWindow, 'sucesso'), sumField(previousWindow, 'sucesso')),
-    change_falha: calculateChange(sumField(currentWindow, 'falha'), sumField(previousWindow, 'falha')),
+    change_enviadas: calculateChange(
+      sumField(currentWindow, 'total_enviadas'),
+      sumField(previousWindow, 'total_enviadas'),
+    ),
+    change_sucesso: calculateChange(
+      sumField(currentWindow, 'sucesso'),
+      sumField(previousWindow, 'sucesso'),
+    ),
+    change_falha: calculateChange(
+      sumField(currentWindow, 'falha'),
+      sumField(previousWindow, 'falha'),
+    ),
     change_taxa_sucesso: `${(currentSuccessRate - previousSuccessRate).toFixed(1)}%`,
     daily_trend: dailyData.map((item) => ({
       date: item.data,
@@ -85,13 +100,17 @@ export async function fetchAnalyticsSummary(dateRange: DateRangeFilter): Promise
     })),
     success_rate: dailyData.map((item) => ({
       date: item.data,
-      rate: item.total_enviadas > 0 ? ((item.sucesso / item.total_enviadas) * 100).toFixed(1) : '0.0',
+      rate:
+        item.total_enviadas > 0 ? ((item.sucesso / item.total_enviadas) * 100).toFixed(1) : '0.0',
     })),
     por_procedimento: aggregateProcedures(dailyData),
   }
 }
 
-export async function previewArchiveByDate(dataInicio: string, dataFim: string): Promise<ArchivePreview> {
+export async function previewArchiveByDate(
+  dataInicio: string,
+  dataFim: string,
+): Promise<ArchivePreview> {
   const { data, error } = await (supabase.rpc as any)('preview_archive_by_data_exame', {
     data_inicio: dataInicio,
     data_fim: dataFim,

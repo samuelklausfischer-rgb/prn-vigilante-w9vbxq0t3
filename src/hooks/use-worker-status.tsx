@@ -67,25 +67,17 @@ export function useWorkerStatus() {
     // Realtime subscription for message logs
     const logsSub = supabase
       .channel('logs-feed')
-      .on(
-        'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'message_logs' },
-        () => {
-          fetchRecentLogs()
-        },
-      )
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'message_logs' }, () => {
+        fetchRecentLogs()
+      })
       .subscribe()
 
     // Realtime subscription for heartbeats
     const heartbeatSub = supabase
       .channel('heartbeat-feed')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'worker_heartbeats' },
-        () => {
-          fetchHeartbeat()
-        },
-      )
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'worker_heartbeats' }, () => {
+        fetchHeartbeat()
+      })
       .subscribe()
 
     return () => {

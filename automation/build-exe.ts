@@ -2,13 +2,13 @@ import { $ } from 'bun'
 
 console.log('\n🚀 PRN-Vigilante - Build Executável\n')
 
-if (! Bun.env.SUPABASE_URL) {
+if (!Bun.env.SUPABASE_URL) {
   console.error('❌ Erro: SUPABASE_URL não encontrado no .env')
   console.log('📝 Copie .env.example para .env e preencha as variáveis\n')
   process.exit(1)
 }
 
-if (! Bun.env.EVOLUTION_API_URL) {
+if (!Bun.env.EVOLUTION_API_URL) {
   console.error('❌ Erro: EVOLUTION_API_URL não encontrado no .env')
   console.log('📝 Copie .env.example para .env e preencha as variáveis\n')
   process.exit(1)

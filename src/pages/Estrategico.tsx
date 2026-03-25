@@ -120,9 +120,14 @@ export default function Estrategico() {
             <div className="flex items-center gap-2">
               <Popover>
                 <PopoverTrigger asChild>
-                  <Button variant="outline" className="w-[240px] justify-start text-left font-normal">
+                  <Button
+                    variant="outline"
+                    className="w-[240px] justify-start text-left font-normal"
+                  >
                     <CalendarIcon className="mr-2 h-4 w-4" />
-                    {selectedDate ? format(selectedDate, 'PPP', { locale: ptBR }) : 'Selecione uma data'}
+                    {selectedDate
+                      ? format(selectedDate, 'PPP', { locale: ptBR })
+                      : 'Selecione uma data'}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="end">
@@ -150,19 +155,29 @@ export default function Estrategico() {
               <Badge variant="outline" className="bg-blue-500/15 text-blue-200 border-blue-500/30">
                 {scheduleSummary.total_pacientes} pacientes
               </Badge>
-              <Badge variant="outline" className="bg-yellow-500/15 text-yellow-200 border-yellow-500/30">
+              <Badge
+                variant="outline"
+                className="bg-yellow-500/15 text-yellow-200 border-yellow-500/30"
+              >
                 🟡 {scheduleSummary.encaixe_count} encaixes
               </Badge>
-              <Badge variant="outline" className="bg-orange-500/15 text-orange-200 border-orange-500/30">
+              <Badge
+                variant="outline"
+                className="bg-orange-500/15 text-orange-200 border-orange-500/30"
+              >
                 🟠 {scheduleSummary.significativo_count} significativos
               </Badge>
               <Badge variant="outline" className="bg-red-500/15 text-red-200 border-red-500/30">
                 🔴 {scheduleSummary.critico_count} críticos
               </Badge>
               {scheduleSummary.total_minutos_livres > 0 && (
-                <Badge variant="outline" className="bg-purple-500/15 text-purple-200 border-purple-500/30">
+                <Badge
+                  variant="outline"
+                  className="bg-purple-500/15 text-purple-200 border-purple-500/30"
+                >
                   <AlertTriangle className="w-3 h-3 mr-1" />
-                  {Math.floor(scheduleSummary.total_minutos_livres / 60)}h {scheduleSummary.total_minutos_livres % 60}min sem paciente
+                  {Math.floor(scheduleSummary.total_minutos_livres / 60)}h{' '}
+                  {scheduleSummary.total_minutos_livres % 60}min sem paciente
                 </Badge>
               )}
             </div>

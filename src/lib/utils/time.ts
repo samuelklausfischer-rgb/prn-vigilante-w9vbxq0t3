@@ -32,10 +32,7 @@ export function formatDuration(timeStr?: string | null): string {
  * @param duration - Duração do procedimento (HH:MM:SS)
  * @returns Horário final formatado (HH:MM:SS) ou null
  */
-export function calculateFinalTime(
-  startTime: string,
-  duration: string
-): string | null {
+export function calculateFinalTime(startTime: string, duration: string): string | null {
   if (!startTime || !duration) return null
   const [startHours, startMinutes, startSeconds] = startTime.split(':').map(Number)
   const [durationHours, durationMinutes] = duration.split(':').map(Number)

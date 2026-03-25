@@ -27,18 +27,18 @@ As migrations foram organizadas em 5 arquivos na pasta `supabase/migrations/`:
    - `release_expired_locks` - Libera locks de workers crashados
 
 5. **20260313190400_automation_views.sql** - CREATE VIEW
-    - `dashboard_realtime_metrics` - Métricas em tempo real
-    - `expired_locks` - Diagnóstico de locks expirados
-    - `worker_status_summary` - Status dos workers
-    - `message_failure_insights` - Análise de falhas
+   - `dashboard_realtime_metrics` - Métricas em tempo real
+   - `expired_locks` - Diagnóstico de locks expirados
+   - `worker_status_summary` - Status dos workers
+   - `message_failure_insights` - Análise de falhas
 
 6. **20260313190700_add_rotation_index.sql** - ALTER TABLE
-    - Adiciona campo `rotation_index` em `whatsapp_instances`
-    - Cria índice composto para round-robin
+   - Adiciona campo `rotation_index` em `whatsapp_instances`
+   - Cria índice composto para round-robin
 
 7. **20260313190800_fix_claim_next_message.sql** - CREATE FUNCTION
-    - Substitui `claim_next_message` para usar round-robin (ORDER BY rotation_index ASC)
-    - Garante alternância 1→2→3→1→2→3... entre instâncias conectadas
+   - Substitui `claim_next_message` para usar round-robin (ORDER BY rotation_index ASC)
+   - Garante alternância 1→2→3→1→2→3... entre instâncias conectadas
 
 ## Observações importantes antes de executar
 
@@ -59,6 +59,7 @@ As migrations foram organizadas em 5 arquivos na pasta `supabase/migrations/`:
 3. Execute as migrations **EM ORDEM**:
 
    **Passo 1: Core Fields**
+
    ```sql
    -- Copie o conteúdo de supabase/migrations/20260313190000_automation_core_fields.sql
    -- Cole no SQL Editor
@@ -66,6 +67,7 @@ As migrations foram organizadas em 5 arquivos na pasta `supabase/migrations/`:
    ```
 
    **Passo 2: Novas Tabelas**
+
    ```sql
    -- Copie o conteúdo de supabase/migrations/20260313190100_automation_new_tables.sql
    -- Cole no SQL Editor
@@ -73,6 +75,7 @@ As migrations foram organizadas em 5 arquivos na pasta `supabase/migrations/`:
    ```
 
    **Passo 3: Índices**
+
    ```sql
    -- Copie o conteúdo de supabase/migrations/20260313190200_automation_indexes.sql
    -- Cole no SQL Editor
@@ -80,53 +83,57 @@ As migrations foram organizadas em 5 arquivos na pasta `supabase/migrations/`:
    ```
 
    **Passo 4: Funções**
+
    ```sql
    -- Copie o conteúdo de supabase/migrations/20260313190300_automation_functions.sql
    -- Cole no SQL Editor
    -- Execute
    ```
 
-    **Passo 5: Views**
-    ```sql
-    -- Copie o conteúdo de supabase/migrations/20260313190400_automation_views.sql
-    -- Cole no SQL Editor
-    -- Execute
-    ```
+   **Passo 5: Views**
 
-    **Passo 6: Round-Robin**
-    ```sql
-    -- Copie o conteúdo de supabase/migrations/20260313190700_add_rotation_index.sql
-    -- Cole no SQL Editor
-    -- Execute
-    ```
+   ```sql
+   -- Copie o conteúdo de supabase/migrations/20260313190400_automation_views.sql
+   -- Cole no SQL Editor
+   -- Execute
+   ```
 
-    **Passo 7: Função de Seleção**
-    ```sql
-    -- Copie o conteúdo de supabase/migrations/20260313190800_fix_claim_next_message.sql
-    -- Cole no SQL Editor
-    -- Execute
-    ```
+   **Passo 6: Round-Robin**
 
-    **Resultado esperado:** 7 colunas novas criadas
+   ```sql
+   -- Copie o conteúdo de supabase/migrations/20260313190700_add_rotation_index.sql
+   -- Cole no SQL Editor
+   -- Execute
+   ```
 
-    **Bônus: Validar Round-Robin**
+   **Passo 7: Função de Seleção**
 
-    ```sql
-    -- Verificar se rotation_index existe e o índice foi criado
-    SELECT
-        table_name,
-        column_name,
-        data_type
-    FROM information_schema.columns
-    WHERE table_name = 'whatsapp_instances'
-      AND column_name = 'rotation_index';
+   ```sql
+   -- Copie o conteúdo de supabase/migrations/20260313190800_fix_claim_next_message.sql
+   -- Cole no SQL Editor
+   -- Execute
+   ```
 
-    -- Verificar se o índice de rotação foi criado
-    SELECT indexname
-    FROM pg_indexes
-    WHERE schemaname = 'public'
-      AND indexname = 'idx_whatsapp_instances_rotation';
-    ```
+   **Resultado esperado:** 7 colunas novas criadas
+
+   **Bônus: Validar Round-Robin**
+
+   ```sql
+   -- Verificar se rotation_index existe e o índice foi criado
+   SELECT
+       table_name,
+       column_name,
+       data_type
+   FROM information_schema.columns
+   WHERE table_name = 'whatsapp_instances'
+     AND column_name = 'rotation_index';
+
+   -- Verificar se o índice de rotação foi criado
+   SELECT indexname
+   FROM pg_indexes
+   WHERE schemaname = 'public'
+     AND indexname = 'idx_whatsapp_instances_rotation';
+   ```
 
 ### 2. Verificar Índices
 
@@ -143,7 +150,7 @@ WHERE schemaname = 'public'
 
 ### 3. Verificar Funções
 
-```sql
+````sql
 -- Verificar funções criadas
     SELECT routine_name
     FROM information_schema.routines
@@ -162,7 +169,7 @@ SELECT viewname
 FROM pg_views
 WHERE schemaname = 'public'
   AND viewname IN ('dashboard_realtime_metrics', 'expired_locks', 'worker_status_summary', 'message_failure_insights');
-```
+````
 
 **Resultado esperado:** 4 views criadas
 
@@ -176,6 +183,7 @@ SELECT * FROM claim_next_message('test-worker-1', 3);
 ```
 
 **Resultado esperado:**
+
 - Se houver mensagens elegíveis, retorna uma mensagem
 - Se não houver, retorna vazio (sem erro)
 
@@ -187,6 +195,7 @@ SELECT * FROM release_expired_locks(5);
 ```
 
 **Resultado esperado:**
+
 - Retorna lista de mensagens liberadas ou vazio se não houver locks expirados
 
 ---
@@ -212,18 +221,21 @@ Antes de prosseguir para a próxima fase (Sprint 2), confirme:
 ### Erro: "column already exists"
 
 Se receber erro de coluna já existir, verifique:
+
 - A migration não foi executada anteriormente
 - Execute a query de verificação para confirmar o estado atual
 
 ### Erro: "function already exists"
 
 As migrations usam `CREATE OR REPLACE FUNCTION`, então isso não deveria ocorrer. Se ocorrer:
+
 - Verifique se não há conflito de nomes com outras funções
 - Execute `DROP FUNCTION nome_da_função(CASCADE);` e execute a migration novamente
 
 ### Erro: "relation does not exist"
 
 Verifique:
+
 - A ordem de execução das migrations (001, 002, 003, 004, 005)
 - Dependências entre migrations (004 depende de 001 e 002)
 
@@ -233,60 +245,60 @@ Verifique:
 
 Se precisar desfazer as migrations, execute na **ORDEM INVERSA**:
 
-  **Passo 5: Remover Views**
-    ```sql
+**Passo 5: Remover Views**
+`sql
     DROP VIEW IF EXISTS message_failure_insights;
     DROP VIEW IF EXISTS worker_status_summary;
     DROP VIEW IF EXISTS expired_locks;
     DROP VIEW IF EXISTS dashboard_realtime_metrics;
-    ```
+    `
 
-  **Passo 6: Remover Função Corrigida**
-    ```sql
+**Passo 6: Remover Função Corrigida**
+`sql
     DROP FUNCTION IF EXISTS claim_next_message(TEXT, INT);
-    ```
+    `
 
-  **Passo 7: Remover Índice de Rotação**
-    ```sql
+**Passo 7: Remover Índice de Rotação**
+`sql
     DROP INDEX IF EXISTS idx_whatsapp_instances_rotation;
-    ```
+    `
 
-  **Passo 8: Remover Coluna de Rotação**
-    ```sql
+**Passo 8: Remover Coluna de Rotação**
+`sql
     ALTER TABLE whatsapp_instances DROP COLUMN IF EXISTS rotation_index;
-    ```
+    `
 
-  **Passo 9: Remover Funções**
-    ```sql
+**Passo 9: Remover Funções**
+`sql
     DROP FUNCTION IF EXISTS release_expired_locks(INT);
-    ```
+    `
 
-  **Passo 10: Remover Índices**
-    ```sql
+**Passo 10: Remover Índices**
+`sql
     DROP INDEX IF EXISTS idx_patient_consent_patient_id;
     DROP INDEX IF EXISTS idx_message_blocks_lookup;
     DROP INDEX IF EXISTS idx_message_logs_message_id;
     DROP INDEX IF EXISTS idx_worker_heartbeats_last_heartbeat;
     DROP INDEX IF EXISTS idx_patients_queue_locks;
     DROP INDEX IF EXISTS idx_patients_queue_claim;
-    ```
+    `
 
-  **Passo 11: Remover Tabelas**
-    ```sql
+**Passo 11: Remover Tabelas**
+`sql
     DROP TABLE IF EXISTS message_blocks CASCADE;
     DROP TABLE IF EXISTS patient_consent CASCADE;
     DROP TABLE IF EXISTS worker_heartbeats CASCADE;
     DROP TABLE IF EXISTS message_logs CASCADE;
-    ```
+    `
 
-  **Passo 12: Remover Colunas das Tabelas Existentes**
-    ```sql
+**Passo 12: Remover Colunas das Tabelas Existentes**
+`sql
     ALTER TABLE whatsapp_instances DROP COLUMN IF EXISTS messages_sent_count;
     ALTER TABLE whatsapp_instances DROP COLUMN IF EXISTS last_message_at;
     ALTER TABLE patients_queue DROP COLUMN IF EXISTS attempt_count;
     ALTER TABLE patients_queue DROP COLUMN IF EXISTS locked_at;
     ALTER TABLE patients_queue DROP COLUMN IF EXISTS locked_by;
-    ```
+    `
 
 ---
 

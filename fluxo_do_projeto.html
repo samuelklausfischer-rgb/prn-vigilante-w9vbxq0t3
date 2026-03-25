@@ -1,321 +1,381 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>PRN-Vigilante — Fluxo do Sistema</title>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link
+      href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap"
+      rel="stylesheet"
+    />
     <style>
-        :root {
-            --primary: #6366f1;
-            --primary-dark: #4f46e5;
-            --secondary: #10b981;
-            --accent: #f59e0b;
-            --bg: #0f172a;
-            --card-bg: rgba(30, 41, 59, 0.7);
-            --text: #f8fafc;
-            --text-muted: #94a3b8;
-            --glass: rgba(255, 255, 255, 0.05);
-            --border: rgba(255, 255, 255, 0.1);
-        }
+      :root {
+        --primary: #6366f1;
+        --primary-dark: #4f46e5;
+        --secondary: #10b981;
+        --accent: #f59e0b;
+        --bg: #0f172a;
+        --card-bg: rgba(30, 41, 59, 0.7);
+        --text: #f8fafc;
+        --text-muted: #94a3b8;
+        --glass: rgba(255, 255, 255, 0.05);
+        --border: rgba(255, 255, 255, 0.1);
+      }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Outfit', sans-serif;
-        }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: 'Outfit', sans-serif;
+      }
 
-        body {
-            background: var(--bg);
-            color: var(--text);
-            overflow-x: hidden;
-            background-image: 
-                radial-gradient(circle at 20% 20%, rgba(99, 102, 241, 0.15) 0%, transparent 40%),
-                radial-gradient(circle at 80% 80%, rgba(16, 185, 129, 0.1) 0%, transparent 40%);
-            min-height: 100vh;
-            padding: 2rem;
-        }
+      body {
+        background: var(--bg);
+        color: var(--text);
+        overflow-x: hidden;
+        background-image:
+          radial-gradient(circle at 20% 20%, rgba(99, 102, 241, 0.15) 0%, transparent 40%),
+          radial-gradient(circle at 80% 80%, rgba(16, 185, 129, 0.1) 0%, transparent 40%);
+        min-height: 100vh;
+        padding: 2rem;
+      }
 
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+      }
 
-        header {
-            text-align: center;
-            margin-bottom: 4rem;
-            animation: fadeInDown 1s ease-out;
-        }
+      header {
+        text-align: center;
+        margin-bottom: 4rem;
+        animation: fadeInDown 1s ease-out;
+      }
 
-        h1 {
-            font-size: 3rem;
-            font-weight: 800;
-            background: linear-gradient(to right, #818cf8, #34d399);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            margin-bottom: 1rem;
-        }
+      h1 {
+        font-size: 3rem;
+        font-weight: 800;
+        background: linear-gradient(to right, #818cf8, #34d399);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 1rem;
+      }
 
-        .subtitle {
-            font-size: 1.2rem;
-            color: var(--text-muted);
-            max-width: 700px;
-            margin: 0 auto;
-        }
+      .subtitle {
+        font-size: 1.2rem;
+        color: var(--text-muted);
+        max-width: 700px;
+        margin: 0 auto;
+      }
 
-        /* Grid Layout */
-        .flow-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 2rem;
-            position: relative;
-            z-index: 10;
-        }
+      /* Grid Layout */
+      .flow-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 2rem;
+        position: relative;
+        z-index: 10;
+      }
 
-        .step-card {
-            background: var(--card-bg);
-            backdrop-filter: blur(12px);
-            border: 1px solid var(--border);
-            border-radius: 24px;
-            padding: 2rem;
-            text-align: center;
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            position: relative;
-            overflow: hidden;
-        }
+      .step-card {
+        background: var(--card-bg);
+        backdrop-filter: blur(12px);
+        border: 1px solid var(--border);
+        border-radius: 24px;
+        padding: 2rem;
+        text-align: center;
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        position: relative;
+        overflow: hidden;
+      }
 
-        .step-card:hover {
-            transform: translateY(-10px);
-            border-color: var(--primary);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-        }
+      .step-card:hover {
+        transform: translateY(-10px);
+        border-color: var(--primary);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+      }
 
-        .step-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 4px;
-            background: linear-gradient(to right, var(--primary), var(--secondary));
-            opacity: 0.5;
-        }
+      .step-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 4px;
+        background: linear-gradient(to right, var(--primary), var(--secondary));
+        opacity: 0.5;
+      }
 
-        .icon-box {
-            width: 80px;
-            height: 80px;
-            background: var(--glass);
-            border-radius: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 1.5rem;
-            font-size: 2.5rem;
-            color: var(--primary);
-            box-shadow: inset 0 0 20px rgba(255, 255, 255, 0.05);
-        }
+      .icon-box {
+        width: 80px;
+        height: 80px;
+        background: var(--glass);
+        border-radius: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1.5rem;
+        font-size: 2.5rem;
+        color: var(--primary);
+        box-shadow: inset 0 0 20px rgba(255, 255, 255, 0.05);
+      }
 
-        .step-number {
-            position: absolute;
-            top: 1rem;
-            right: 1.5rem;
-            font-size: 3rem;
-            font-weight: 900;
-            opacity: 0.05;
-            user-select: none;
-        }
+      .step-number {
+        position: absolute;
+        top: 1rem;
+        right: 1.5rem;
+        font-size: 3rem;
+        font-weight: 900;
+        opacity: 0.05;
+        user-select: none;
+      }
 
-        h3 {
-            font-size: 1.5rem;
-            margin-bottom: 1rem;
-            color: var(--text);
-        }
+      h3 {
+        font-size: 1.5rem;
+        margin-bottom: 1rem;
+        color: var(--text);
+      }
 
-        p {
-            color: var(--text-muted);
-            line-height: 1.6;
-            font-size: 0.95rem;
-        }
+      p {
+        color: var(--text-muted);
+        line-height: 1.6;
+        font-size: 0.95rem;
+      }
 
-        .badge {
-            display: inline-block;
-            padding: 0.4rem 1rem;
-            background: var(--glass);
-            border-radius: 99px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-top: 1.5rem;
-            color: var(--primary);
-            border: 1px solid var(--border);
-        }
+      .badge {
+        display: inline-block;
+        padding: 0.4rem 1rem;
+        background: var(--glass);
+        border-radius: 99px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-top: 1.5rem;
+        color: var(--primary);
+        border: 1px solid var(--border);
+      }
 
-        /* Detail Modal Sim */
-        .detail-section {
-            margin-top: 5rem;
-            padding: 3rem;
-            background: var(--card-bg);
-            border-radius: 32px;
-            border: 1px solid var(--border);
-            animation: fadeInUp 1s ease-out;
-        }
+      /* Detail Modal Sim */
+      .detail-section {
+        margin-top: 5rem;
+        padding: 3rem;
+        background: var(--card-bg);
+        border-radius: 32px;
+        border: 1px solid var(--border);
+        animation: fadeInUp 1s ease-out;
+      }
 
-        .detail-header {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            margin-bottom: 2rem;
-        }
+      .detail-header {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 2rem;
+      }
 
-        .pulse {
-            width: 12px;
-            height: 12px;
-            background: var(--secondary);
-            border-radius: 50%;
-            box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
-            animation: pulse 2s infinite;
-        }
+      .pulse {
+        width: 12px;
+        height: 12px;
+        background: var(--secondary);
+        border-radius: 50%;
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+        animation: pulse 2s infinite;
+      }
 
-        .tech-list {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 1rem;
-            margin-top: 2rem;
-        }
+      .tech-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        margin-top: 2rem;
+      }
 
-        .tech-item {
-            background: rgba(255, 255, 255, 0.05);
-            padding: 0.5rem 1.2rem;
-            border-radius: 12px;
-            font-size: 0.9rem;
-            border: 1px solid var(--border);
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
+      .tech-item {
+        background: rgba(255, 255, 255, 0.05);
+        padding: 0.5rem 1.2rem;
+        border-radius: 12px;
+        font-size: 0.9rem;
+        border: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
 
-        /* Animations */
-        @keyframes fadeInDown {
-            from { opacity: 0; transform: translateY(-30px); }
-            to { opacity: 1; transform: translateY(0); }
+      /* Animations */
+      @keyframes fadeInDown {
+        from {
+          opacity: 0;
+          transform: translateY(-30px);
         }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
 
-        @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(30px); }
-            to { opacity: 1; transform: translateY(0); }
+      @keyframes fadeInUp {
+        from {
+          opacity: 0;
+          transform: translateY(30px);
         }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
 
-        @keyframes pulse {
-            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
-            70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
-            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+      @keyframes pulse {
+        0% {
+          transform: scale(0.95);
+          box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
         }
+        70% {
+          transform: scale(1);
+          box-shadow: 0 0 0 10px rgba(16, 185, 129, 0);
+        }
+        100% {
+          transform: scale(0.95);
+          box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+        }
+      }
 
-        .floating {
-            animation: floating 3s ease-in-out infinite;
-        }
+      .floating {
+        animation: floating 3s ease-in-out infinite;
+      }
 
-        @keyframes floating {
-            0% { transform: translateY(0px); }
-            50% { transform: translateY(-10px); }
-            100% { transform: translateY(0px); }
+      @keyframes floating {
+        0% {
+          transform: translateY(0px);
         }
+        50% {
+          transform: translateY(-10px);
+        }
+        100% {
+          transform: translateY(0px);
+        }
+      }
 
-        /* Explaining like a layperson */
-        .layperson-box {
-            margin-top: 4rem;
-            padding: 2rem;
-            background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(16, 185, 129, 0.1));
-            border-radius: 24px;
-            border-left: 4px solid var(--primary);
-        }
+      /* Explaining like a layperson */
+      .layperson-box {
+        margin-top: 4rem;
+        padding: 2rem;
+        background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(16, 185, 129, 0.1));
+        border-radius: 24px;
+        border-left: 4px solid var(--primary);
+      }
 
-        .layperson-title {
-            font-weight: 700;
-            font-size: 1.2rem;
-            margin-bottom: 1rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
+      .layperson-title {
+        font-weight: 700;
+        font-size: 1.2rem;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
     </style>
-</head>
-<body>
-
-<div class="container">
-    <header>
+  </head>
+  <body>
+    <div class="container">
+      <header>
         <h1>PRN-Vigilante</h1>
-        <p class="subtitle">Entenda como o cérebro, o coração e os músculos do seu sistema trabalham juntos para automatizar sua comunicação.</p>
-    </header>
+        <p class="subtitle">
+          Entenda como o cérebro, o coração e os músculos do seu sistema trabalham juntos para
+          automatizar sua comunicação.
+        </p>
+      </header>
 
-    <div class="flow-grid">
+      <div class="flow-grid">
         <!-- Passo 1: A Entrada (N8N/Planilha) -->
-        <div class="step-card" style="animation-delay: 0.1s;">
-            <div class="step-number">01</div>
-            <div class="icon-box floating">📊</div>
-            <h3>A Entrada</h3>
-            <p>Seus dados vêm da <b>Planilha via N8N</b>. A automação externa joga tudo para o banco de forma organizada e rápida.</p>
-            <div class="badge">Automação de Dados</div>
+        <div class="step-card" style="animation-delay: 0.1s">
+          <div class="step-number">01</div>
+          <div class="icon-box floating">📊</div>
+          <h3>A Entrada</h3>
+          <p>
+            Seus dados vêm da <b>Planilha via N8N</b>. A automação externa joga tudo para o banco de
+            forma organizada e rápida.
+          </p>
+          <div class="badge">Automação de Dados</div>
         </div>
 
         <!-- Passo 2: O Coração (Supabase) -->
-        <div class="step-card" style="animation-delay: 0.3s;">
-            <div class="step-number">02</div>
-            <div class="icon-box floating">❤️</div>
-            <h3>O Coração</h3>
-            <p>O <b>Supabase</b> recebe os dados do N8N e guarda na fila. Ele é o armazém central que organiza quem será o próximo.</p>
-            <div class="badge">Base de Dados & Fila</div>
+        <div class="step-card" style="animation-delay: 0.3s">
+          <div class="step-number">02</div>
+          <div class="icon-box floating">❤️</div>
+          <h3>O Coração</h3>
+          <p>
+            O <b>Supabase</b> recebe os dados do N8N e guarda na fila. Ele é o armazém central que
+            organiza quem será o próximo.
+          </p>
+          <div class="badge">Base de Dados & Fila</div>
         </div>
 
         <!-- Passo 3: O Cérebro (Dashboard) -->
-        <div class="step-card" style="animation-delay: 0.5s;">
-            <div class="step-number">03</div>
-            <div class="icon-box floating">🧠</div>
-            <h3>O Cérebro</h3>
-            <p>Sua <b>Dashboard</b>. Aqui você vê o que o N8N enviou, aprova os pacientes e clica no botão <b>[Iniciar Disparo]</b>.</p>
-            <div class="badge">Controle Humano</div>
+        <div class="step-card" style="animation-delay: 0.5s">
+          <div class="step-number">03</div>
+          <div class="icon-box floating">🧠</div>
+          <h3>O Cérebro</h3>
+          <p>
+            Sua <b>Dashboard</b>. Aqui você vê o que o N8N enviou, aprova os pacientes e clica no
+            botão <b>[Iniciar Disparo]</b>.
+          </p>
+          <div class="badge">Controle Humano</div>
         </div>
 
         <!-- Passo 4: Os Músculos (WhatsApp) -->
-        <div class="step-card" style="animation-delay: 0.7s;">
-            <div class="step-number">04</div>
-            <div class="icon-box floating">💪</div>
-            <h3>Os Músculos</h3>
-            <p>A <b>Automação</b> acorda após o seu clique, pega os dados e envia no <b>WhatsApp</b> simulando uma pessoa real.</p>
-            <div class="badge">Motor de Disparo</div>
+        <div class="step-card" style="animation-delay: 0.7s">
+          <div class="step-number">04</div>
+          <div class="icon-box floating">💪</div>
+          <h3>Os Músculos</h3>
+          <p>
+            A <b>Automação</b> acorda após o seu clique, pega os dados e envia no
+            <b>WhatsApp</b> simulando uma pessoa real.
+          </p>
+          <div class="badge">Motor de Disparo</div>
         </div>
-    </div>
+      </div>
 
-    <div class="layperson-box">
+      <div class="layperson-box">
         <div class="layperson-title">💡 Explicando o fluxo completo:</div>
-        <p>1. O <b>N8N</b> lê sua planilha e escreve os nomes no "Livro de Registros" (Banco de Dados).</p>
+        <p>
+          1. O <b>N8N</b> lê sua planilha e escreve os nomes no "Livro de Registros" (Banco de
+          Dados).
+        </p>
         <p>2. Você abre o <b>Site</b>, confere os nomes e clica no botão mágico para começar.</p>
-        <p>3. O <b>Robô de Disparo</b> vê que você autorizou e começa a mandar os WhatsApps um por um, com calma e segurança.</p>
-    </div>
+        <p>
+          3. O <b>Robô de Disparo</b> vê que você autorizou e começa a mandar os WhatsApps um por
+          um, com calma e segurança.
+        </p>
+      </div>
 
-    <div class="detail-section">
+      <div class="detail-section">
         <div class="detail-header">
-            <div class="pulse"></div>
-            <h2 style="font-size: 1.8rem; font-weight: 700;">Segurança & Performance</h2>
+          <div class="pulse"></div>
+          <h2 style="font-size: 1.8rem; font-weight: 700">Segurança & Performance</h2>
         </div>
-        
-        <p>O sistema foi construído com tecnologias de ponta para garantir que ele seja rápido e, acima de tudo, seguro contra banimentos.</p>
+
+        <p>
+          O sistema foi construído com tecnologias de ponta para garantir que ele seja rápido e,
+          acima de tudo, seguro contra banimentos.
+        </p>
 
         <div class="tech-list">
-            <div class="tech-item">⚡ <b>TypeScript:</b> Código robusto e livre de erros bobos.</div>
-            <div class="tech-item">🔥 <b>Bun:</b> O motor mais rápido do mundo para automação.</div>
-            <div class="tech-item">🔒 <b>Supabase:</b> Seus dados protegidos com criptografia de banco.</div>
-            <div class="tech-item">🛡️ <b>Anti-Ban:</b> Inteligência que simula comportamento humano.</div>
-            <div class="tech-item">📈 <b>Escalabilidade:</b> Pronto para enviar 10 ou 10.000 mensagens.</div>
+          <div class="tech-item">⚡ <b>TypeScript:</b> Código robusto e livre de erros bobos.</div>
+          <div class="tech-item">🔥 <b>Bun:</b> O motor mais rápido do mundo para automação.</div>
+          <div class="tech-item">
+            🔒 <b>Supabase:</b> Seus dados protegidos com criptografia de banco.
+          </div>
+          <div class="tech-item">
+            🛡️ <b>Anti-Ban:</b> Inteligência que simula comportamento humano.
+          </div>
+          <div class="tech-item">
+            📈 <b>Escalabilidade:</b> Pronto para enviar 10 ou 10.000 mensagens.
+          </div>
         </div>
-    </div>
+      </div>
 
-    <footer style="margin-top: 4rem; text-align: center; color: var(--text-muted); font-size: 0.9rem;">
+      <footer
+        style="margin-top: 4rem; text-align: center; color: var(--text-muted); font-size: 0.9rem"
+      >
         <p>© 2026 PRN-Vigilante — Desenvolvido com Antigravity AI Engine</p>
-    </footer>
-</div>
-
-</body>
+      </footer>
+    </div>
+  </body>
 </html>

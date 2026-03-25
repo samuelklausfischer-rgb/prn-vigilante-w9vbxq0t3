@@ -9,18 +9,18 @@
 
 ### Documentação Existente
 
-| Arquivo | Localização | Tipo | Conteúdo |
-|---------|-------------|------|----------|
-| `resumo_contexto.md` | Raiz do projeto | Contexto geral | Seção "Orientações para a IA (OpenCode)" com 3 regras básicas |
-| `setup-automacao.md` | `.agents/workflows/` | Workflow | Exemplo de workflow com instruções passo-a-passo |
-| `TOKEN_OPTIMIZATION_PHASE_1.md` | Raiz do projeto | Documentação técnica | Otimizações implementadas e como usá-las |
+| Arquivo                         | Localização          | Tipo                 | Conteúdo                                                      |
+| ------------------------------- | -------------------- | -------------------- | ------------------------------------------------------------- |
+| `resumo_contexto.md`            | Raiz do projeto      | Contexto geral       | Seção "Orientações para a IA (OpenCode)" com 3 regras básicas |
+| `setup-automacao.md`            | `.agents/workflows/` | Workflow             | Exemplo de workflow com instruções passo-a-passo              |
+| `TOKEN_OPTIMIZATION_PHASE_1.md` | Raiz do projeto      | Documentação técnica | Otimizações implementadas e como usá-las                      |
 
 ### O que NÃO Existe
 
 ❌ Arquivo `AGENTS.md` específico  
 ❌ Arquivo `MAINTENANCE_RULES.md` (mencionado em `resumo_contexto.md` mas não existe)  
 ❌ Documentação de como lançar sub-agentes  
-❌ Padrões de instrução reutilizáveis para sub-agentes  
+❌ Padrões de instrução reutilizáveis para sub-agentes
 
 ---
 
@@ -35,7 +35,7 @@ import { buildSaraMessage } from '@/../../packages/shared/templates/sara-message
 // Uso:
 const message = buildSaraMessage({
   data_exame_iso: '2026-03-18',
-  horario: '14:30–15:00'
+  horario: '14:30–15:00',
 })
 ```
 
@@ -78,14 +78,15 @@ description: Setup automático da base de dados, tipos e build da automação.
 ---
 
 1. Criar e aplicar a migration SQL estruturada para a automação na pasta `supabase/migrations/`.
-// turbo
+   // turbo
 2. Executar o comando `supabase-mcp-server apply_migration` usando o conteúdo do arquivo criado.
-// turbo
+   // turbo
 3. Executar `supabase-mcp-server generate_typescript_types` para sincronizar o Worker com o novo banco.
 4. Validar o build da automação executando `cd automation && npm run build`.
 ```
 
 **Padrões identificados:**
+
 - Frontmatter com `description`
 - Número nos passos
 - Comentários `// turbo` para indicar comandos
@@ -114,13 +115,14 @@ description: Setup automático da base de dados, tipos e build da automação.
 **Localização:** Raiz do projeto (`C:\Users\OPERACIONAL\Desktop\IA\prn-vigilante-a1bd0\AGENTS.md`)
 
 **Vantagens:**
+
 - Fácil de encontrar (nome padrão)
 - Centraliza todas as instruções para agentes
 - Pode ser importado automaticamente quando lançar sub-agentes
 
 **Estrutura proposta:**
 
-```markdown
+````markdown
 # 🤖 AGENTS.md - Instruções para Sub-Agentes
 
 Este documento contém todas as instruções padrão que devem ser seguidas por sub-agentes quando lançados para trabalhar neste projeto.
@@ -134,25 +136,29 @@ Quando implementar código que precisa de templates SARA ou consultas de duraç�
 ### 1. Template SARA - buildSaraMessage()
 
 **NÃO FAÇA:**
+
 ```typescript
 // ❌ Isso cria redundância de ~2,400 tokens
 const message = `Olá! Aqui é Sara, representante do *Hospital São Benedito*...`
 ```
+````
 
 **FAÇA:**
+
 ```typescript
 // ✅ Importar e usar a função otimizada
 import { buildSaraMessage } from '@/../../packages/shared/templates/sara-message'
 
 const message = buildSaraMessage({
   data_exame_iso: '2026-03-18',
-  horario: '14:30–15:00'
+  horario: '14:30–15:00',
 })
 ```
 
 ### 2. Durações de Exames - getExamDuration()
 
 **NÃO FAÇA:**
+
 ```typescript
 // ❌ Isso cria redundância de ~200 tokens
 const durations = `
@@ -164,9 +170,13 @@ const durations = `
 ```
 
 **FAÇA:**
+
 ```typescript
 // ✅ Importar e usar a função otimizada
-import { getExamDuration, getExamDurationsTable } from '@/../../packages/shared/config/exam-durations'
+import {
+  getExamDuration,
+  getExamDurationsTable,
+} from '@/../../packages/shared/config/exam-durations'
 
 // Para duração individual:
 const duration = getExamDuration('Ressonância Magnética de Crânio')
@@ -217,7 +227,8 @@ prn-vigilante/
 - `resumo_contexto.md` - Contexto geral do projeto
 - `docs/MAPA_DO_PROJETO.md` - Arquitetura tri-modular
 - `.agents/workflows/setup-automacao.md` - Exemplo de workflow
-```
+
+````
 
 ---
 
@@ -262,3 +273,4 @@ Antes de entregar código:
 - [ ] Verifiquei se a funcionalidade existe em `packages/shared/`
 - [ ] Se existia, importei e usei a função otimizada
 - [ ] Se não existia, c
+````

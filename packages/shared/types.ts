@@ -13,7 +13,14 @@
 
 export type QueueStatus = 'queued' | 'sending' | 'delivered' | 'failed' | 'cancelled'
 
-export type PatientCategory = 'pendente' | 'falha' | 'critico' | 'fixo' | 'respondido' | 'concluido' | 'historico'
+export type PatientCategory =
+  | 'pendente'
+  | 'falha'
+  | 'critico'
+  | 'fixo'
+  | 'respondido'
+  | 'concluido'
+  | 'historico'
 
 export type InstanceStatus = 'connected' | 'disconnected' | 'empty' | 'initializing' | 'connecting'
 
@@ -25,17 +32,51 @@ export type BlockReason = 'opt_out' | 'failed_payment' | 'complaint'
 
 export type ConsentSource = 'checkbox' | 'web' | 'app'
 
-export type JourneyStatus = 'queued' | 'contacting' | 'delivered_waiting_reply' | 'followup_due' | 'followup_sent' | 'confirmed' | 'pending_manual' | 'cancelled' | 'archived'
+export type JourneyStatus =
+  | 'queued'
+  | 'contacting'
+  | 'delivered_waiting_reply'
+  | 'followup_due'
+  | 'followup_sent'
+  | 'confirmed'
+  | 'pending_manual'
+  | 'cancelled'
+  | 'archived'
 
 export type MessageDirection = 'outbound' | 'inbound'
 
-export type MessageKind = 'original' | 'retry_phone2' | 'retry_phone3' | 'followup_confirm' | 'patient_reply'
+export type MessageKind =
+  | 'original'
+  | 'retry_phone2'
+  | 'retry_phone3'
+  | 'followup_confirm'
+  | 'patient_reply'
 
-export type MessageLifecycleStatus = 'queued' | 'sending' | 'accepted' | 'delivered' | 'read' | 'replied' | 'failed' | 'cancelled'
+export type MessageLifecycleStatus =
+  | 'queued'
+  | 'sending'
+  | 'accepted'
+  | 'delivered'
+  | 'read'
+  | 'replied'
+  | 'failed'
+  | 'cancelled'
 
-export type QualificationClass = 'confirmado_positivo' | 'quer_remarcar' | 'nao_pode_comparecer' | 'cancelado' | 'duvida' | 'ambigua' | 'sem_resposta_util'
+export type QualificationClass =
+  | 'confirmado_positivo'
+  | 'quer_remarcar'
+  | 'nao_pode_comparecer'
+  | 'cancelado'
+  | 'duvida'
+  | 'ambigua'
+  | 'sem_resposta_util'
 
-export type QualificationAction = 'close_as_confirmed' | 'move_to_pending' | 'flag_vacancy' | 'manual_review' | 'ignore'
+export type QualificationAction =
+  | 'close_as_confirmed'
+  | 'move_to_pending'
+  | 'flag_vacancy'
+  | 'manual_review'
+  | 'ignore'
 
 export type ManualPriority = 'low' | 'medium' | 'high' | 'urgent'
 
@@ -142,11 +183,14 @@ export interface AnalyticsDaily {
   sucesso: number
   falha: number
   cancelada: number
-  por_procedimento: Record<string, {
-    enviadas: number
-    sucesso: number
-    falha: number
-  }>
+  por_procedimento: Record<
+    string,
+    {
+      enviadas: number
+      sucesso: number
+      falha: number
+    }
+  >
   avg_time_to_delivery_minutes?: number | null
   avg_retry_count?: number | null
   instances_used: number
@@ -557,7 +601,12 @@ export interface AntiBanConfig {
 // ============================================
 
 /** Coluna do Kanban */
-export type KanbanColumn = 'aguardando_envio' | 'em_contato' | 'respostas' | 'critico' | 'confirmados'
+export type KanbanColumn =
+  | 'aguardando_envio'
+  | 'em_contato'
+  | 'respostas'
+  | 'critico'
+  | 'confirmados'
 
 /** Card do Kanban — representa um paciente no board */
 export interface KanbanCard {

@@ -21,7 +21,9 @@ export function BulkActionsBar({
   return (
     <div className="sticky bottom-4 z-30 rounded-2xl border border-blue-500/30 bg-slate-950/90 p-4 shadow-2xl backdrop-blur-xl">
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-        <div className="text-sm font-medium text-white">{selectedCount} paciente(s) selecionado(s)</div>
+        <div className="text-sm font-medium text-white">
+          {selectedCount} paciente(s) selecionado(s)
+        </div>
         <div className="flex flex-wrap gap-2">
           <Button variant="outline" size="sm" onClick={onReturnToQueue}>
             <ArrowUpCircle className="mr-2 h-4 w-4" />

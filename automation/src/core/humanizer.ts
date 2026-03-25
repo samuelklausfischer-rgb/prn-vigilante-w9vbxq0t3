@@ -41,11 +41,11 @@ export interface HumanizerConfig {
 
 const DEFAULT_CONFIG: HumanizerConfig = {
   typingSpeedCps: 6,
-  minInterMessageDelayMs: 180_000,   // 3 minutos
-  maxInterMessageDelayMs: 780_000,   // 13 minutos
+  minInterMessageDelayMs: 180_000, // 3 minutos
+  maxInterMessageDelayMs: 780_000, // 13 minutos
   jitterPercent: 0.15,
   pauseEveryN: 5,
-  longPauseMs: 60_000,             // 1 minuto
+  longPauseMs: 60_000, // 1 minuto
   workingHoursStart: 8,
   workingHoursEnd: 20,
   respectWorkingHours: true,
@@ -120,7 +120,8 @@ export class Humanizer {
     const { minInterMessageDelayMs, maxInterMessageDelayMs, jitterPercent } = this.config
 
     // Base aleatória entre min e max
-    const baseDelay = Math.random() * (maxInterMessageDelayMs - minInterMessageDelayMs) + minInterMessageDelayMs
+    const baseDelay =
+      Math.random() * (maxInterMessageDelayMs - minInterMessageDelayMs) + minInterMessageDelayMs
 
     // Jitter: variação de ±X%
     const jitterRange = baseDelay * jitterPercent
@@ -162,14 +163,18 @@ export class Humanizer {
     const hours = this.checkWorkingHours()
     if (!hours.allowed) {
       const waitMinutes = Math.round((hours.waitMs || 0) / 60000)
-      console.log(`[${timestamp()}] 🌙 Fora do horário comercial. Próxima janela em ${waitMinutes} minutos.`)
+      console.log(
+        `[${timestamp()}] 🌙 Fora do horário comercial. Próxima janela em ${waitMinutes} minutos.`,
+      )
       return { canSend: false, reason: `outside_working_hours:${waitMinutes}min` }
     }
 
     // 2. Verificar pausa longa
     if (this.shouldTakeLongPause()) {
       const pauseSec = Math.round(this.config.longPauseMs / 1000)
-      console.log(`[${timestamp()}] ☕ Pausa de segurança: ${pauseSec}s (a cada ${this.config.pauseEveryN} mensagens)`)
+      console.log(
+        `[${timestamp()}] ☕ Pausa de segurança: ${pauseSec}s (a cada ${this.config.pauseEveryN} mensagens)`,
+      )
       await sleep(this.config.longPauseMs)
     }
 

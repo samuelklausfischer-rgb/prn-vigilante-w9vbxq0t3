@@ -1,659 +1,705 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt-BR">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>PRN-Vigilante - O Que Foi Feito</title>
-  <style>
-    :root {
-      --bg: #f3efe7;
-      --paper: #fffaf2;
-      --ink: #1f2937;
-      --muted: #6b7280;
-      --line: #d8cfc1;
-      --accent: #136f63;
-      --accent-2: #d97706;
-      --accent-3: #c2410c;
-      --good: #166534;
-      --card: #ffffff;
-      --shadow: 0 18px 45px rgba(41, 37, 36, 0.12);
-      --radius: 22px;
-    }
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PRN-Vigilante - O Que Foi Feito</title>
+    <style>
+      :root {
+        --bg: #f3efe7;
+        --paper: #fffaf2;
+        --ink: #1f2937;
+        --muted: #6b7280;
+        --line: #d8cfc1;
+        --accent: #136f63;
+        --accent-2: #d97706;
+        --accent-3: #c2410c;
+        --good: #166534;
+        --card: #ffffff;
+        --shadow: 0 18px 45px rgba(41, 37, 36, 0.12);
+        --radius: 22px;
+      }
 
-    * {
-      box-sizing: border-box;
-    }
+      * {
+        box-sizing: border-box;
+      }
 
-    body {
-      margin: 0;
-      font-family: Georgia, "Times New Roman", serif;
-      color: var(--ink);
-      background:
-        radial-gradient(circle at top left, rgba(19, 111, 99, 0.12), transparent 26%),
-        radial-gradient(circle at top right, rgba(217, 119, 6, 0.1), transparent 22%),
-        linear-gradient(180deg, #f8f4ec 0%, var(--bg) 100%);
-    }
+      body {
+        margin: 0;
+        font-family: Georgia, 'Times New Roman', serif;
+        color: var(--ink);
+        background:
+          radial-gradient(circle at top left, rgba(19, 111, 99, 0.12), transparent 26%),
+          radial-gradient(circle at top right, rgba(217, 119, 6, 0.1), transparent 22%),
+          linear-gradient(180deg, #f8f4ec 0%, var(--bg) 100%);
+      }
 
-    .page {
-      max-width: 1280px;
-      margin: 0 auto;
-      padding: 32px 20px 80px;
-    }
+      .page {
+        max-width: 1280px;
+        margin: 0 auto;
+        padding: 32px 20px 80px;
+      }
 
-    .hero {
-      background: linear-gradient(135deg, rgba(255, 250, 242, 0.98), rgba(251, 243, 226, 0.98));
-      border: 1px solid rgba(216, 207, 193, 0.9);
-      border-radius: 30px;
-      box-shadow: var(--shadow);
-      overflow: hidden;
-      position: relative;
-      padding: 34px;
-    }
+      .hero {
+        background: linear-gradient(135deg, rgba(255, 250, 242, 0.98), rgba(251, 243, 226, 0.98));
+        border: 1px solid rgba(216, 207, 193, 0.9);
+        border-radius: 30px;
+        box-shadow: var(--shadow);
+        overflow: hidden;
+        position: relative;
+        padding: 34px;
+      }
 
-    .hero::before,
-    .hero::after {
-      content: "";
-      position: absolute;
-      border-radius: 50%;
-      opacity: 0.18;
-    }
+      .hero::before,
+      .hero::after {
+        content: '';
+        position: absolute;
+        border-radius: 50%;
+        opacity: 0.18;
+      }
 
-    .hero::before {
-      width: 240px;
-      height: 240px;
-      background: #2f7f73;
-      top: -80px;
-      right: -80px;
-    }
+      .hero::before {
+        width: 240px;
+        height: 240px;
+        background: #2f7f73;
+        top: -80px;
+        right: -80px;
+      }
 
-    .hero::after {
-      width: 180px;
-      height: 180px;
-      background: #d97706;
-      bottom: -70px;
-      left: -50px;
-    }
+      .hero::after {
+        width: 180px;
+        height: 180px;
+        background: #d97706;
+        bottom: -70px;
+        left: -50px;
+      }
 
-    .eyebrow {
-      display: inline-block;
-      background: rgba(19, 111, 99, 0.1);
-      border: 1px solid rgba(19, 111, 99, 0.2);
-      color: var(--accent);
-      border-radius: 999px;
-      padding: 8px 14px;
-      font-size: 13px;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      margin-bottom: 16px;
-    }
+      .eyebrow {
+        display: inline-block;
+        background: rgba(19, 111, 99, 0.1);
+        border: 1px solid rgba(19, 111, 99, 0.2);
+        color: var(--accent);
+        border-radius: 999px;
+        padding: 8px 14px;
+        font-size: 13px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        margin-bottom: 16px;
+      }
 
-    h1, h2, h3 {
-      margin: 0;
-      font-weight: 700;
-      line-height: 1.1;
-    }
+      h1,
+      h2,
+      h3 {
+        margin: 0;
+        font-weight: 700;
+        line-height: 1.1;
+      }
 
-    h1 {
-      font-size: clamp(2.2rem, 4vw, 4.6rem);
-      max-width: 780px;
-    }
+      h1 {
+        font-size: clamp(2.2rem, 4vw, 4.6rem);
+        max-width: 780px;
+      }
 
-    .hero p {
-      max-width: 760px;
-      font-size: 1.08rem;
-      color: #374151;
-      line-height: 1.7;
-      margin-top: 16px;
-    }
+      .hero p {
+        max-width: 760px;
+        font-size: 1.08rem;
+        color: #374151;
+        line-height: 1.7;
+        margin-top: 16px;
+      }
 
-    .hero-grid {
-      display: grid;
-      grid-template-columns: 1.25fr 0.95fr;
-      gap: 26px;
-      align-items: center;
-      position: relative;
-      z-index: 1;
-    }
+      .hero-grid {
+        display: grid;
+        grid-template-columns: 1.25fr 0.95fr;
+        gap: 26px;
+        align-items: center;
+        position: relative;
+        z-index: 1;
+      }
 
-    .mini-board {
-      background: rgba(255, 255, 255, 0.78);
-      border: 1px solid rgba(216, 207, 193, 0.95);
-      border-radius: 24px;
-      padding: 20px;
-      box-shadow: 0 12px 28px rgba(41, 37, 36, 0.08);
-    }
+      .mini-board {
+        background: rgba(255, 255, 255, 0.78);
+        border: 1px solid rgba(216, 207, 193, 0.95);
+        border-radius: 24px;
+        padding: 20px;
+        box-shadow: 0 12px 28px rgba(41, 37, 36, 0.08);
+      }
 
-    .mini-board h3 {
-      font-size: 1.2rem;
-      margin-bottom: 14px;
-    }
+      .mini-board h3 {
+        font-size: 1.2rem;
+        margin-bottom: 14px;
+      }
 
-    .chip-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin-bottom: 16px;
-    }
+      .chip-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-bottom: 16px;
+      }
 
-    .chip {
-      padding: 9px 12px;
-      border-radius: 999px;
-      background: #f7f2e8;
-      border: 1px solid #e8dcc8;
-      font-size: 0.92rem;
-    }
+      .chip {
+        padding: 9px 12px;
+        border-radius: 999px;
+        background: #f7f2e8;
+        border: 1px solid #e8dcc8;
+        font-size: 0.92rem;
+      }
 
-    .chip strong {
-      color: var(--accent);
-    }
+      .chip strong {
+        color: var(--accent);
+      }
 
-    .legend {
-      display: grid;
-      gap: 10px;
-    }
+      .legend {
+        display: grid;
+        gap: 10px;
+      }
 
-    .legend-item {
-      display: grid;
-      grid-template-columns: 18px 1fr;
-      gap: 10px;
-      align-items: start;
-      font-size: 0.95rem;
-      color: var(--muted);
-    }
+      .legend-item {
+        display: grid;
+        grid-template-columns: 18px 1fr;
+        gap: 10px;
+        align-items: start;
+        font-size: 0.95rem;
+        color: var(--muted);
+      }
 
-    .dot {
-      width: 14px;
-      height: 14px;
-      margin-top: 3px;
-      border-radius: 50%;
-      background: var(--accent);
-    }
+      .dot {
+        width: 14px;
+        height: 14px;
+        margin-top: 3px;
+        border-radius: 50%;
+        background: var(--accent);
+      }
 
-    .dot.orange {
-      background: var(--accent-2);
-    }
+      .dot.orange {
+        background: var(--accent-2);
+      }
 
-    .dot.red {
-      background: var(--accent-3);
-    }
+      .dot.red {
+        background: var(--accent-3);
+      }
 
-    section {
-      margin-top: 28px;
-    }
+      section {
+        margin-top: 28px;
+      }
 
-    .section-card {
-      background: rgba(255, 250, 242, 0.95);
-      border: 1px solid rgba(216, 207, 193, 0.95);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      padding: 26px;
-    }
+      .section-card {
+        background: rgba(255, 250, 242, 0.95);
+        border: 1px solid rgba(216, 207, 193, 0.95);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        padding: 26px;
+      }
 
-    .section-card p.lead {
-      margin: 10px 0 0;
-      color: var(--muted);
-      line-height: 1.7;
-      font-size: 1rem;
-    }
+      .section-card p.lead {
+        margin: 10px 0 0;
+        color: var(--muted);
+        line-height: 1.7;
+        font-size: 1rem;
+      }
 
-    .big-flow {
-      display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 18px;
-      margin-top: 24px;
-    }
+      .big-flow {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 18px;
+        margin-top: 24px;
+      }
 
-    .flow-box {
-      position: relative;
-      background: var(--card);
-      border: 1px solid #e6dbc9;
-      border-radius: 24px;
-      min-height: 250px;
-      padding: 18px;
-      box-shadow: 0 12px 22px rgba(41, 37, 36, 0.06);
-    }
-
-    .flow-box::after {
-      content: "→";
-      position: absolute;
-      right: -18px;
-      top: 50%;
-      transform: translateY(-50%);
-      font-size: 2rem;
-      color: #b89f7b;
-    }
-
-    .flow-box:last-child::after {
-      display: none;
-    }
-
-    .flow-number {
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      display: inline-grid;
-      place-items: center;
-      font-size: 1rem;
-      background: #f3ece0;
-      border: 1px solid #e2d5c2;
-      margin-bottom: 12px;
-      font-weight: bold;
-    }
-
-    .flow-box h3 {
-      font-size: 1.25rem;
-      margin-bottom: 10px;
-    }
-
-    .flow-box p {
-      color: var(--muted);
-      line-height: 1.6;
-      margin: 0 0 12px;
-      font-size: 0.96rem;
-    }
-
-    .sketch {
-      height: 88px;
-      border-radius: 18px;
-      border: 2px dashed #d7c5a9;
-      background: linear-gradient(180deg, #fffaf3, #faf1e1);
-      display: grid;
-      place-items: center;
-      margin-bottom: 12px;
-      position: relative;
-      overflow: hidden;
-      color: #725840;
-      font-size: 2.2rem;
-    }
-
-    .sketch small {
-      position: absolute;
-      bottom: 8px;
-      font-size: 0.72rem;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-    }
-
-    .flow-list {
-      margin: 0;
-      padding-left: 18px;
-      color: #4b5563;
-      line-height: 1.65;
-      font-size: 0.92rem;
-    }
-
-    .before-after {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 18px;
-      margin-top: 22px;
-    }
-
-    .compare {
-      border-radius: 22px;
-      padding: 22px;
-      border: 1px solid #e4d8c7;
-      background: white;
-    }
-
-    .compare.bad {
-      background: linear-gradient(180deg, #fff8f5, #fff1ea);
-    }
-
-    .compare.good {
-      background: linear-gradient(180deg, #f7fff9, #eefaf0);
-    }
-
-    .compare h3 {
-      font-size: 1.3rem;
-      margin-bottom: 12px;
-    }
-
-    .compare ul {
-      margin: 0;
-      padding-left: 18px;
-      line-height: 1.8;
-      color: #4b5563;
-    }
-
-    .status-grid {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 18px;
-      margin-top: 24px;
-    }
-
-    .status-card {
-      background: white;
-      border: 1px solid #e5dac7;
-      border-radius: 22px;
-      padding: 20px;
-      box-shadow: 0 10px 18px rgba(41, 37, 36, 0.06);
-    }
-
-    .status-card h3 {
-      font-size: 1.1rem;
-      margin-bottom: 10px;
-    }
-
-    .status-card p {
-      margin: 0;
-      color: var(--muted);
-      line-height: 1.65;
-    }
-
-    .status-card .pill {
-      display: inline-block;
-      padding: 6px 10px;
-      border-radius: 999px;
-      font-size: 0.78rem;
-      letter-spacing: 0.05em;
-      text-transform: uppercase;
-      margin-bottom: 12px;
-      border: 1px solid;
-    }
-
-    .done {
-      color: var(--good);
-      background: rgba(22, 101, 52, 0.08);
-      border-color: rgba(22, 101, 52, 0.15);
-    }
-
-    .attention {
-      color: #9a3412;
-      background: rgba(217, 119, 6, 0.1);
-      border-color: rgba(217, 119, 6, 0.18);
-    }
-
-    .waiting {
-      color: #92400e;
-      background: rgba(251, 191, 36, 0.12);
-      border-color: rgba(251, 191, 36, 0.18);
-    }
-
-    .roadmap {
-      margin-top: 24px;
-      display: grid;
-      gap: 14px;
-    }
-
-    .roadmap-step {
-      display: grid;
-      grid-template-columns: 56px 1fr;
-      gap: 14px;
-      align-items: start;
-      background: white;
-      border: 1px solid #e5dac7;
-      border-radius: 18px;
-      padding: 16px;
-    }
-
-    .roadmap-step .badge {
-      width: 56px;
-      height: 56px;
-      border-radius: 18px;
-      background: linear-gradient(135deg, #136f63, #1f9d8f);
-      color: white;
-      display: grid;
-      place-items: center;
-      font-size: 1.1rem;
-      font-weight: bold;
-      box-shadow: 0 10px 20px rgba(19, 111, 99, 0.2);
-    }
-
-    .roadmap-step h3 {
-      font-size: 1.12rem;
-      margin-bottom: 6px;
-    }
-
-    .roadmap-step p {
-      margin: 0;
-      color: var(--muted);
-      line-height: 1.6;
-    }
-
-    .footer-note {
-      margin-top: 24px;
-      padding: 16px 18px;
-      border-radius: 18px;
-      background: rgba(19, 111, 99, 0.08);
-      border: 1px solid rgba(19, 111, 99, 0.15);
-      color: #184b44;
-      line-height: 1.7;
-    }
-
-    @media (max-width: 980px) {
-      .hero-grid,
-      .big-flow,
-      .before-after,
-      .status-grid {
-        grid-template-columns: 1fr;
+      .flow-box {
+        position: relative;
+        background: var(--card);
+        border: 1px solid #e6dbc9;
+        border-radius: 24px;
+        min-height: 250px;
+        padding: 18px;
+        box-shadow: 0 12px 22px rgba(41, 37, 36, 0.06);
       }
 
       .flow-box::after {
-        content: "↓";
-        left: 50%;
-        right: auto;
-        top: auto;
-        bottom: -28px;
-        transform: translateX(-50%);
+        content: '→';
+        position: absolute;
+        right: -18px;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 2rem;
+        color: #b89f7b;
       }
-    }
-  </style>
-</head>
-<body>
-  <div class="page">
-    <header class="hero">
-      <div class="hero-grid">
-        <div>
-          <div class="eyebrow">Explicação Leiga do Avanço</div>
-          <h1>O sistema ganhou um “esqueleto profissional” para enviar mensagens sem bagunça.</h1>
-          <p>
-            Em vez de apenas ter uma ideia da automação, agora o projeto já tem a base desenhada,
-            documentada e parcialmente implementada para controlar a fila, escolher o WhatsApp certo,
-            registrar o que aconteceu e evitar que dois robôs façam o mesmo trabalho ao mesmo tempo.
-          </p>
+
+      .flow-box:last-child::after {
+        display: none;
+      }
+
+      .flow-number {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: inline-grid;
+        place-items: center;
+        font-size: 1rem;
+        background: #f3ece0;
+        border: 1px solid #e2d5c2;
+        margin-bottom: 12px;
+        font-weight: bold;
+      }
+
+      .flow-box h3 {
+        font-size: 1.25rem;
+        margin-bottom: 10px;
+      }
+
+      .flow-box p {
+        color: var(--muted);
+        line-height: 1.6;
+        margin: 0 0 12px;
+        font-size: 0.96rem;
+      }
+
+      .sketch {
+        height: 88px;
+        border-radius: 18px;
+        border: 2px dashed #d7c5a9;
+        background: linear-gradient(180deg, #fffaf3, #faf1e1);
+        display: grid;
+        place-items: center;
+        margin-bottom: 12px;
+        position: relative;
+        overflow: hidden;
+        color: #725840;
+        font-size: 2.2rem;
+      }
+
+      .sketch small {
+        position: absolute;
+        bottom: 8px;
+        font-size: 0.72rem;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+      }
+
+      .flow-list {
+        margin: 0;
+        padding-left: 18px;
+        color: #4b5563;
+        line-height: 1.65;
+        font-size: 0.92rem;
+      }
+
+      .before-after {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 18px;
+        margin-top: 22px;
+      }
+
+      .compare {
+        border-radius: 22px;
+        padding: 22px;
+        border: 1px solid #e4d8c7;
+        background: white;
+      }
+
+      .compare.bad {
+        background: linear-gradient(180deg, #fff8f5, #fff1ea);
+      }
+
+      .compare.good {
+        background: linear-gradient(180deg, #f7fff9, #eefaf0);
+      }
+
+      .compare h3 {
+        font-size: 1.3rem;
+        margin-bottom: 12px;
+      }
+
+      .compare ul {
+        margin: 0;
+        padding-left: 18px;
+        line-height: 1.8;
+        color: #4b5563;
+      }
+
+      .status-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 18px;
+        margin-top: 24px;
+      }
+
+      .status-card {
+        background: white;
+        border: 1px solid #e5dac7;
+        border-radius: 22px;
+        padding: 20px;
+        box-shadow: 0 10px 18px rgba(41, 37, 36, 0.06);
+      }
+
+      .status-card h3 {
+        font-size: 1.1rem;
+        margin-bottom: 10px;
+      }
+
+      .status-card p {
+        margin: 0;
+        color: var(--muted);
+        line-height: 1.65;
+      }
+
+      .status-card .pill {
+        display: inline-block;
+        padding: 6px 10px;
+        border-radius: 999px;
+        font-size: 0.78rem;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        margin-bottom: 12px;
+        border: 1px solid;
+      }
+
+      .done {
+        color: var(--good);
+        background: rgba(22, 101, 52, 0.08);
+        border-color: rgba(22, 101, 52, 0.15);
+      }
+
+      .attention {
+        color: #9a3412;
+        background: rgba(217, 119, 6, 0.1);
+        border-color: rgba(217, 119, 6, 0.18);
+      }
+
+      .waiting {
+        color: #92400e;
+        background: rgba(251, 191, 36, 0.12);
+        border-color: rgba(251, 191, 36, 0.18);
+      }
+
+      .roadmap {
+        margin-top: 24px;
+        display: grid;
+        gap: 14px;
+      }
+
+      .roadmap-step {
+        display: grid;
+        grid-template-columns: 56px 1fr;
+        gap: 14px;
+        align-items: start;
+        background: white;
+        border: 1px solid #e5dac7;
+        border-radius: 18px;
+        padding: 16px;
+      }
+
+      .roadmap-step .badge {
+        width: 56px;
+        height: 56px;
+        border-radius: 18px;
+        background: linear-gradient(135deg, #136f63, #1f9d8f);
+        color: white;
+        display: grid;
+        place-items: center;
+        font-size: 1.1rem;
+        font-weight: bold;
+        box-shadow: 0 10px 20px rgba(19, 111, 99, 0.2);
+      }
+
+      .roadmap-step h3 {
+        font-size: 1.12rem;
+        margin-bottom: 6px;
+      }
+
+      .roadmap-step p {
+        margin: 0;
+        color: var(--muted);
+        line-height: 1.6;
+      }
+
+      .footer-note {
+        margin-top: 24px;
+        padding: 16px 18px;
+        border-radius: 18px;
+        background: rgba(19, 111, 99, 0.08);
+        border: 1px solid rgba(19, 111, 99, 0.15);
+        color: #184b44;
+        line-height: 1.7;
+      }
+
+      @media (max-width: 980px) {
+        .hero-grid,
+        .big-flow,
+        .before-after,
+        .status-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .flow-box::after {
+          content: '↓';
+          left: 50%;
+          right: auto;
+          top: auto;
+          bottom: -28px;
+          transform: translateX(-50%);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <header class="hero">
+        <div class="hero-grid">
+          <div>
+            <div class="eyebrow">Explicação Leiga do Avanço</div>
+            <h1>O sistema ganhou um “esqueleto profissional” para enviar mensagens sem bagunça.</h1>
+            <p>
+              Em vez de apenas ter uma ideia da automação, agora o projeto já tem a base desenhada,
+              documentada e parcialmente implementada para controlar a fila, escolher o WhatsApp
+              certo, registrar o que aconteceu e evitar que dois robôs façam o mesmo trabalho ao
+              mesmo tempo.
+            </p>
+          </div>
+
+          <div class="mini-board">
+            <h3>Em poucas palavras</h3>
+            <div class="chip-row">
+              <div class="chip"><strong>5</strong> migrations prontas</div>
+              <div class="chip"><strong>1</strong> worker real iniciado no código</div>
+              <div class="chip"><strong>4</strong> tabelas novas planejadas no banco</div>
+              <div class="chip"><strong>2</strong> funções SQL de fila</div>
+              <div class="chip"><strong>4</strong> views para leitura operacional</div>
+            </div>
+            <div class="legend">
+              <div class="legend-item">
+                <span class="dot"></span
+                ><span>Foi criada a parte estrutural: banco, tipos, drivers e motor base.</span>
+              </div>
+              <div class="legend-item">
+                <span class="dot orange"></span
+                ><span
+                  >Falta executar as migrations no Supabase real para a automação ganhar “vida no
+                  banco”.</span
+                >
+              </div>
+              <div class="legend-item">
+                <span class="dot red"></span
+                ><span
+                  >A parte de LGPD/consentimento ainda precisa de encaixe completo no fluxo
+                  final.</span
+                >
+              </div>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <section class="section-card">
+        <h2>Desenho simples do que foi construído</h2>
+        <p class="lead">
+          Pense no sistema como uma esteira organizada: primeiro arrumamos o depósito, depois o
+          cérebro, depois o operador e por fim o painel de leitura.
+        </p>
+
+        <div class="big-flow">
+          <article class="flow-box">
+            <div class="flow-number">1</div>
+            <div class="sketch">🗄️<small>Banco preparado</small></div>
+            <h3>Banco organizado</h3>
+            <p>
+              Foram criados os arquivos SQL que ensinam o banco a controlar fila, travas, logs e
+              workers.
+            </p>
+            <ul class="flow-list">
+              <li>novos campos de lock e tentativa</li>
+              <li>novas tabelas de auditoria</li>
+              <li>funções para pegar a próxima mensagem</li>
+            </ul>
+          </article>
+
+          <article class="flow-box">
+            <div class="flow-number">2</div>
+            <div class="sketch">🧠<small>Tipos e regras</small></div>
+            <h3>Contratos definidos</h3>
+            <p>
+              O projeto passou a saber “que tipo de dado existe” para diminuir confusão entre tela,
+              worker e banco.
+            </p>
+            <ul class="flow-list">
+              <li>tipos novos no worker</li>
+              <li>tipos ajustados no frontend</li>
+              <li>schema tipado atualizado</li>
+            </ul>
+          </article>
+
+          <article class="flow-box">
+            <div class="flow-number">3</div>
+            <div class="sketch">⚙️<small>Motor base</small></div>
+            <h3>Worker montado</h3>
+            <p>
+              Foi criada a base do robô que fica rodando, olhando a fila, escolhendo instância e
+              registrando heartbeat.
+            </p>
+            <ul class="flow-list">
+              <li>Queue Manager</li>
+              <li>Instance Selector</li>
+              <li>Worker Engine com loop</li>
+            </ul>
+          </article>
+
+          <article class="flow-box">
+            <div class="flow-number">4</div>
+            <div class="sketch">📊<small>Leitura operacional</small></div>
+            <h3>Painel preparado</h3>
+            <p>
+              Também foram ajustadas partes do frontend para acompanhar melhor a evolução da
+              automação.
+            </p>
+            <ul class="flow-list">
+              <li>ajustes de tipagem</li>
+              <li>compilação validada</li>
+              <li>documentação visual pronta</li>
+            </ul>
+          </article>
+        </div>
+      </section>
+
+      <section class="section-card">
+        <h2>Antes e depois, sem tecnicês</h2>
+        <div class="before-after">
+          <article class="compare bad">
+            <h3>Antes</h3>
+            <ul>
+              <li>havia a ideia da automação, mas o motor ainda era só um placeholder</li>
+              <li>o banco não tinha toda a estrutura para controlar concorrência e auditoria</li>
+              <li>faltava uma linha mais clara entre planejamento e execução</li>
+              <li>os tipos do projeto estavam desalinhados em vários pontos</li>
+            </ul>
+          </article>
+
+          <article class="compare good">
+            <h3>Depois</h3>
+            <ul>
+              <li>as migrations estão prontas e separadas por responsabilidade</li>
+              <li>existe uma espinha dorsal do worker para processar a fila</li>
+              <li>há uma documentação operacional dizendo como executar e validar</li>
+              <li>o projeto agora tem um caminho mais industrial e menos improvisado</li>
+            </ul>
+          </article>
+        </div>
+      </section>
+
+      <section class="section-card">
+        <h2>O que foi entregue, na prática</h2>
+        <div class="status-grid">
+          <article class="status-card">
+            <div class="pill done">Concluído</div>
+            <h3>Migrations prontas</h3>
+            <p>
+              Foram criados os arquivos SQL que adicionam campos, tabelas, índices, funções e views.
+              Ou seja: a planta da automação no banco já está pronta.
+            </p>
+          </article>
+
+          <article class="status-card">
+            <div class="pill done">Concluído</div>
+            <h3>Worker base codificado</h3>
+            <p>
+              O robô agora já tem peças separadas para pegar mensagens, verificar instância, enviar
+              e registrar status.
+            </p>
+          </article>
+
+          <article class="status-card">
+            <div class="pill done">Concluído</div>
+            <h3>Validação de compilação</h3>
+            <p>
+              O app e a entrada principal da automação passaram por checagem de TypeScript dentro do
+              ambiente.
+            </p>
+          </article>
+
+          <article class="status-card">
+            <div class="pill attention">Parcial</div>
+            <h3>LGPD no fluxo final</h3>
+            <p>
+              A estrutura de consentimento e bloqueio foi preparada, mas o encaixe completo depende
+              do vínculo claro com o paciente na fila.
+            </p>
+          </article>
+
+          <article class="status-card">
+            <div class="pill waiting">Pendente externo</div>
+            <h3>Executar no Supabase real</h3>
+            <p>
+              Os arquivos foram criados aqui, mas precisam ser aplicados no banco de verdade para o
+              sistema começar a usar tudo isso.
+            </p>
+          </article>
+
+          <article class="status-card">
+            <div class="pill waiting">Pendente externo</div>
+            <h3>Rodar o worker em ambiente real</h3>
+            <p>
+              O código está pronto para a base começar, mas ainda falta rodar com as migrations
+              aplicadas e a Evolution ativa.
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <section class="section-card">
+        <h2>Próximos passos naturais</h2>
+        <p class="lead">
+          Agora o trabalho ficou muito mais objetivo. Em vez de “pensar na automação”, o próximo
+          passo é simplesmente ligar as peças que já foram montadas.
+        </p>
+
+        <div class="roadmap">
+          <article class="roadmap-step">
+            <div class="badge">01</div>
+            <div>
+              <h3>Executar as migrations no Supabase</h3>
+              <p>Aplicar os 5 arquivos SQL no banco para criar a estrutura real da automação.</p>
+            </div>
+          </article>
+
+          <article class="roadmap-step">
+            <div class="badge">02</div>
+            <div>
+              <h3>Ligar o worker ao banco novo</h3>
+              <p>
+                Com o banco pronto, o worker passa a conseguir claimar mensagens, registrar
+                heartbeat e salvar logs.
+              </p>
+            </div>
+          </article>
+
+          <article class="roadmap-step">
+            <div class="badge">03</div>
+            <div>
+              <h3>Fechar a parte de consentimento</h3>
+              <p>
+                Amarrar corretamente fila, paciente e regras de LGPD para o fluxo ficar completo.
+              </p>
+            </div>
+          </article>
+
+          <article class="roadmap-step">
+            <div class="badge">04</div>
+            <div>
+              <h3>Testar envio real com monitoramento</h3>
+              <p>
+                Rodar poucos envios controlados, observar logs, locks, heartbeats e comportamento
+                das instâncias.
+              </p>
+            </div>
+          </article>
         </div>
 
-        <div class="mini-board">
-          <h3>Em poucas palavras</h3>
-          <div class="chip-row">
-            <div class="chip"><strong>5</strong> migrations prontas</div>
-            <div class="chip"><strong>1</strong> worker real iniciado no código</div>
-            <div class="chip"><strong>4</strong> tabelas novas planejadas no banco</div>
-            <div class="chip"><strong>2</strong> funções SQL de fila</div>
-            <div class="chip"><strong>4</strong> views para leitura operacional</div>
-          </div>
-          <div class="legend">
-            <div class="legend-item"><span class="dot"></span><span>Foi criada a parte estrutural: banco, tipos, drivers e motor base.</span></div>
-            <div class="legend-item"><span class="dot orange"></span><span>Falta executar as migrations no Supabase real para a automação ganhar “vida no banco”.</span></div>
-            <div class="legend-item"><span class="dot red"></span><span>A parte de LGPD/consentimento ainda precisa de encaixe completo no fluxo final.</span></div>
-          </div>
+        <div class="footer-note">
+          Resumindo de forma leiga: eu não só “descrevi” a automação. Eu deixei pronta a maior parte
+          da infraestrutura de base para ela existir de verdade. O que falta agora é executar essa
+          base no banco real e fazer os testes operacionais finais.
         </div>
-      </div>
-    </header>
-
-    <section class="section-card">
-      <h2>Desenho simples do que foi construído</h2>
-      <p class="lead">
-        Pense no sistema como uma esteira organizada: primeiro arrumamos o depósito, depois o cérebro,
-        depois o operador e por fim o painel de leitura.
-      </p>
-
-      <div class="big-flow">
-        <article class="flow-box">
-          <div class="flow-number">1</div>
-          <div class="sketch">🗄️<small>Banco preparado</small></div>
-          <h3>Banco organizado</h3>
-          <p>Foram criados os arquivos SQL que ensinam o banco a controlar fila, travas, logs e workers.</p>
-          <ul class="flow-list">
-            <li>novos campos de lock e tentativa</li>
-            <li>novas tabelas de auditoria</li>
-            <li>funções para pegar a próxima mensagem</li>
-          </ul>
-        </article>
-
-        <article class="flow-box">
-          <div class="flow-number">2</div>
-          <div class="sketch">🧠<small>Tipos e regras</small></div>
-          <h3>Contratos definidos</h3>
-          <p>O projeto passou a saber “que tipo de dado existe” para diminuir confusão entre tela, worker e banco.</p>
-          <ul class="flow-list">
-            <li>tipos novos no worker</li>
-            <li>tipos ajustados no frontend</li>
-            <li>schema tipado atualizado</li>
-          </ul>
-        </article>
-
-        <article class="flow-box">
-          <div class="flow-number">3</div>
-          <div class="sketch">⚙️<small>Motor base</small></div>
-          <h3>Worker montado</h3>
-          <p>Foi criada a base do robô que fica rodando, olhando a fila, escolhendo instância e registrando heartbeat.</p>
-          <ul class="flow-list">
-            <li>Queue Manager</li>
-            <li>Instance Selector</li>
-            <li>Worker Engine com loop</li>
-          </ul>
-        </article>
-
-        <article class="flow-box">
-          <div class="flow-number">4</div>
-          <div class="sketch">📊<small>Leitura operacional</small></div>
-          <h3>Painel preparado</h3>
-          <p>Também foram ajustadas partes do frontend para acompanhar melhor a evolução da automação.</p>
-          <ul class="flow-list">
-            <li>ajustes de tipagem</li>
-            <li>compilação validada</li>
-            <li>documentação visual pronta</li>
-          </ul>
-        </article>
-      </div>
-    </section>
-
-    <section class="section-card">
-      <h2>Antes e depois, sem tecnicês</h2>
-      <div class="before-after">
-        <article class="compare bad">
-          <h3>Antes</h3>
-          <ul>
-            <li>havia a ideia da automação, mas o motor ainda era só um placeholder</li>
-            <li>o banco não tinha toda a estrutura para controlar concorrência e auditoria</li>
-            <li>faltava uma linha mais clara entre planejamento e execução</li>
-            <li>os tipos do projeto estavam desalinhados em vários pontos</li>
-          </ul>
-        </article>
-
-        <article class="compare good">
-          <h3>Depois</h3>
-          <ul>
-            <li>as migrations estão prontas e separadas por responsabilidade</li>
-            <li>existe uma espinha dorsal do worker para processar a fila</li>
-            <li>há uma documentação operacional dizendo como executar e validar</li>
-            <li>o projeto agora tem um caminho mais industrial e menos improvisado</li>
-          </ul>
-        </article>
-      </div>
-    </section>
-
-    <section class="section-card">
-      <h2>O que foi entregue, na prática</h2>
-      <div class="status-grid">
-        <article class="status-card">
-          <div class="pill done">Concluído</div>
-          <h3>Migrations prontas</h3>
-          <p>
-            Foram criados os arquivos SQL que adicionam campos, tabelas, índices, funções e views.
-            Ou seja: a planta da automação no banco já está pronta.
-          </p>
-        </article>
-
-        <article class="status-card">
-          <div class="pill done">Concluído</div>
-          <h3>Worker base codificado</h3>
-          <p>
-            O robô agora já tem peças separadas para pegar mensagens, verificar instância, enviar e registrar status.
-          </p>
-        </article>
-
-        <article class="status-card">
-          <div class="pill done">Concluído</div>
-          <h3>Validação de compilação</h3>
-          <p>
-            O app e a entrada principal da automação passaram por checagem de TypeScript dentro do ambiente.
-          </p>
-        </article>
-
-        <article class="status-card">
-          <div class="pill attention">Parcial</div>
-          <h3>LGPD no fluxo final</h3>
-          <p>
-            A estrutura de consentimento e bloqueio foi preparada, mas o encaixe completo depende do vínculo claro com o paciente na fila.
-          </p>
-        </article>
-
-        <article class="status-card">
-          <div class="pill waiting">Pendente externo</div>
-          <h3>Executar no Supabase real</h3>
-          <p>
-            Os arquivos foram criados aqui, mas precisam ser aplicados no banco de verdade para o sistema começar a usar tudo isso.
-          </p>
-        </article>
-
-        <article class="status-card">
-          <div class="pill waiting">Pendente externo</div>
-          <h3>Rodar o worker em ambiente real</h3>
-          <p>
-            O código está pronto para a base começar, mas ainda falta rodar com as migrations aplicadas e a Evolution ativa.
-          </p>
-        </article>
-      </div>
-    </section>
-
-    <section class="section-card">
-      <h2>Próximos passos naturais</h2>
-      <p class="lead">
-        Agora o trabalho ficou muito mais objetivo. Em vez de “pensar na automação”, o próximo passo é simplesmente ligar as peças que já foram montadas.
-      </p>
-
-      <div class="roadmap">
-        <article class="roadmap-step">
-          <div class="badge">01</div>
-          <div>
-            <h3>Executar as migrations no Supabase</h3>
-            <p>Aplicar os 5 arquivos SQL no banco para criar a estrutura real da automação.</p>
-          </div>
-        </article>
-
-        <article class="roadmap-step">
-          <div class="badge">02</div>
-          <div>
-            <h3>Ligar o worker ao banco novo</h3>
-            <p>Com o banco pronto, o worker passa a conseguir claimar mensagens, registrar heartbeat e salvar logs.</p>
-          </div>
-        </article>
-
-        <article class="roadmap-step">
-          <div class="badge">03</div>
-          <div>
-            <h3>Fechar a parte de consentimento</h3>
-            <p>Amarrar corretamente fila, paciente e regras de LGPD para o fluxo ficar completo.</p>
-          </div>
-        </article>
-
-        <article class="roadmap-step">
-          <div class="badge">04</div>
-          <div>
-            <h3>Testar envio real com monitoramento</h3>
-            <p>Rodar poucos envios controlados, observar logs, locks, heartbeats e comportamento das instâncias.</p>
-          </div>
-        </article>
-      </div>
-
-      <div class="footer-note">
-        Resumindo de forma leiga: eu não só “descrevi” a automação. Eu deixei pronta a maior parte da infraestrutura de base para ela existir de verdade. O que falta agora é executar essa base no banco real e fazer os testes operacionais finais.
-      </div>
-    </section>
-  </div>
-</body>
+      </section>
+    </div>
+  </body>
 </html>

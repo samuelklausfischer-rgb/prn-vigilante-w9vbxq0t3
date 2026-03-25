@@ -134,8 +134,8 @@ export function DispatchControl({
             {lastHeartbeat && (
               <p className="text-[11px] text-slate-500 font-mono">
                 <Activity className="w-3 h-3 inline mr-1" />
-                {lastHeartbeat.messages_processed} enviadas | {lastHeartbeat.messages_failed}{' '}
-                falhas | RAM: {lastHeartbeat.memory_usage_mb ?? '?'}MB
+                {lastHeartbeat.messages_processed} enviadas | {lastHeartbeat.messages_failed} falhas
+                | RAM: {lastHeartbeat.memory_usage_mb ?? '?'}MB
               </p>
             )}
           </div>
@@ -157,11 +157,7 @@ export function DispatchControl({
             ) : (
               <Play className="w-6 h-6" />
             )}
-            {toggling
-              ? 'Processando...'
-              : isActive
-                ? 'Pausar Disparo'
-                : 'Começar Disparo'}
+            {toggling ? 'Processando...' : isActive ? 'Pausar Disparo' : 'Começar Disparo'}
 
             {/* Pulse animation when active */}
             {isActive && !toggling && (
@@ -214,12 +210,9 @@ export function DispatchControl({
                   {new Date(log.sent_at).toLocaleTimeString('pt-BR', { hour12: false })}
                 </span>
                 <span>
-                  {log.phone_masked || '???'} →{' '}
-                  {log.status === 'delivered' ? 'Entregue' : 'Falha'}
+                  {log.phone_masked || '???'} → {log.status === 'delivered' ? 'Entregue' : 'Falha'}
                 </span>
-                {log.duration_ms && (
-                  <span className="text-slate-600">({log.duration_ms}ms)</span>
-                )}
+                {log.duration_ms && <span className="text-slate-600">({log.duration_ms}ms)</span>}
               </div>
             ))}
           </div>

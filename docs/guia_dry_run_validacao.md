@@ -10,21 +10,25 @@
 ### 1. Arquivos Modificados
 
 #### `automation/.env`
+
 - ✅ Adicionado `SUPABASE_SERVICE_ROLE_KEY`
 - ✅ Adicionado `DRY_RUN=true`
 - ✅ Adicionado configs de worker (heartbeat, lock timeout, etc.)
 
 #### `automation/src/core/worker-engine.ts`
+
 - ✅ Adicionado `dryRun` (lê flag do .env)
 - ✅ Log informativo no início se dry run ativo
 - ✅ Passa `dryRun` para queue manager
 
 #### `automation/src/core/queue-manager.ts`
+
 - ✅ Adicionado parâmetro `dryRun` em `processClaimedMessage`
 - ✅ Em dry run: simula delay, logs detalhados, não chama Evolution API
 - ✅ Em produção: fluxo normal com envio real
 
 #### `automation/src/services/supabase.ts`
+
 - ✅ Adicionado parâmetro `dryRun` em `markMessageDelivered`
 - ✅ Em dry run: NÃO incrementa `messages_sent_count`
 - ✅ Em produção: incrementa contador normalmente
@@ -32,6 +36,7 @@
 ### 2. Arquivos Criados
 
 #### `automation/src/diagnostic.ts`
+
 - Função `runDiagnostics()` com 6 validações:
   1. Teste `claimNextMessage()`
   2. Teste `getSystemConfig()`
@@ -41,10 +46,12 @@
   6. Locks expirados
 
 #### `automation/src/index.ts`
+
 - ✅ Suporta modo diagnóstico com `--diag` ou `--diagnostic`
 - ✅ Modo worker padrão sem argumentos
 
 #### `docs/dry_run_test_messages.sql`
+
 - SQL para zerar contadores
 - SQL para inserir 10 mensagens de teste
 - SQL para verificar estado inicial
@@ -75,6 +82,7 @@ bun run automation/src/index.ts --diag
 ```
 
 **O que verificar:**
+
 - ✅ Mensagem claimada ou fila vazia
 - ✅ Configuração carregada
 - ✅ Evolution API disponível
@@ -91,6 +99,7 @@ No Supabase Dashboard SQL Editor, executar:
 ```
 
 **O que verificar:**
+
 - ✅ 10 mensagens inseridas
 - ✅ Status = 'queued'
 - ✅ Instância conectada com `rotation_index = 0`
@@ -103,6 +112,7 @@ bun run automation/src/index.ts
 ```
 
 **Logs esperados:**
+
 ```
 ────────────────────────────────────────────────────
 🤖 PRN-Vigilante — Automation Engine
@@ -124,7 +134,7 @@ bun run automation/src/index.ts
 Após 10 mensagens, rodar no Supabase SQL Editor:
 
 ```sql
-SELECT 
+SELECT
   id,
   instance_name,
   status,
@@ -136,6 +146,7 @@ ORDER BY rotation_index ASC;
 ```
 
 **Resultado esperado (round-robin funcionando):**
+
 - Se 1 instância: `messages_sent_count = 0`, `rotation_index = 0` (não incrementado)
 - Se 2+ instâncias: `rotation_index` alternou (0, 1, 2...) mas `messages_sent_count = 0`
 
@@ -154,6 +165,7 @@ WHERE patient_name LIKE '%Paciente Teste%';
 ## 📊 CHECKLIST DE SUCESSO
 
 ### Pré-Execução
+
 - [ ] Migrations 1-7 aplicadas
 - [ ] SERVICE_ROLE_KEY configurado
 - [ ] DRY_RUN=true no .env
@@ -161,6 +173,7 @@ WHERE patient_name LIKE '%Paciente Teste%';
 - [ ] 1+ instância conectada
 
 ### Durante Execução
+
 - [ ] Worker iniciou sem erros
 - [ ] Log "MODO DRY RUN ATIVADO" aparece
 - [ ] Logs "[DRY RUN]" aparecem para cada mensagem
@@ -168,6 +181,7 @@ WHERE patient_name LIKE '%Paciente Teste%';
 - [ ] Todas as 10 mensagens foram processadas
 
 ### Pós-Execução
+
 - [ ] Mensagens marcadas como 'delivered'
 - [ ] `messages_sent_count = 0` (não incrementou em dry run)
 - [ ] Logs em `message_logs` criados
@@ -178,11 +192,13 @@ WHERE patient_name LIKE '%Paciente Teste%';
 ## 🆘 COMANDOS RÁPIDOS
 
 ### Parar Worker
+
 ```bash
 Ctrl+C
 ```
 
 ### Limpar Locks (se necessário)
+
 ```sql
 UPDATE public.patients_queue
 SET status = 'queued', locked_by = NULL, locked_at = NULL
@@ -190,6 +206,7 @@ WHERE status = 'sending';
 ```
 
 ### Verificar Status da Fila
+
 ```sql
 SELECT status, COUNT(*)
 FROM public.patients_queue
@@ -197,6 +214,7 @@ GROUP BY status;
 ```
 
 ### Verificar Heartbeats
+
 ```sql
 SELECT * FROM worker_status_summary;
 ```
@@ -208,18 +226,21 @@ SELECT * FROM worker_status_summary;
 Após dry run validado com sucesso:
 
 **Opção A:** Continuar para Caminho 3 (Teste real)
+
 - Fornece seu número real
 - Atualize fila com número real
 - Desligar dry run (`DRY_RUN=false`)
 - Rodar worker e enviar 1 mensagem real
 
 **Opção B:** Continuar para Caminho 4 (Produção)
+
 - Integrar LGPD/consentimento
 - Implementar delay dinâmico
 - Implementar circuit breaker
 - Adotar logger estruturado
 
 **Opção C:** Refinar round-robin
+
 - Implementar atualização de `rotation_index`
 - Validar rotação justa com múltiplas instâncias
 

@@ -48,12 +48,11 @@ if (isDiagnosticMode) {
   console.log('🚀 Inicializando worker de automação...')
   console.log(`✅ Ambiente validado: ${Object.keys(REQUIRED_ENV).length} variáveis OK`)
   console.log('─'.repeat(50))
-  
+
   const engine = new WorkerEngine()
-  
+
   engine.start().catch((error) => {
     console.error('❌ Falha fatal ao iniciar o worker:', error)
     process.exit(1)
   })
 }
-

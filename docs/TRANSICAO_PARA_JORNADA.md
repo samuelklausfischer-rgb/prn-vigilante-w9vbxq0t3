@@ -25,12 +25,14 @@
 ### 1.1 O Que Está Mudando
 
 #### Sistema Legado (Atual)
+
 - **Tabela principal:** `patients_queue`
 - **Abordagem:** Fila simples com status básico
 - **Rastreamento:** Limitado a status de envio
 - **Lifecycle:** Incompleto (sem tracking de respostas)
 
 #### Sistema Novo (Journey Model)
+
 - **Tabelas principais:**
   - `patient_journeys` - Jornada completa do paciente
   - `journey_messages` - Lifecycle completo de mensagens
@@ -92,17 +94,20 @@
 ### 1.3 Compatibilidade e Coexistência
 
 #### Tabelas Legadas Continuam Ativas
+
 - `patients_queue` mantida para compatibilidade
 - Campo `journey_id` adicionado para link com novo sistema
 - Campos aditivos adicionados para rastreamento
 
 #### Sistema Híbrido
+
 - Dupla escrita mantida durante período de transição
 - Novas tabelas funcionam em paralelo com legado
 - Views consolidam dados de ambos sistemas
 - Gradual migracão de funcionalidades
 
 #### Período de Coexistência
+
 - **FASE 1-2:** Dupla escrita obrigatória
 - **FASE 3:** Leitura primária do novo sistema
 - **FASE 4:** Desativação progressiva do legado
@@ -132,6 +137,7 @@ patients_queue (
 ```
 
 **Limitações:**
+
 - ❌ Sem rastreamento de leitura
 - ❌ Sem histórico de mensagens
 - ❌ Sem timeline de eventos
@@ -265,6 +271,7 @@ journey_events (
 #### A. `strategic_followup_overview`
 
 Visão estratégica para dashboard:
+
 - Journeys ativos e follow-ups pendentes
 - Último status de mensagem
 - Classificações mais recentes
@@ -293,6 +300,7 @@ ORDER BY
 #### B. `vacancy_candidates_overview`
 
 Candidatos a vagas:
+
 - Pacientes que indicaram não comparecer
 - Priorização por urgência
 - Motivo da vaga
@@ -321,6 +329,7 @@ ORDER BY priority_score DESC, pj.data_exame ASC;
 #### C. `journey_timeline_view`
 
 Timeline unificada de eventos:
+
 - Combina `journey_events`, `journey_messages` e `message_qualifications`
 - Histórico cronológico completo
 - Excerpts de mensagens e classificações
@@ -367,10 +376,11 @@ ALTER TABLE patients_queue
 #### Atividades
 
 1. **Aplicar Migrations**
+
    ```bash
    # Aplicar migration do journey model
    supabase migration up 20260319000000_strategic_journey_tracking.sql
-   
+
    # Verificar criação de tabelas
    supabase db execute --remote "
      SELECT table_name FROM information_schema.tables
@@ -378,7 +388,7 @@ ALTER TABLE patients_queue
        AND table_name IN ('patient_journeys', 'journey_messages', 'webhook_events_raw',
                           'message_qualifications', 'journey_events');
    "
-   
+
    # Verificar criação de views
    supabase db execute --remote "
      SELECT viewname FROM pg_views
@@ -395,18 +405,20 @@ ALTER TABLE patients_queue
    - **NENHUM** componente legado é desativado
 
 3. **Monitorar Logs**
+
    ```bash
    # Verificar logs do worker
    tail -f automation/logs/worker.log | grep "journey"
-   
+
    # Verificar logs do webhook
    supabase logs --service api --limit 100 | grep "webhook"
-   
+
    # Verificar logs das edge functions
    supabase logs --service edge-function --limit 100 | grep "classify"
    ```
 
 4. **Comparar Dados**
+
    ```sql
    -- Verificar consistência de dados
    SELECT
@@ -415,16 +427,16 @@ ALTER TABLE patients_queue
      COUNT(DISTINCT id) as unique_ids,
      COUNT(journey_id) as with_journey
    FROM patients_queue
-   
+
    UNION ALL
-   
+
    SELECT
      'patient_journeys' as source,
      COUNT(*) as total,
      COUNT(DISTINCT id) as unique_ids,
      COUNT(origin_queue_id) as with_origin
    FROM patient_journeys;
-   
+
    -- Verificar discrepâncias
    SELECT
      pq.id as queue_id,
@@ -440,6 +452,7 @@ ALTER TABLE patients_queue
    ```
 
 5. **Identificar Anomalias**
+
    ```sql
    -- Verificar mensagens sem journey
    SELECT
@@ -449,7 +462,7 @@ ALTER TABLE patients_queue
      SELECT 1 FROM patient_journeys pj
      WHERE pj.id = jm.journey_id
    );
-   
+
    -- Verificar journeys sem mensagens
    SELECT
      COUNT(*) as journeys_without_messages
@@ -458,7 +471,7 @@ ALTER TABLE patients_queue
      SELECT 1 FROM journey_messages jm
      WHERE jm.journey_id = pj.id
    );
-   
+
    -- Verificar webhooks sem processamento
    SELECT
      COUNT(*) as pending_webhooks,
@@ -495,15 +508,16 @@ ALTER TABLE patients_queue
 #### Atividades
 
 1. **Configurar Feature Flag**
+
    ```typescript
    // automation/src/config/features.ts
    export const FEATURE_FLAGS = {
-     USE_JOURNEY_MODEL: Math.random() < 0.5,  // 50% de probabilidade
-     DUAL_WRITE: true,  // Continuar dupla escrita
+     USE_JOURNEY_MODEL: Math.random() < 0.5, // 50% de probabilidade
+     DUAL_WRITE: true, // Continuar dupla escrita
      LOG_JOURNEY_EVENTS: true,
      ENABLE_AI_CLASSIFICATION: true,
-     ENABLE_VACANCY_DETECTION: true
-   };
+     ENABLE_VACANCY_DETECTION: true,
+   }
    ```
 
 2. **Migrar Componentes Progressivamente**
@@ -511,18 +525,18 @@ ALTER TABLE patients_queue
      - Worker: 50% das mensagens usam novo sistema
      - Webhook: 50% dos eventos processados com novo modelo
      - Frontend: Read-only da nova página estratégica
-   
    - **Semana 2:**
      - Edge functions: 50% das classificações via novo modelo
      - Scheduler de follow-up: 50% via novo sistema
      - Dashboard: Visualização de dados híbridos
 
 3. **Monitorar Intensivamente**
+
    ```bash
    # Script de monitoramento
    while true; do
      echo "=== $(date) ==="
-     
+
      # Taxa de sucesso
      echo "Taxa de sucesso de envio:"
      supabase db execute --remote "
@@ -531,9 +545,9 @@ ALTER TABLE patients_queue
          COUNT(*) FILTER (WHERE status = 'delivered') * 100.0 / COUNT(*) as success_rate
        FROM patients_queue
        WHERE created_at > NOW() - INTERVAL '1 hour'
-       
+
        UNION ALL
-       
+
        SELECT
          'novo' as system,
          COUNT(*) FILTER (WHERE status IN ('delivered', 'read', 'replied')) * 100.0 / COUNT(*) as success_rate
@@ -541,7 +555,7 @@ ALTER TABLE patients_queue
        WHERE created_at > NOW() - INTERVAL '1 hour'
          AND direction = 'outbound';
      "
-     
+
      # Latência
      echo "Latência média:"
      supabase db execute --remote "
@@ -550,16 +564,16 @@ ALTER TABLE patients_queue
          AVG(EXTRACT(EPOCH FROM (updated_at - created_at))) as avg_latency_seconds
        FROM patients_queue
        WHERE created_at > NOW() - INTERVAL '1 hour'
-       
+
        UNION ALL
-       
+
        SELECT
          'novo' as system,
          AVG(EXTRACT(EPOCH FROM (updated_at - created_at))) as avg_latency_seconds
        FROM journey_messages
        WHERE created_at > NOW() - INTERVAL '1 hour';
      "
-     
+
      sleep 300  # 5 minutos
    done
    ```
@@ -603,15 +617,16 @@ ALTER TABLE patients_queue
 #### Atividades
 
 1. **Remover Feature Flag**
+
    ```typescript
    // automation/src/config/features.ts
    export const FEATURE_FLAGS = {
-     USE_JOURNEY_MODEL: true,  // 100% no novo sistema
-     DUAL_WRITE: true,  // Ainda mantendo dupla escrita por segurança
+     USE_JOURNEY_MODEL: true, // 100% no novo sistema
+     DUAL_WRITE: true, // Ainda mantendo dupla escrita por segurança
      LOG_JOURNEY_EVENTS: true,
      ENABLE_AI_CLASSIFICATION: true,
-     ENABLE_VACANCY_DETECTION: true
-   };
+     ENABLE_VACANCY_DETECTION: true,
+   }
    ```
 
 2. **Ativar Funcionalidades Completas**
@@ -623,6 +638,7 @@ ALTER TABLE patients_queue
    - ✅ Dashboard estratégico em produção
 
 3. **Monitorar Continuamente**
+
    ```sql
    -- Dashboard SQL para monitoramento
    CREATE OR REPLACE VIEW monitoring_daily_overview AS
@@ -632,9 +648,9 @@ ALTER TABLE patients_queue
      NOW()::date as date
    FROM patient_journeys
    WHERE created_at >= NOW()::date
-   
+
    UNION ALL
-   
+
    SELECT
      'messages_sent' as metric,
      COUNT(*) as value,
@@ -642,9 +658,9 @@ ALTER TABLE patients_queue
    FROM journey_messages
    WHERE created_at >= NOW()::date
      AND direction = 'outbound'
-   
+
    UNION ALL
-   
+
    SELECT
      'messages_delivered' as metric,
      COUNT(*) as value,
@@ -652,9 +668,9 @@ ALTER TABLE patients_queue
    FROM journey_messages
    WHERE created_at >= NOW()::date
      AND status IN ('delivered', 'read', 'replied')
-   
+
    UNION ALL
-   
+
    SELECT
      'patient_replies' as metric,
      COUNT(*) as value,
@@ -662,18 +678,18 @@ ALTER TABLE patients_queue
    FROM journey_messages
    WHERE created_at >= NOW()::date
      AND direction = 'inbound'
-   
+
    UNION ALL
-   
+
    SELECT
      'classifications_ai' as metric,
      COUNT(*) as value,
    NOW()::date as date
    FROM message_qualifications
    WHERE created_at >= NOW()::date
-   
+
    UNION ALL
-   
+
    SELECT
      'vacancies_detected' as metric,
      COUNT(*) as value,
@@ -715,34 +731,36 @@ ALTER TABLE patients_queue
 #### Atividades
 
 1. **Arquivar Dados Legados**
+
    ```sql
    -- Criar schema de arquivamento
    CREATE SCHEMA IF NOT EXISTS archive;
-   
+
    -- Mover tabela patients_queue para arquivamento
    ALTER TABLE patients_queue SET SCHEMA archive;
-   
+
    -- Criar view de compatibilidade para consultas legadas (se necessário)
    CREATE OR REPLACE VIEW public.patients_queue_readonly AS
    SELECT * FROM archive.patients_queue;
-   
+
    -- Arquivar dados históricos
    CREATE TABLE archive.patients_queue_history AS
    SELECT * FROM archive.patients_queue WHERE resolved_at < NOW() - INTERVAL '90 days';
-   
+
    DELETE FROM archive.patients_queue WHERE resolved_at < NOW() - INTERVAL '90 days';
    ```
 
 2. **Remover Dupla Escrita**
+
    ```typescript
    // automation/src/config/features.ts
    export const FEATURE_FLAGS = {
      USE_JOURNEY_MODEL: true,
-     DUAL_WRITE: false,  // Remover dupla escrita
+     DUAL_WRITE: false, // Remover dupla escrita
      LOG_JOURNEY_EVENTS: true,
      ENABLE_AI_CLASSIFICATION: true,
-     ENABLE_VACANCY_DETECTION: true
-   };
+     ENABLE_VACANCY_DETECTION: true,
+   }
    ```
 
 3. **Atualizar Código**
@@ -787,12 +805,14 @@ ALTER TABLE patients_queue
 ### 4.1 Banco de Dados
 
 #### Migrations
+
 - [ ] Todas as migrations aplicadas
 - [ ] Migration `20260319000000_strategic_journey_tracking.sql` aplicada
 - [ ] Migration `20260319200000_add_processed_flag_to_qualifications.sql` aplicada
 - [ ] Sem erros nas migrations
 
 #### Tabelas
+
 - [ ] `patient_journeys` criada com todos campos
 - [ ] `journey_messages` criada com todos campos
 - [ ] `webhook_events_raw` criada com todos campos
@@ -800,6 +820,7 @@ ALTER TABLE patients_queue
 - [ ] `journey_events` criada com todos campos
 
 #### Índices
+
 - [ ] Índice `idx_patient_journeys_canonical_phone` criado
 - [ ] Índice `idx_patient_journeys_data_exame` criado
 - [ ] Índice `idx_patient_journeys_journey_status` criado
@@ -832,6 +853,7 @@ ALTER TABLE patients_queue
 - [ ] Índice `idx_journey_events_journey_id_event_at` criado
 
 #### Views
+
 - [ ] View `strategic_followup_overview` criada
 - [ ] View `vacancy_candidates_overview` criada
 - [ ] View `journey_timeline_view` criada
@@ -839,6 +861,7 @@ ALTER TABLE patients_queue
 - [ ] Performance das views aceitável (< 1 segundo)
 
 #### RLS (Row Level Security)
+
 - [ ] RLS habilitado em `patient_journeys`
 - [ ] RLS habilitado em `journey_messages`
 - [ ] RLS habilitado em `webhook_events_raw`
@@ -847,15 +870,18 @@ ALTER TABLE patients_queue
 - [ ] Política "Allow authenticated operations" aplicada em todas tabelas
 
 #### Triggers
+
 - [ ] Trigger `trigger_patient_journeys_updated_at` criado
 - [ ] Trigger `trigger_journey_messages_updated_at` criado
 - [ ] Função `set_timestamp_updated_at()` funciona corretamente
 
 #### Funções
+
 - [ ] Função `normalize_phone_for_journey()` funciona corretamente
 - [ ] Função retorna telefone no formato `+5511999999999`
 
 #### Backup
+
 - [ ] Backup do banco de dados realizado
 - [ ] Backup testado (restore verificado)
 - [ ] Backup armazenado em local seguro
@@ -865,12 +891,14 @@ ALTER TABLE patients_queue
 ### 4.2 Worker de Automação
 
 #### Compilação
+
 - [ ] Worker compila sem erros
 - [ ] TypeScript sem erros
 - [ ] Lint sem erros
 - [ ] Todas dependências instaladas
 
 #### Funções de Journey
+
 - [ ] `createJourney()` funciona
 - [ ] `markMessageAccepted()` funciona
 - [ ] `markMessageDelivered()` funciona
@@ -882,18 +910,21 @@ ALTER TABLE patients_queue
 - [ ] `detectVacancySignal()` funciona
 
 #### Scheduler de Follow-up
+
 - [ ] Scheduler de follow-up funciona
 - [ ] Follow-ups enviados no tempo correto
 - [ ] Lógica de priorização funciona
 - [ ] Sem follow-ups duplicados
 
 #### Logs
+
 - [ ] Logs sem erros críticos
 - [ ] Logs com nível de detalhe apropriado
 - [ ] Logs de journey events presentes
 - [ ] Logs de message qualifications presentes
 
 #### Performance
+
 - [ ] Tempo de resposta aceitável (< 5 segundos)
 - [ ] Sem memory leaks
 - [ ] Sem CPU spikes
@@ -904,12 +935,14 @@ ALTER TABLE patients_queue
 ### 4.3 Webhook
 
 #### Endpoint
+
 - [ ] Endpoint de webhook acessível
 - [ ] Endpoint retorna 200 OK em caso de sucesso
 - [ ] Endpoint retorna 4xx em caso de erro de cliente
 - [ ] Endpoint retorna 5xx em caso de erro de servidor
 
 #### Funções
+
 - [ ] `saveWebhookRaw()` funciona
 - [ ] Idempotência funciona (dedupe hash)
 - [ ] `resolveJourneyMessage()` funciona
@@ -917,6 +950,7 @@ ALTER TABLE patients_queue
 - [ ] `triggerClassification()` funciona
 
 #### Eventos
+
 - [ ] Eventos de `MessageAccepted` processados
 - [ ] Eventos de `MessageDelivered` processados
 - [ ] Eventos de `MessageRead` processados
@@ -924,12 +958,14 @@ ALTER TABLE patients_queue
 - [ ] Eventos de `MessageDeleted` processados
 
 #### Deduplicação
+
 - [ ] Sem duplicação de eventos
 - [ ] Hash de dedupe funciona
 - [ ] Eventos duplicados ignorados
 - [ ] Índices únicos funcionando
 
 #### Logs
+
 - [ ] Logs de webhooks presentes
 - [ ] Logs de erros detalhados
 - [ ] Logs de idempotência presentes
@@ -940,29 +976,34 @@ ALTER TABLE patients_queue
 ### 4.4 Edge Functions
 
 #### Classificação de Mensagens
+
 - [ ] Edge function `classify-message` funciona
 - [ ] Edge function `process-classification` funciona
 - [ ] Edge function `detect-vacancy` funciona
 
 #### LLM Provider
+
 - [ ] LLM provider configurado
 - [ ] API key válida
 - [ ] Sem erros de autenticação
 - [ ] Sem erros de quota
 
 #### Retries
+
 - [ ] Retries configurados
 - [ ] Retry com backoff exponencial
 - [ ] Limite de retries respeitado
 - [ ] Logs de retries presentes
 
 #### Fallback
+
 - [ ] Fallback configurado
 - [ ] Fallback funciona em caso de erro
 - [ ] Fallback não deixa sistema inoperante
 - [ ] Logs de fallback presentes
 
 #### Logs
+
 - [ ] Logs de edge functions presentes
 - [ ] Logs de prompts LLM presentes
 - [ ] Logs de respostas LLM presentes
@@ -973,30 +1014,35 @@ ALTER TABLE patients_queue
 ### 4.5 Frontend
 
 #### Página Estratégica
+
 - [ ] Página `Estrategico` carrega
 - [ ] Dados da view `strategic_followup_overview` exibidos
 - [ ] Dados da view `vacancy_candidates_overview` exibidos
 - [ ] Timeline da view `journey_timeline_view` exibida
 
 #### Filtros
+
 - [ ] Filtros por status funcionam
 - [ ] Filtros por data funcionam
 - [ ] Filtros por prioridade funcionam
 - [ ] Filtros por classificação funcionam
 
 #### Ações
+
 - [ ] Botão de confirmar funciona
 - [ ] Botão de cancelar funciona
 - [ ] Botão de marcar como pendente funciona
 - [ ] Botão de preencher vaga funciona
 
 #### Performance
+
 - [ ] Tempo de carregamento < 3 segundos
 - [ ] Sem erros de console
 - [ ] Sem warnings de console
 - [ ] Sem memory leaks
 
 #### Responsividade
+
 - [ ] Funciona em desktop
 - [ ] Funciona em tablet
 - [ ] Funciona em mobile
@@ -1009,6 +1055,7 @@ ALTER TABLE patients_queue
 ### 5.1 Se o Novo Sistema Falhar
 
 #### Sintomas
+
 - Taxa de sucesso < 80%
 - Latência > 10 segundos
 - Bugs críticos > 10 por dia
@@ -1017,21 +1064,23 @@ ALTER TABLE patients_queue
 #### Ações Imediatas
 
 1. **Desativar Edge Functions de IA**
+
    ```typescript
    // automation/src/config/features.ts
    export const FEATURE_FLAGS = {
-     USE_JOURNEY_MODEL: false,  // Desativar novo sistema
-     DUAL_WRITE: true,  // Manter dupla escrita por segurança
-     ENABLE_AI_CLASSIFICATION: false,  // Desativar IA
-     ENABLE_VACANCY_DETECTION: false  // Desativar detecção de vagas
-   };
+     USE_JOURNEY_MODEL: false, // Desativar novo sistema
+     DUAL_WRITE: true, // Manter dupla escrita por segurança
+     ENABLE_AI_CLASSIFICATION: false, // Desativar IA
+     ENABLE_VACANCY_DETECTION: false, // Desativar detecção de vagas
+   }
    ```
 
 2. **Parar Scheduler de Follow-up Novo**
+
    ```typescript
    // automation/src/schedulers/followup-scheduler.ts
    export class FollowUpScheduler {
-     private enabled = false;  // Desativar scheduler novo
+     private enabled = false // Desativar scheduler novo
    }
    ```
 
@@ -1042,6 +1091,7 @@ ALTER TABLE patients_queue
    - Remover referências a novas tabelas
 
 4. **Limpar Dados Inconsistentes**
+
    ```sql
    -- Identificar journeys incompletos
    SELECT
@@ -1054,7 +1104,7 @@ ALTER TABLE patients_queue
    WHERE pj.journey_status NOT IN ('confirmed', 'cancelled', 'archived')
    GROUP BY pj.id, pj.patient_name, pj.journey_status
    HAVING COUNT(jm.id) = 0;
-   
+
    -- Marcar para investigação
    UPDATE patient_journeys
    SET needs_manual_action = true,
@@ -1066,12 +1116,14 @@ ALTER TABLE patients_queue
    ```
 
 #### Tempo de Rollback
+
 - **Desativação:** 5 minutos
 - **Limpeza:** 30 minutos
 - **Verificação:** 15 minutos
 - **TOTAL:** ~50 minutos
 
 #### Critérios de Retorno ao Normal
+
 - ✅ Sistema legado estável por 24h
 - ✅ Causa raiz identificada
 - ✅ Correção implementada e testada
@@ -1082,6 +1134,7 @@ ALTER TABLE patients_queue
 ### 5.2 Se Houver Perda de Dados
 
 #### Sintomas
+
 - Discrepância > 5% entre legado e novo
 - Registros ausentes em tabelas novas
 - Webhooks não processados
@@ -1090,20 +1143,22 @@ ALTER TABLE patients_queue
 #### Ações Imediatas
 
 1. **Parar Todo o Tráfego**
+
    ```typescript
    // automation/src/config/features.ts
    export const FEATURE_FLAGS = {
-     USE_JOURNEY_MODEL: false,  // Parar novo sistema
-     DUAL_WRITE: false,  // Parar dupla escrita
-     SYSTEM_MAINTENANCE: true  // Entrar em modo manutenção
-   };
+     USE_JOURNEY_MODEL: false, // Parar novo sistema
+     DUAL_WRITE: false, // Parar dupla escrita
+     SYSTEM_MAINTENANCE: true, // Entrar em modo manutenção
+   }
    ```
 
 2. **Restaurar Backup de patients_queue**
+
    ```bash
    # Restaurar backup mais recente
    supabase db restore --remote --backup-id <backup_id>
-   
+
    # Verificar integridade
    supabase db execute --remote "
      SELECT
@@ -1114,6 +1169,7 @@ ALTER TABLE patients_queue
    ```
 
 3. **Reconciliar Dados Legados com Novos**
+
    ```sql
    -- Identificar patients_queue sem journey
    SELECT
@@ -1126,7 +1182,7 @@ ALTER TABLE patients_queue
    LEFT JOIN patient_journeys pj ON pq.id = pj.origin_queue_id
    WHERE pj.id IS NULL
    ORDER BY pq.created_at DESC;
-   
+
    -- Recomendar ação manual
    -- Opção 1: Reenviar mensagem (se status = 'pending')
    -- Opção 2: Marcar como confirmado (se paciente respondeu)
@@ -1134,6 +1190,7 @@ ALTER TABLE patients_queue
    ```
 
 4. **Investigar Causa da Perda**
+
    ```sql
    -- Verificar webhooks não processados
    SELECT
@@ -1146,7 +1203,7 @@ ALTER TABLE patients_queue
    WHERE processing_status IN ('pending', 'failed')
    ORDER BY received_at DESC
    LIMIT 20;
-   
+
    -- Verificar mensagens sem journey
    SELECT
      jm.id,
@@ -1156,7 +1213,7 @@ ALTER TABLE patients_queue
      jm.created_at
    FROM journey_messages jm
    WHERE jm.journey_id IS NULL;
-   
+
    -- Verificar journeys sem mensagens
    SELECT
      pj.id,
@@ -1177,6 +1234,7 @@ ALTER TABLE patients_queue
    - Atualizar documentação
 
 #### Tempo de Rollback
+
 - **Parada do sistema:** 5 minutos
 - **Restauração do backup:** 30 minutos
 - **Reconciliação de dados:** 2-4 horas
@@ -1184,6 +1242,7 @@ ALTER TABLE patients_queue
 - **TOTAL:** ~6-10 horas
 
 #### Critérios de Retorno ao Normal
+
 - ✅ Todos dados legados restaurados
 - ✅ Discrepância < 1%
 - ✅ Causa raiz identificada
@@ -1195,6 +1254,7 @@ ALTER TABLE patients_queue
 ### 5.3 Se Performance For Ruim
 
 #### Sintomas
+
 - Queries demoram > 5 segundos
 - Timeout em operações frequentes
 - CPU usage > 80%
@@ -1203,10 +1263,11 @@ ALTER TABLE patients_queue
 #### Ações Imediatas
 
 1. **Identificar Queries Lentas**
+
    ```sql
    -- Habilitar pg_stat_statements
    CREATE EXTENSION IF NOT EXISTS pg_stat_statements;
-   
+
    -- Identificar queries mais lentas
    SELECT
      query,
@@ -1220,6 +1281,7 @@ ALTER TABLE patients_queue
    ```
 
 2. **Revisar Índices**
+
    ```sql
    -- Verificar índices não utilizados
    SELECT
@@ -1230,10 +1292,10 @@ ALTER TABLE patients_queue
    FROM pg_stat_user_indexes
    WHERE idx_scan = 0
      AND indexname NOT LIKE '%_pkey';
-   
+
    -- Verificar índices faltando
    -- (Usar EXPLAIN ANALYZE em queries lentas)
-   
+
    -- Adicionar índices se necessário
    CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_temp_new_index
    ON patient_journeys(some_field)
@@ -1241,68 +1303,72 @@ ALTER TABLE patients_queue
    ```
 
 3. **Revisar Queries das Views**
+
    ```sql
    -- Testar performance das views
    EXPLAIN ANALYZE
    SELECT * FROM strategic_followup_overview LIMIT 100;
-   
+
    EXPLAIN ANALYZE
    SELECT * FROM vacancy_candidates_overview LIMIT 100;
-   
+
    EXPLAIN ANALYZE
    SELECT * FROM journey_timeline_view WHERE journey_id = 'some-id' LIMIT 100;
-   
+
    -- Otimizar queries se necessário
    -- Adicionar índices, reescrever queries, materializar views, etc.
    ```
 
 4. **Adicionar Cache se Necessário**
+
    ```typescript
    // automation/src/cache/query-cache.ts
    export class QueryCache {
-     private cache = new Map<string, { data: any; expiresAt: number }>();
-     
+     private cache = new Map<string, { data: any; expiresAt: number }>()
+
      get(key: string): any {
-       const entry = this.cache.get(key);
-       if (!entry) return null;
-       
+       const entry = this.cache.get(key)
+       if (!entry) return null
+
        if (Date.now() > entry.expiresAt) {
-         this.cache.delete(key);
-         return null;
+         this.cache.delete(key)
+         return null
        }
-       
-       return entry.data;
+
+       return entry.data
      }
-     
+
      set(key: string, data: any, ttlSeconds: number = 60): void {
        this.cache.set(key, {
          data,
-         expiresAt: Date.now() + ttlSeconds * 1000
-       });
+         expiresAt: Date.now() + ttlSeconds * 1000,
+       })
      }
    }
    ```
 
 5. **Otimizar Webhook**
+
    ```typescript
    // Processar webhooks de forma assíncrona
-   import { Queue } from 'bull';
-   
+   import { Queue } from 'bull'
+
    const webhookQueue = new Queue('webhook-processing', {
-     redis: process.env.REDIS_URL
-   });
-   
+     redis: process.env.REDIS_URL,
+   })
+
    webhookQueue.add('process-webhook', {
-     payload: webhookPayload
-   });
-   
+     payload: webhookPayload,
+   })
+
    webhookQueue.process('process-webhook', async (job) => {
      // Processar webhook de forma assíncrona
-     await processWebhook(job.data.payload);
-   });
+     await processWebhook(job.data.payload)
+   })
    ```
 
 #### Tempo de Rollback
+
 - **Identificação do problema:** 30 minutos
 - **Revisão de índices:** 30 minutos
 - **Otimização de queries:** 1-2 horas
@@ -1310,6 +1376,7 @@ ALTER TABLE patients_queue
 - **TOTAL:** ~2-3 horas
 
 #### Critérios de Retorno ao Normal
+
 - ✅ Queries demoram < 2 segundos
 - ✅ CPU usage < 60%
 - ✅ Memory usage < 60%
@@ -1324,6 +1391,7 @@ ALTER TABLE patients_queue
 #### KPIs de Envio
 
 1. **Taxa de Sucesso de Envio**
+
    ```sql
    SELECT
      DATE(created_at) as date,
@@ -1337,6 +1405,7 @@ ALTER TABLE patients_queue
    GROUP BY DATE(created_at)
    ORDER BY date DESC;
    ```
+
    - **Meta:** >= 95%
    - **Alerta:** < 90%
    - **Crítico:** < 80%
@@ -1355,6 +1424,7 @@ ALTER TABLE patients_queue
    GROUP BY DATE(created_at)
    ORDER BY date DESC;
    ```
+
    - **Meta:** < 2 minutos
    - **Alerta:** > 5 minutos
    - **Crítico:** > 10 minutos
@@ -1362,6 +1432,7 @@ ALTER TABLE patients_queue
 #### KPIs de Resposta
 
 3. **Taxa de Resposta de Pacientes**
+
    ```sql
    SELECT
      DATE(created_at) as date,
@@ -1373,6 +1444,7 @@ ALTER TABLE patients_queue
    GROUP BY DATE(created_at)
    ORDER BY date DESC;
    ```
+
    - **Meta:** >= 70%
    - **Alerta:** < 50%
    - **Crítico:** < 30%
@@ -1390,6 +1462,7 @@ ALTER TABLE patients_queue
    GROUP BY DATE(jm_outbound.created_at)
    ORDER BY date DESC;
    ```
+
    - **Meta:** < 24 horas
    - **Alerta:** > 48 horas
    - **Crítico:** > 72 horas
@@ -1397,6 +1470,7 @@ ALTER TABLE patients_queue
 #### KPIs de IA
 
 5. **Taxa de Classificação IA**
+
    ```sql
    SELECT
      DATE(created_at) as date,
@@ -1411,6 +1485,7 @@ ALTER TABLE patients_queue
    GROUP BY DATE(mq.created_at)
    ORDER BY date DESC;
    ```
+
    - **Meta:** >= 95%
    - **Alerta:** < 90%
    - **Crítico:** < 80%
@@ -1427,6 +1502,7 @@ ALTER TABLE patients_queue
    GROUP BY DATE(created_at)
    ORDER BY date DESC;
    ```
+
    - **Meta:** < 10%
    - **Alerta:** > 20%
    - **Crítico:** > 30%
@@ -1434,6 +1510,7 @@ ALTER TABLE patients_queue
 #### KPIs de Vagas
 
 7. **Taxa de Vagas Preenchidas**
+
    ```sql
    SELECT
      DATE(created_at) as date,
@@ -1446,6 +1523,7 @@ ALTER TABLE patients_queue
    GROUP BY DATE(created_at)
    ORDER BY date DESC;
    ```
+
    - **Meta:** >= 70%
    - **Alerta:** < 50%
    - **Crítico:** < 30%
@@ -1462,6 +1540,7 @@ ALTER TABLE patients_queue
    GROUP BY DATE(created_at)
    ORDER BY date DESC;
    ```
+
    - **Meta:** < 24 horas
    - **Alerta:** > 48 horas
    - **Crítico:** > 72 horas
@@ -1473,13 +1552,14 @@ ALTER TABLE patients_queue
 #### Alertas de Webhook
 
 1. **Webhook com > 10% de Falha**
+
    ```typescript
    // automation/src/monitors/webhook-monitor.ts
    async function checkWebhookFailureRate() {
      const result = await supabase.rpc('calculate_webhook_failure_rate', {
-       since: '1 hour ago'
-     });
-     
+       since: '1 hour ago',
+     })
+
      if (result.data.failure_rate > 0.1) {
        await sendAlert({
          severity: 'high',
@@ -1487,11 +1567,12 @@ ALTER TABLE patients_queue
          message: `Taxa de falha: ${(result.data.failure_rate * 100).toFixed(2)}%`,
          metric: 'webhook_failure_rate',
          threshold: 0.1,
-         currentValue: result.data.failure_rate
-       });
+         currentValue: result.data.failure_rate,
+       })
      }
    }
    ```
+
    - **Severidade:** Alta
    - **Ação:** Investigar causa, corrigir bugs
 
@@ -1503,12 +1584,13 @@ ALTER TABLE patients_queue
 #### Alertas de Worker
 
 3. **Worker com > 5% de Erro**
+
    ```typescript
    async function checkWorkerErrorRate() {
      const result = await supabase.rpc('calculate_worker_error_rate', {
-       since: '1 hour ago'
-     });
-     
+       since: '1 hour ago',
+     })
+
      if (result.data.error_rate > 0.05) {
        await sendAlert({
          severity: 'medium',
@@ -1516,11 +1598,12 @@ ALTER TABLE patients_queue
          message: `Taxa de erro: ${(result.data.error_rate * 100).toFixed(2)}%`,
          metric: 'worker_error_rate',
          threshold: 0.05,
-         currentValue: result.data.error_rate
-       });
+         currentValue: result.data.error_rate,
+       })
      }
    }
    ```
+
    - **Severidade:** Média
    - **Ação:** Revisar logs, corrigir bugs
 
@@ -1532,12 +1615,13 @@ ALTER TABLE patients_queue
 #### Alertas de LLM
 
 5. **LLM com > 20% de Erro ou Timeout**
+
    ```typescript
    async function checkLLMFailureRate() {
      const result = await supabase.rpc('calculate_llm_failure_rate', {
-       since: '1 hour ago'
-     });
-     
+       since: '1 hour ago',
+     })
+
      if (result.data.failure_rate > 0.2) {
        await sendAlert({
          severity: 'high',
@@ -1545,11 +1629,12 @@ ALTER TABLE patients_queue
          message: `Taxa de falha: ${(result.data.failure_rate * 100).toFixed(2)}%`,
          metric: 'llm_failure_rate',
          threshold: 0.2,
-         currentValue: result.data.failure_rate
-       });
+         currentValue: result.data.failure_rate,
+       })
      }
    }
    ```
+
    - **Severidade:** Alta
    - **Ação:** Verificar API key, quota, provider
 
@@ -1561,13 +1646,14 @@ ALTER TABLE patients_queue
 #### Alertas de Vagas
 
 7. **Fila de Pendentes > 100 Pacientes**
+
    ```typescript
    async function checkPendingQueueSize() {
      const { count } = await supabase
        .from('patient_journeys')
        .select('*', { count: 'exact', head: true })
-       .eq('journey_status', 'pending_manual');
-     
+       .eq('journey_status', 'pending_manual')
+
      if (count > 100) {
        await sendAlert({
          severity: 'medium',
@@ -1575,11 +1661,12 @@ ALTER TABLE patients_queue
          message: `Pendentes: ${count}`,
          metric: 'pending_queue_size',
          threshold: 100,
-         currentValue: count
-       });
+         currentValue: count,
+       })
      }
    }
    ```
+
    - **Severidade:** Média
    - **Ação:** Alocar mais recursos humanos
 
@@ -1592,6 +1679,7 @@ ALTER TABLE patients_queue
      AND pj.journey_status = 'pending_manual'
      AND pj.pending_at < NOW() - INTERVAL '24 hours';
    ```
+
    - **Sintoma:** Count > 10
    - **Severidade:** Alta
    - **Ação:** Priorizar resolução de vagas
@@ -1617,8 +1705,8 @@ ALTER TABLE patients_queue
 ```typescript
 // automation/src/reports/daily-worker-report.ts
 export async function generateDailyWorkerReport() {
-  const today = new Date().toISOString().split('T')[0];
-  
+  const today = new Date().toISOString().split('T')[0]
+
   const report = {
     date: today,
     uptime: await getWorkerUptime(),
@@ -1628,16 +1716,16 @@ export async function generateDailyWorkerReport() {
     averageTaskDuration: await getAverageTaskDuration(),
     memoryUsage: await getMemoryUsage(),
     cpuUsage: await getCpuUsage(),
-    topErrors: await getTopErrors()
-  };
-  
+    topErrors: await getTopErrors(),
+  }
+
   await sendReport({
     channel: 'slack',
     report: 'worker_daily',
-    data: report
-  });
-  
-  return report;
+    data: report,
+  })
+
+  return report
 }
 ```
 
@@ -1645,8 +1733,8 @@ export async function generateDailyWorkerReport() {
 
 ```typescript
 export async function generateDailyWebhookReport() {
-  const today = new Date().toISOString().split('T')[0];
-  
+  const today = new Date().toISOString().split('T')[0]
+
   const report = {
     date: today,
     totalWebhooksReceived: await getTotalWebhooksReceived(),
@@ -1655,16 +1743,16 @@ export async function generateDailyWebhookReport() {
     failureRate: await getWebhookFailureRate(),
     averageProcessingTime: await getAverageWebhookProcessingTime(),
     duplicateWebhooks: await getDuplicateWebhooks(),
-    topFailureReasons: await getTopFailureReasons()
-  };
-  
+    topFailureReasons: await getTopFailureReasons(),
+  }
+
   await sendReport({
     channel: 'slack',
     report: 'webhook_daily',
-    data: report
-  });
-  
-  return report;
+    data: report,
+  })
+
+  return report
 }
 ```
 
@@ -1672,8 +1760,8 @@ export async function generateDailyWebhookReport() {
 
 ```typescript
 export async function generateDailyEdgeFunctionReport() {
-  const today = new Date().toISOString().split('T')[0];
-  
+  const today = new Date().toISOString().split('T')[0]
+
   const report = {
     date: today,
     totalInvocations: await getTotalInvocations(),
@@ -1682,16 +1770,16 @@ export async function generateDailyEdgeFunctionReport() {
     llmCalls: await getLLMCalls(),
     llmSuccessRate: await getLLMSuccessRate(),
     llmAverageConfidence: await getLLMAverageConfidence(),
-    topErrors: await getTopEdgeFunctionErrors()
-  };
-  
+    topErrors: await getTopEdgeFunctionErrors(),
+  }
+
   await sendReport({
     channel: 'slack',
     report: 'edge_function_daily',
-    data: report
-  });
-  
-  return report;
+    data: report,
+  })
+
+  return report
 }
 ```
 
@@ -1699,8 +1787,8 @@ export async function generateDailyEdgeFunctionReport() {
 
 ```typescript
 export async function generateDailyAIReport() {
-  const today = new Date().toISOString().split('T')[0];
-  
+  const today = new Date().toISOString().split('T')[0]
+
   const report = {
     date: today,
     totalClassifications: await getTotalClassifications(),
@@ -1709,16 +1797,16 @@ export async function generateDailyAIReport() {
     ambiguityRate: await getAmbiguityRate(),
     classificationsByType: await getClassificationsByType(),
     topClassifications: await getTopClassifications(),
-    manualReviewRate: await getManualReviewRate()
-  };
-  
+    manualReviewRate: await getManualReviewRate(),
+  }
+
   await sendReport({
     channel: 'slack',
     report: 'ai_daily',
-    data: report
-  });
-  
-  return report;
+    data: report,
+  })
+
+  return report
 }
 ```
 
@@ -1726,8 +1814,8 @@ export async function generateDailyAIReport() {
 
 ```typescript
 export async function generateDailyVacancyReport() {
-  const today = new Date().toISOString().split('T')[0];
-  
+  const today = new Date().toISOString().split('T')[0]
+
   const report = {
     date: today,
     totalVacanciesDetected: await getTotalVacanciesDetected(),
@@ -1736,16 +1824,16 @@ export async function generateDailyVacancyReport() {
     averageFillTime: await getAverageFillTime(),
     currentPendingVacancies: await getCurrentPendingVacancies(),
     topVacancyReasons: await getTopVacancyReasons(),
-    fillTimeByPriority: await getFillTimeByPriority()
-  };
-  
+    fillTimeByPriority: await getFillTimeByPriority(),
+  }
+
   await sendReport({
     channel: 'slack',
     report: 'vacancy_daily',
-    data: report
-  });
-  
-  return report;
+    data: report,
+  })
+
+  return report
 }
 ```
 
@@ -1760,6 +1848,7 @@ export async function generateDailyVacancyReport() {
 **Objetivo:** Verificar se o lifecycle completo de mensagem funciona
 
 **Passos:**
+
 1. Criar novo paciente no dashboard
 2. Enviar mensagem via worker
 3. Verificar se `patient_journey` foi criado
@@ -1775,6 +1864,7 @@ export async function generateDailyVacancyReport() {
 13. Verificar se vacancy signal foi detectado (se aplicável)
 
 **Verificações:**
+
 - ✅ Journey criada com status `queued`
 - ✅ Mensagem criada com status `queued`
 - ✅ Mensagem mudou para `sending`
@@ -1792,6 +1882,7 @@ export async function generateDailyVacancyReport() {
 **Objetivo:** Verificar se a classificação IA funciona
 
 **Passos:**
+
 1. Enviar mensagem para paciente
 2. Aguardar confirmação de entrega
 3. Enviar resposta: "Sim, vou comparecer"
@@ -1800,6 +1891,7 @@ export async function generateDailyVacancyReport() {
 6. Repetir com diferentes respostas
 
 **Respostas para testar:**
+
 - "Sim, vou comparecer" → `confirmado_positivo`
 - "Não vou poder" → `nao_pode_comparecer`
 - "Quero remarcar" → `quer_remarcar`
@@ -1808,6 +1900,7 @@ export async function generateDailyVacancyReport() {
 - "Ok" → `ambigua`
 
 **Verificações:**
+
 - ✅ Classificação correta para cada tipo de resposta
 - ✅ Confiança >= 0.7 para respostas claras
 - ✅ Ação recomendada correta aplicada
@@ -1820,6 +1913,7 @@ export async function generateDailyVacancyReport() {
 **Objetivo:** Verificar se a auto-confirmação funciona
 
 **Passos:**
+
 1. Enviar mensagem para paciente
 2. Aguardar resposta positiva
 3. Verificar se status mudou para `confirmed`
@@ -1827,6 +1921,7 @@ export async function generateDailyVacancyReport() {
 5. Verificar se `needs_manual_action = false`
 
 **Verificações:**
+
 - ✅ Status mudou para `confirmed`
 - ✅ `confirmed_at` preenchido
 - ✅ `needs_manual_action = false`
@@ -1839,6 +1934,7 @@ export async function generateDailyVacancyReport() {
 **Objetivo:** Verificar se a detecção de vaga funciona
 
 **Passos:**
+
 1. Enviar mensagem para paciente
 2. Aguardar resposta negativa
 3. Verificar se `vacancy_signal = true`
@@ -1847,6 +1943,7 @@ export async function generateDailyVacancyReport() {
 6. Verificar se paciente aparece em `vacancy_candidates_overview`
 
 **Verificações:**
+
 - ✅ `vacancy_signal = true`
 - ✅ `vacancy_reason` preenchido
 - ✅ `needs_manual_action = true`
@@ -1862,6 +1959,7 @@ export async function generateDailyVacancyReport() {
 **Objetivo:** Verificar se o sistema aguenta 100 mensagens simultâneas
 
 **Passos:**
+
 1. Criar 100 pacientes no dashboard
 2. Disparar envio simultâneo de 100 mensagens
 3. Monitorar CPU, memory e latency
@@ -1870,6 +1968,7 @@ export async function generateDailyVacancyReport() {
 6. Verificar se todas mensagens foram entregues
 
 **Métricas:**
+
 - ✅ Taxa de sucesso >= 95%
 - ✅ Latência média < 5 segundos
 - ✅ CPU usage < 80%
@@ -1884,6 +1983,7 @@ export async function generateDailyVacancyReport() {
 **Objetivo:** Verificar se o sistema aguenta 100 webhooks simultâneos
 
 **Passos:**
+
 1. Enviar 100 mensagens
 2. Aguardar webhooks de confirmação
 3. Monitorar CPU, memory e latency
@@ -1892,6 +1992,7 @@ export async function generateDailyVacancyReport() {
 6. Verificar se todos status foram atualizados
 
 **Métricas:**
+
 - ✅ Taxa de sucesso >= 95%
 - ✅ Latência média < 2 segundos
 - ✅ CPU usage < 80%
@@ -1906,6 +2007,7 @@ export async function generateDailyVacancyReport() {
 **Objetivo:** Verificar se o sistema aguenta 100 classificações simultâneas
 
 **Passos:**
+
 1. Enviar 100 mensagens
 2. Simular 100 respostas simultâneas
 3. Aguardar classificações IA
@@ -1914,6 +2016,7 @@ export async function generateDailyVacancyReport() {
 6. Verificar se todas ações recomendadas foram aplicadas
 
 **Métricas:**
+
 - ✅ Taxa de sucesso >= 95%
 - ✅ Latência média < 10 segundos
 - ✅ CPU usage < 80%
@@ -1930,12 +2033,14 @@ export async function generateDailyVacancyReport() {
 **Objetivo:** Verificar se o sistema lida com eventos fora de ordem
 
 **Passos:**
+
 1. Enviar mensagem
 2. Receber webhook de `MessageDelivered` antes de `MessageAccepted`
 3. Verificar se sistema lida corretamente
 4. Verificar se status final é correto
 
 **Verificações:**
+
 - ✅ Sistema não quebra
 - ✅ Status final correto
 - ✅ Timeline completa (mesmo fora de ordem)
@@ -1947,12 +2052,14 @@ export async function generateDailyVacancyReport() {
 **Objetivo:** Verificar se o sistema lida com webhooks duplicados
 
 **Passos:**
+
 1. Enviar mensagem
 2. Receber webhook de `MessageAccepted`
 3. Receber o mesmo webhook novamente
 4. Verificar se sistema ignora duplicata
 
 **Verificações:**
+
 - ✅ Duplicata ignorada
 - ✅ Sem eventos duplicados
 - ✅ Sem dados inconsistentes
@@ -1964,12 +2071,14 @@ export async function generateDailyVacancyReport() {
 **Objetivo:** Verificar se o sistema lida com respostas ambíguas
 
 **Passos:**
+
 1. Enviar mensagem
 2. Responder: "ok", "hm", "talvez"
 3. Verificar classificação
 4. Verificar se `needs_manual_review = true`
 
 **Verificações:**
+
 - ✅ Classificação = `ambigua`
 - ✅ `needs_manual_review = true`
 - ✅ Ação recomendada = `manual_review`
@@ -1981,12 +2090,14 @@ export async function generateDailyVacancyReport() {
 **Objetivo:** Verificar se o sistema lida com áudio/imagem
 
 **Passos:**
+
 1. Enviar mensagem
 2. Responder com áudio ou imagem
 3. Verificar classificação
 4. Verificar se sistema lida corretamente
 
 **Verificações:**
+
 - ✅ Sistema não quebra
 - ✅ Classificação = `ambigua` ou `duvida`
 - ✅ `needs_manual_review = true`
@@ -2002,6 +2113,7 @@ export async function generateDailyVacancyReport() {
 **Objetivo:** Capacitar equipe para usar a nova página estratégica
 
 **Tópicos:**
+
 1. **Visão Geral da Página Estratégica**
    - O que é a página estratégica
    - Por que ela foi criada
@@ -2025,6 +2137,7 @@ export async function generateDailyVacancyReport() {
    - Como priorizar ações
 
 **Material de Apoio:**
+
 - Tutorial em vídeo (10-15 minutos)
 - Documentação escrita (guia rápido)
 - Sessão de Q&A (1 hora)
@@ -2037,6 +2150,7 @@ export async function generateDailyVacancyReport() {
 **Objetivo:** Explicar como a IA classifica respostas
 
 **Tópicos:**
+
 1. **Como a IA Funciona**
    - Modelo usado (GPT-4o-mini)
    - Prompt de classificação
@@ -2065,6 +2179,7 @@ export async function generateDailyVacancyReport() {
    - `needs_manual_review = true`
 
 **Material de Apoio:**
+
 - Tabela de classificação com exemplos
 - Guia de revisão manual
 - Exemplos de respostas e classificações
@@ -2076,6 +2191,7 @@ export async function generateDailyVacancyReport() {
 **Objetivo:** Explicar como tratar pacientes pendentes
 
 **Tópicos:**
+
 1. **Identificar Pendentes**
    - Usar página estratégica
    - Filtrar por status `pending_manual`
@@ -2099,6 +2215,7 @@ export async function generateDailyVacancyReport() {
    - Arquivar jornada
 
 **Material de Apoio:**
+
 - Fluxograma de tratamento
 - Checklist de ações
 - Template de notas manuais
@@ -2110,6 +2227,7 @@ export async function generateDailyVacancyReport() {
 **Objetivo:** Explicar como preencher vagas
 
 **Tópicos:**
+
 1. **Identificar Vagas**
    - Usar página de vagas disponíveis
    - Verificar `vacancy_candidates_overview`
@@ -2131,6 +2249,7 @@ export async function generateDailyVacancyReport() {
    - Documentar troca
 
 **Material de Apoio:**
+
 - Lista de aguardantes
 - Checklist de preenchimento
 - Template de documentação
@@ -2144,6 +2263,7 @@ export async function generateDailyVacancyReport() {
 **Objetivo:** Garantir que pacientes não percebam mudança
 
 **Comunicação:**
+
 - Não é necessário comunicar mudança técnica
 - Pacientes continuam recebendo mesmas mensagens
 - Interface do WhatsApp não muda
@@ -2154,6 +2274,7 @@ export async function generateDailyVacancyReport() {
 #### Melhor Experiência (Follow-up Oportuno)
 
 **Benefícios para Pacientes:**
+
 1. **Mensagens Mais Relevantes**
    - Apenas follow-ups necessários
    - Sem spam de mensagens
@@ -2171,6 +2292,7 @@ export async function generateDailyVacancyReport() {
 #### Menos Mensagens Desnecessárias
 
 **Benefícios:**
+
 1. **Menos Spam**
    - Apenas mensagens relevantes
    - Apenas follow-ups necessários

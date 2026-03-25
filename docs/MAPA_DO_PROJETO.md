@@ -7,19 +7,25 @@ Este documento descreve a organização profissional do ecossistema e como a Aut
 O projeto é dividido em três grandes pilares, cada um com sua responsabilidade bem definida:
 
 ### 1. 🖥️ Frontend Dashboard (`/src`)
-Onde o usuário interage. 
+
+Onde o usuário interage.
+
 - **Funcionalidade**: Gestão de instâncias, visualização de métricas, configuração de mensagens.
 - **Responsabilidade**: Interface do Usuário (UI), Experiência do Usuário (UX) e sincronização visual com o DB.
 - **Tecnologia**: React, Vite, Tailwind.
 
 ### 2. 🦾 Automation Engine (`/automation`)
+
 Onde o trabalho pesado acontece em "silêncio".
+
 - **Funcionalidade**: Monitoramento da fila de mensagens, envio inteligente, proteção anti-ban.
 - **Responsabilidade**: Execução de tarefas de fundo (background), lógica de cadência e integração direta com a Evolution API.
 - **Tecnologia**: Node.js/TypeScript (Worker).
 
 ### 3. ☁️ Infraestrutura Backend (`/supabase`)
+
 A ponte que conecta os dois pilares.
+
 - **Funcionalidade**: Armazenamento persistente, funções de borda (Edge Functions) e Webhooks.
 - **Responsabilidade**: Persistência de dados, autenticação e comunicação assíncrona.
 - **Tecnologia**: Supabase, PostgreSQL, Deno.
@@ -49,5 +55,6 @@ prn-vigilante/
 ```
 
 ---
+
 > [!TIP]
 > Esta separação garante que o Dashboard continue funcionando mesmo se a Automação parar para manutenção, e vice-versa. É o padrão de mercado para sistemas profissionais de alta escala.

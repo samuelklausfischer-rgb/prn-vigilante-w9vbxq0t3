@@ -12,7 +12,8 @@ export function buildSaraMessage(params: {
   nome?: string
   procedimentos?: string
 }): string {
-  const dataBr = params.dataBr || (params.data_exame_iso ? formatBrFromIso(params.data_exame_iso) : '')
+  const dataBr =
+    params.dataBr || (params.data_exame_iso ? formatBrFromIso(params.data_exame_iso) : '')
   const nome = params.nome?.trim() || 'NÃO INFORMADO'
   const procedimentos = params.procedimentos?.trim() || 'NÃO INFORMADO'
 

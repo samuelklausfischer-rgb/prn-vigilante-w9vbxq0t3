@@ -17,7 +17,11 @@ import { getPatientConversation, type ConversationData } from '@/services/conver
 import type { PatientCategory, PatientQueue } from '@/types'
 import { categorizePatients } from '@shared/utils/patient-utils'
 
-const tabOrder: Array<{ key: PatientCategory; label: string; tone?: 'default' | 'warning' | 'danger' | 'success' | 'info' }> = [
+const tabOrder: Array<{
+  key: PatientCategory
+  label: string
+  tone?: 'default' | 'warning' | 'danger' | 'success' | 'info'
+}> = [
   { key: 'respondido', label: 'Respondidos', tone: 'info' },
   { key: 'pendente', label: 'Pendentes', tone: 'warning' },
   { key: 'falha', label: 'Falhas', tone: 'default' },
@@ -69,13 +73,13 @@ export default function SegundaChamada() {
   const [filterDate, setFilterDate] = useState('')
   const [selectedIds, setSelectedIds] = useState<string[]>([])
   const [submitting, setSubmitting] = useState(false)
-  
+
   // Estados para modal de conversação
   const [conversationModalOpen, setConversationModalOpen] = useState(false)
   const [selectedPatientId, setSelectedPatientId] = useState<string | null>(null)
   const [conversationData, setConversationData] = useState<ConversationData | null>(null)
   const [conversationLoading, setConversationLoading] = useState(false)
-  
+
   const categorized = useMemo(() => categorizePatients(items), [items])
 
   const filteredByTab = useMemo(() => {
@@ -105,13 +109,13 @@ export default function SegundaChamada() {
       return current.filter((id) => id !== patientId)
     })
   }
-  
+
   const handlePatientClick = (patient: PatientQueue) => {
     setSelectedPatientId(patient.id)
     setConversationModalOpen(true)
     setConversationLoading(true)
     setConversationData(null)
-    
+
     getPatientConversation(patient.id)
       .then((data) => {
         setConversationData(data)
@@ -136,7 +140,9 @@ export default function SegundaChamada() {
       return
     }
 
-    setSelectedIds((current) => Array.from(new Set([...current, ...currentItems.map((patient) => patient.id)])))
+    setSelectedIds((current) =>
+      Array.from(new Set([...current, ...currentItems.map((patient) => patient.id)])),
+    )
   }
 
   const runBulkAction = async (action: () => Promise<void>) => {
@@ -166,9 +172,16 @@ export default function SegundaChamada() {
         throw new Error('Nao foi possivel devolver os pacientes para a fila.')
       }
 
-      toast({ title: 'Pacientes devolvidos para a fila', description: `${selectedIds.length} registro(s) retornaram para reenvio.` })
+      toast({
+        title: 'Pacientes devolvidos para a fila',
+        description: `${selectedIds.length} registro(s) retornaram para reenvio.`,
+      })
     }).catch((error: any) => {
-      toast({ title: 'Erro ao voltar para fila', description: error?.message || 'Falha inesperada.', variant: 'destructive' })
+      toast({
+        title: 'Erro ao voltar para fila',
+        description: error?.message || 'Falha inesperada.',
+        variant: 'destructive',
+      })
     })
   }
 
@@ -185,9 +198,16 @@ export default function SegundaChamada() {
         if (!ok) throw new Error('Nao foi possivel marcar todos os pacientes como concluidos.')
       }
 
-      toast({ title: 'Pacientes concluidos', description: `${selectedIds.length} registro(s) foram movidos para a aba de concluidos.` })
+      toast({
+        title: 'Pacientes concluidos',
+        description: `${selectedIds.length} registro(s) foram movidos para a aba de concluidos.`,
+      })
     }).catch((error: any) => {
-      toast({ title: 'Erro ao concluir', description: error?.message || 'Falha inesperada.', variant: 'destructive' })
+      toast({
+        title: 'Erro ao concluir',
+        description: error?.message || 'Falha inesperada.',
+        variant: 'destructive',
+      })
     })
   }
 
@@ -200,20 +220,33 @@ export default function SegundaChamada() {
         variant: result.success ? 'default' : 'destructive',
       })
     }).catch((error: any) => {
-      toast({ title: 'Erro ao arquivar', description: error?.message || 'Falha inesperada.', variant: 'destructive' })
+      toast({
+        title: 'Erro ao arquivar',
+        description: error?.message || 'Falha inesperada.',
+        variant: 'destructive',
+      })
     })
   }
 
   const handleDeleteSelected = async () => {
-    const confirmed = window.confirm(`Excluir ${selectedIds.length} paciente(s) selecionado(s)? Essa acao nao arquiva os dados.`)
+    const confirmed = window.confirm(
+      `Excluir ${selectedIds.length} paciente(s) selecionado(s)? Essa acao nao arquiva os dados.`,
+    )
     if (!confirmed) return
 
     await runBulkAction(async () => {
       const success = await deleteQueueItemsBulk(selectedIds)
       if (!success) throw new Error('Nao foi possivel excluir os pacientes selecionados.')
-      toast({ title: 'Pacientes excluidos', description: `${selectedIds.length} registro(s) foram removidos da fila.` })
+      toast({
+        title: 'Pacientes excluidos',
+        description: `${selectedIds.length} registro(s) foram removidos da fila.`,
+      })
     }).catch((error: any) => {
-      toast({ title: 'Erro ao excluir', description: error?.message || 'Falha inesperada.', variant: 'destructive' })
+      toast({
+        title: 'Erro ao excluir',
+        description: error?.message || 'Falha inesperada.',
+        variant: 'destructive',
+      })
     })
   }
 
@@ -222,7 +255,9 @@ export default function SegundaChamada() {
     await handleReturnSelected()
   }
 
-  const currentTabSelectedCount = currentItems.filter((patient) => selectedIds.includes(patient.id)).length
+  const currentTabSelectedCount = currentItems.filter((patient) =>
+    selectedIds.includes(patient.id),
+  ).length
 
   return (
     <div className="space-y-6 animate-fade-in-up">
@@ -230,7 +265,8 @@ export default function SegundaChamada() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-white">Segunda chamada</h1>
           <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-            Organize pendencias, falhas, casos criticos e telefones fixos sem perder o controle dos concluidos e do historico.
+            Organize pendencias, falhas, casos criticos e telefones fixos sem perder o controle dos
+            concluidos e do historico.
           </p>
         </div>
 
@@ -256,7 +292,12 @@ export default function SegundaChamada() {
           </div>
 
           {(search || filterDate) && (
-            <Button variant="ghost" size="sm" onClick={clearFilters} className="text-muted-foreground hover:text-white">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={clearFilters}
+              className="text-muted-foreground hover:text-white"
+            >
               <XCircle className="mr-2 h-4 w-4" />
               Limpar
             </Button>
@@ -273,7 +314,9 @@ export default function SegundaChamada() {
           <CardContent className="flex flex-col items-center justify-center py-16 text-center">
             <AlertCircle className="mb-4 h-12 w-12 text-muted-foreground" />
             <h3 className="text-lg font-semibold text-white">Sem pacientes para segunda chamada</h3>
-            <p className="mt-2 max-w-md text-sm text-muted-foreground">Nenhum registro com status de falha ou entregue precisa de tratamento manual agora.</p>
+            <p className="mt-2 max-w-md text-sm text-muted-foreground">
+              Nenhum registro com status de falha ou entregue precisa de tratamento manual agora.
+            </p>
           </CardContent>
         </Card>
       ) : (
@@ -301,20 +344,33 @@ export default function SegundaChamada() {
                   <div>
                     <div className="text-sm font-semibold text-white">
                       {tab.label}
-                      {filterDate && <span className="ml-2 text-blue-400 font-normal opacity-80">(Filtrado por data)</span>}
+                      {filterDate && (
+                        <span className="ml-2 text-blue-400 font-normal opacity-80">
+                          (Filtrado por data)
+                        </span>
+                      )}
                     </div>
-                    <div className="text-xs text-muted-foreground">{filteredByTab[tab.key].length} registro(s) visiveis nesta aba.</div>
+                    <div className="text-xs text-muted-foreground">
+                      {filteredByTab[tab.key].length} registro(s) visiveis nesta aba.
+                    </div>
                   </div>
 
                   <div className="flex items-center gap-3">
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
                       <Checkbox
-                        checked={currentItems.length > 0 && currentTabSelectedCount === currentItems.length}
+                        checked={
+                          currentItems.length > 0 && currentTabSelectedCount === currentItems.length
+                        }
                         onCheckedChange={(checked) => toggleSelectAllCurrentTab(Boolean(checked))}
                       />
                       Selecionar tudo
                     </div>
-                    <Button variant="outline" size="sm" onClick={() => refetch()} disabled={submitting}>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => refetch()}
+                      disabled={submitting}
+                    >
                       Atualizar
                     </Button>
                   </div>
@@ -363,7 +419,7 @@ export default function SegundaChamada() {
               </div>
             </div>
           )}
-          
+
           <ConversationModal
             open={conversationModalOpen}
             onOpenChange={setConversationModalOpen}

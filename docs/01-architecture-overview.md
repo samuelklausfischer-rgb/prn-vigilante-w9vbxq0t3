@@ -17,7 +17,7 @@ flowchart TD
 **Frontend**: React 18 + Vite + TypeScript  
 **Backend**: Supabase (PostgreSQL, Edge Functions)  
 **WhatsApp**: Evolution API  
-**LLM**: OpenAI GPT-4o-mini  
+**LLM**: OpenAI GPT-4o-mini
 
 ## Module Structure
 

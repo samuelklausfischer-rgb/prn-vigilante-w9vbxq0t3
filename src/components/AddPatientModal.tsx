@@ -56,19 +56,19 @@ interface AddPatientModalProps {
 // Helper para somar horários (HH:mm + HH:mm:ss)
 function calculateEndTime(startTime: string, duration: string): string {
   if (!startTime || !duration) return ''
-  
+
   try {
     const [sHours, sMinutes] = startTime.split(':').map(Number)
     const [dHours, dMinutes] = duration.split(':').map(Number)
-    
+
     let totalMinutes = sHours * 60 + sMinutes + dHours * 60 + dMinutes
-    
+
     // Ajuste para não passar de 24h (opcional, mas bom pra segurança)
     totalMinutes = totalMinutes % (24 * 60)
-    
+
     const endHours = Math.floor(totalMinutes / 60)
     const endMinutes = totalMinutes % 60
-    
+
     return `${endHours.toString().padStart(2, '0')}:${endMinutes.toString().padStart(2, '0')}`
   } catch (_e) {
     return ''
@@ -147,7 +147,10 @@ export function AddPatientModal({ isOpen, onClose, onSuccess }: AddPatientModalP
       if (!result) throw new Error('Nenhum retorno recebido ao enfileirar paciente.')
 
       if (result.status === 'duplicate_recent' || result.status === 'duplicate_original') {
-        throw new Error(result.error_message || 'Paciente já tem agendamento recente para o mesmo horário/procedimento')
+        throw new Error(
+          result.error_message ||
+            'Paciente já tem agendamento recente para o mesmo horário/procedimento',
+        )
       }
 
       if (result.status !== 'success') {
@@ -182,10 +185,13 @@ export function AddPatientModal({ isOpen, onClose, onSuccess }: AddPatientModalP
             <div className="bg-emerald-500/20 p-2 rounded-xl text-emerald-400">
               <PlusCircle className="w-6 h-6" />
             </div>
-            <DialogTitle className="text-2xl font-heading font-bold">Novo Cadastro de Paciente</DialogTitle>
+            <DialogTitle className="text-2xl font-heading font-bold">
+              Novo Cadastro de Paciente
+            </DialogTitle>
           </div>
           <DialogDescription className="text-slate-400 text-sm">
-            Cadastros manuais geram automaticamente o template da "Sara" para o Hospital São Benedito.
+            Cadastros manuais geram automaticamente o template da "Sara" para o Hospital São
+            Benedito.
           </DialogDescription>
         </DialogHeader>
 
@@ -194,16 +200,24 @@ export function AddPatientModal({ isOpen, onClose, onSuccess }: AddPatientModalP
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
               {/* Seção: Dados Pessoais */}
               <div className="space-y-4">
-                <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-blue-400/50 mb-2">Identificação</h3>
-                
+                <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-blue-400/50 mb-2">
+                  Identificação
+                </h3>
+
                 <FormField
                   control={form.control}
                   name="patient_name"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-xs font-medium text-slate-300">Nome Completo</FormLabel>
+                      <FormLabel className="text-xs font-medium text-slate-300">
+                        Nome Completo
+                      </FormLabel>
                       <FormControl>
-                        <Input placeholder="Ex: João Silva" {...field} className="bg-white/5 border-white/10 rounded-xl focus:border-blue-500/50 transition-colors" />
+                        <Input
+                          placeholder="Ex: João Silva"
+                          {...field}
+                          className="bg-white/5 border-white/10 rounded-xl focus:border-blue-500/50 transition-colors"
+                        />
                       </FormControl>
                       <FormMessage className="text-red-400 text-[10px]" />
                     </FormItem>
@@ -215,9 +229,15 @@ export function AddPatientModal({ isOpen, onClose, onSuccess }: AddPatientModalP
                   name="Data_nascimento"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-xs font-medium text-slate-300">Data de Nascimento</FormLabel>
+                      <FormLabel className="text-xs font-medium text-slate-300">
+                        Data de Nascimento
+                      </FormLabel>
                       <FormControl>
-                        <Input placeholder="DD/MM/AAAA" {...field} className="bg-white/5 border-white/10 rounded-xl" />
+                        <Input
+                          placeholder="DD/MM/AAAA"
+                          {...field}
+                          className="bg-white/5 border-white/10 rounded-xl"
+                        />
                       </FormControl>
                     </FormItem>
                   )}
@@ -226,16 +246,24 @@ export function AddPatientModal({ isOpen, onClose, onSuccess }: AddPatientModalP
 
               {/* Seção: Contatos */}
               <div className="space-y-4">
-                <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-emerald-400/50 mb-2">Contatos Rápidos</h3>
-                
+                <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-emerald-400/50 mb-2">
+                  Contatos Rápidos
+                </h3>
+
                 <FormField
                   control={form.control}
                   name="phone_number"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-xs font-medium text-slate-300">WhatsApp Principal</FormLabel>
+                      <FormLabel className="text-xs font-medium text-slate-300">
+                        WhatsApp Principal
+                      </FormLabel>
                       <FormControl>
-                        <Input placeholder="+55 11 99999-9999" {...field} className="bg-emerald-500/10 border-white/10 rounded-xl border-emerald-500/20" />
+                        <Input
+                          placeholder="+55 11 99999-9999"
+                          {...field}
+                          className="bg-emerald-500/10 border-white/10 rounded-xl border-emerald-500/20"
+                        />
                       </FormControl>
                       <FormMessage className="text-red-400 text-[10px]" />
                     </FormItem>
@@ -249,7 +277,11 @@ export function AddPatientModal({ isOpen, onClose, onSuccess }: AddPatientModalP
                     render={({ field }) => (
                       <FormItem>
                         <FormControl>
-                          <Input placeholder="Fone 2 (Opcional)" {...field} className="bg-white/5 border-white/10 rounded-xl text-xs" />
+                          <Input
+                            placeholder="Fone 2 (Opcional)"
+                            {...field}
+                            className="bg-white/5 border-white/10 rounded-xl text-xs"
+                          />
                         </FormControl>
                       </FormItem>
                     )}
@@ -260,7 +292,11 @@ export function AddPatientModal({ isOpen, onClose, onSuccess }: AddPatientModalP
                     render={({ field }) => (
                       <FormItem>
                         <FormControl>
-                          <Input placeholder="Fone 3 (Opcional)" {...field} className="bg-white/5 border-white/10 rounded-xl text-xs" />
+                          <Input
+                            placeholder="Fone 3 (Opcional)"
+                            {...field}
+                            className="bg-white/5 border-white/10 rounded-xl text-xs"
+                          />
                         </FormControl>
                       </FormItem>
                     )}
@@ -271,16 +307,24 @@ export function AddPatientModal({ isOpen, onClose, onSuccess }: AddPatientModalP
 
             {/* Seção: Procedimento */}
             <div className="bg-blue-600/5 p-4 rounded-2xl border border-blue-500/20 space-y-4">
-              <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-blue-400/70">Regras de Agendamento</h3>
-              
+              <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-blue-400/70">
+                Regras de Agendamento
+              </h3>
+
               <FormField
                 control={form.control}
                 name="procedimentos"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-xs font-medium text-slate-300">Tipo de Exame / Procedimento</FormLabel>
+                    <FormLabel className="text-xs font-medium text-slate-300">
+                      Tipo de Exame / Procedimento
+                    </FormLabel>
                     <FormControl>
-                      <Input placeholder="Ex: Ressonância Magnética de Crânio" {...field} className="bg-white/10 border-white/10 rounded-xl" />
+                      <Input
+                        placeholder="Ex: Ressonância Magnética de Crânio"
+                        {...field}
+                        className="bg-white/10 border-white/10 rounded-xl"
+                      />
                     </FormControl>
                     <FormMessage className="text-red-400 text-[10px]" />
                   </FormItem>
@@ -292,9 +336,15 @@ export function AddPatientModal({ isOpen, onClose, onSuccess }: AddPatientModalP
                 name="data_exame"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-xs font-medium text-slate-300">Data do Exame</FormLabel>
+                    <FormLabel className="text-xs font-medium text-slate-300">
+                      Data do Exame
+                    </FormLabel>
                     <FormControl>
-                      <Input type="date" {...field} className="bg-white/10 border-white/10 rounded-xl" />
+                      <Input
+                        type="date"
+                        {...field}
+                        className="bg-white/10 border-white/10 rounded-xl"
+                      />
                     </FormControl>
                     <FormMessage className="text-red-400 text-[10px]" />
                   </FormItem>
@@ -307,9 +357,15 @@ export function AddPatientModal({ isOpen, onClose, onSuccess }: AddPatientModalP
                   name="horario_inicio"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-xs font-medium text-slate-300">Horário de Início</FormLabel>
+                      <FormLabel className="text-xs font-medium text-slate-300">
+                        Horário de Início
+                      </FormLabel>
                       <FormControl>
-                        <Input placeholder="Ex: 14:30" {...field} className="bg-white/5 border-white/10 rounded-xl" />
+                        <Input
+                          placeholder="Ex: 14:30"
+                          {...field}
+                          className="bg-white/5 border-white/10 rounded-xl"
+                        />
                       </FormControl>
                       <FormMessage className="text-red-400 text-[10px]" />
                     </FormItem>
@@ -321,9 +377,15 @@ export function AddPatientModal({ isOpen, onClose, onSuccess }: AddPatientModalP
                   name="time_proce"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-xs font-medium text-slate-300">Duração (Procedimento)</FormLabel>
+                      <FormLabel className="text-xs font-medium text-slate-300">
+                        Duração (Procedimento)
+                      </FormLabel>
                       <FormControl>
-                        <Input placeholder="Ex: 00:45:00" {...field} className="bg-white/5 border-white/10 rounded-xl" />
+                        <Input
+                          placeholder="Ex: 00:45:00"
+                          {...field}
+                          className="bg-white/5 border-white/10 rounded-xl"
+                        />
                       </FormControl>
                     </FormItem>
                   )}
@@ -338,14 +400,14 @@ export function AddPatientModal({ isOpen, onClose, onSuccess }: AddPatientModalP
               render={({ field }) => (
                 <FormItem>
                   <FormLabel className="flex items-center gap-2 text-xs font-medium text-emerald-400 mb-2">
-                    <MessageSquare className="w-3.5 h-3.5" /> 
+                    <MessageSquare className="w-3.5 h-3.5" />
                     Preview da Mensagem (Hospital São Benedito)
                   </FormLabel>
                   <FormControl>
-                    <Textarea 
-                      placeholder="Template Sara..." 
-                      className="bg-[#0a0c10] border-white/5 min-h-[160px] rounded-xl text-sm leading-relaxed p-4 font-sans focus:border-emerald-500/30" 
-                      {...field} 
+                    <Textarea
+                      placeholder="Template Sara..."
+                      className="bg-[#0a0c10] border-white/5 min-h-[160px] rounded-xl text-sm leading-relaxed p-4 font-sans focus:border-emerald-500/30"
+                      {...field}
                     />
                   </FormControl>
                   <FormMessage className="text-red-400 text-[10px]" />
@@ -354,16 +416,16 @@ export function AddPatientModal({ isOpen, onClose, onSuccess }: AddPatientModalP
             />
 
             <DialogFooter className="gap-2 sm:gap-0 border-t border-white/5 pt-4">
-              <Button 
-                type="button" 
-                variant="ghost" 
-                onClick={onClose} 
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={onClose}
                 className="text-slate-400 hover:text-white"
               >
                 Cancelar
               </Button>
-              <Button 
-                type="submit" 
+              <Button
+                type="submit"
                 disabled={loading}
                 className="bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl px-10 shadow-lg shadow-blue-500/20"
               >

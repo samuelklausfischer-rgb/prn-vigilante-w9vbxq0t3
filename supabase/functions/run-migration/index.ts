@@ -4,8 +4,8 @@
  * Em produção, migrations devem ser executadas via Supabase Dashboard ou CLI
  */
 
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 const supabaseUrl = Deno.env.get('SUPABASE_URL')!
 const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
@@ -24,12 +24,12 @@ async function executeMigration() {
     return {
       status: 'error',
       message: 'DDL commands não podem ser executados via Edge Function. Use Supabase Dashboard.',
-      suggestion: 'Execute o SQL manualmente em: https://app.supabase.com/project/.../sql'
+      suggestion: 'Execute o SQL manualmente em: https://app.supabase.com/project/.../sql',
     }
   } catch (error) {
     return {
       status: 'error',
-      error: error.message
+      error: error.message,
     }
   }
 }
@@ -38,16 +38,16 @@ serve(async (req) => {
   const { method } = req
 
   if (method !== 'POST') {
-    return new Response(
-      JSON.stringify({ error: 'Method not allowed' }),
-      { status: 405, headers: { 'Content-Type': 'application/json' } }
-    )
+    return new Response(JSON.stringify({ error: 'Method not allowed' }), {
+      status: 405,
+      headers: { 'Content-Type': 'application/json' },
+    })
   }
 
   const result = await executeMigration()
 
-  return new Response(
-    JSON.stringify(result),
-    { status: 200, headers: { 'Content-Type': 'application/json' } }
-  )
+  return new Response(JSON.stringify(result), {
+    status: 200,
+    headers: { 'Content-Type': 'application/json' },
+  })
 })

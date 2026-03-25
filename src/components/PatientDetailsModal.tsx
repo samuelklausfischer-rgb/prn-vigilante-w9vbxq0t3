@@ -41,9 +41,7 @@ export function PatientDetailsModal({ patient, open, onClose }: PatientDetailsMo
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="bg-[#0f1115]/95 backdrop-blur-xl border-white/10 text-white max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold text-center">
-            Detalhes do Paciente
-          </DialogTitle>
+          <DialogTitle className="text-2xl font-bold text-center">Detalhes do Paciente</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-6 mt-4">
@@ -51,9 +49,7 @@ export function PatientDetailsModal({ patient, open, onClose }: PatientDetailsMo
           <div className="text-center space-y-3">
             <div className="flex items-center justify-center gap-2.5">
               <User className="w-5 h-5 text-blue-400" />
-              <h2 className="text-2xl font-bold text-white">
-                {patient.patient_name}
-              </h2>
+              <h2 className="text-2xl font-bold text-white">{patient.patient_name}</h2>
             </div>
             <div className="flex items-center justify-center gap-4 text-sm text-slate-300">
               <div className="flex items-center gap-1.5">

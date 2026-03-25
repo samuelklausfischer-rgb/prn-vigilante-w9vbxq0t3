@@ -2,15 +2,7 @@ import * as React from 'react'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import {
-  Calendar,
-  Clock,
-  Phone,
-  MessageSquare,
-  CheckCircle2,
-  FileText,
-  X,
-} from 'lucide-react'
+import { Calendar, Clock, Phone, MessageSquare, CheckCircle2, FileText, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { PatientInfo, InfoPopupProps } from '@/types/patient-info'
 import { format } from 'date-fns'
@@ -94,7 +86,7 @@ export const InfoPopup = React.memo(function InfoPopup({
   open,
   onOpenChange,
   children,
-  title = "Informações do Paciente",
+  title = 'Informações do Paciente',
   align = 'center',
   side = 'right',
   sideOffset = 8,
@@ -121,9 +113,7 @@ export const InfoPopup = React.memo(function InfoPopup({
 
   return (
     <Popover open={open} onOpenChange={onOpenChange}>
-      <PopoverTrigger asChild>
-        {children}
-      </PopoverTrigger>
+      <PopoverTrigger asChild>{children}</PopoverTrigger>
       <PopoverContent
         align={isMobile ? 'center' : align}
         side={isMobile ? 'bottom' : side}
@@ -133,7 +123,7 @@ export const InfoPopup = React.memo(function InfoPopup({
           'z-50 w-[calc(100vw-1.5rem)] sm:w-[min(70vw,38rem)] max-w-2xl overflow-hidden rounded-[1.35rem] p-0',
           'border border-white/10 bg-[#0b0e13]/98 shadow-[0_24px_80px_rgba(0,0,0,0.5)] backdrop-blur-2xl',
           'origin-[--radix-popover-content-transform-origin]',
-          className
+          className,
         )}
         {...popoverContentProps}
       >
@@ -145,7 +135,9 @@ export const InfoPopup = React.memo(function InfoPopup({
                 <FileText className="h-4 w-4 text-blue-400" />
               </div>
               <div className="min-w-0">
-                <h3 className="truncate font-heading text-base font-semibold text-white sm:text-lg">{title}</h3>
+                <h3 className="truncate font-heading text-base font-semibold text-white sm:text-lg">
+                  {title}
+                </h3>
                 <p className="truncate text-[11px] uppercase tracking-[0.22em] text-muted-foreground/60">
                   Detalhes complementares do paciente
                 </p>
@@ -164,9 +156,7 @@ export const InfoPopup = React.memo(function InfoPopup({
           </div>
         </div>
 
-        <div
-          className="max-h-[75vh] space-y-5 overflow-y-auto bg-[radial-gradient(circle_at_top,rgba(56,189,248,0.08),transparent_30%),radial-gradient(circle_at_bottom_right,rgba(16,185,129,0.06),transparent_28%)] p-4 sm:p-5 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
-        >
+        <div className="max-h-[75vh] space-y-5 overflow-y-auto bg-[radial-gradient(circle_at_top,rgba(56,189,248,0.08),transparent_30%),radial-gradient(circle_at_bottom_right,rgba(16,185,129,0.06),transparent_28%)] p-4 sm:p-5 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
           <div className="overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-white/[0.06] to-white/[0.02] shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
             <div className="flex flex-col gap-4 p-4 sm:p-5">
               <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
@@ -175,7 +165,13 @@ export const InfoPopup = React.memo(function InfoPopup({
                     <h4 className="truncate font-heading text-lg font-semibold text-white sm:text-xl">
                       {patient.patient_name}
                     </h4>
-                    <Badge className={cn(statusCfg.bg, statusCfg.color, 'shrink-0 border-white/10 text-[10px]')}>
+                    <Badge
+                      className={cn(
+                        statusCfg.bg,
+                        statusCfg.color,
+                        'shrink-0 border-white/10 text-[10px]',
+                      )}
+                    >
                       {statusCfg.label}
                     </Badge>
                   </div>
@@ -186,13 +182,22 @@ export const InfoPopup = React.memo(function InfoPopup({
 
                 <div className="grid grid-cols-2 gap-2 text-xs">
                   <div className="rounded-xl border border-white/8 bg-black/20 px-3 py-2">
-                    <div className="mb-1 text-[10px] uppercase tracking-[0.18em] text-muted-foreground/60">Aprovacao</div>
-                    <div className={cn('font-medium', patient.is_approved ? 'text-emerald-400' : 'text-amber-400')}>
+                    <div className="mb-1 text-[10px] uppercase tracking-[0.18em] text-muted-foreground/60">
+                      Aprovacao
+                    </div>
+                    <div
+                      className={cn(
+                        'font-medium',
+                        patient.is_approved ? 'text-emerald-400' : 'text-amber-400',
+                      )}
+                    >
                       {patient.is_approved ? 'Liberado' : 'Retido'}
                     </div>
                   </div>
                   <div className="rounded-xl border border-white/8 bg-black/20 px-3 py-2">
-                    <div className="mb-1 text-[10px] uppercase tracking-[0.18em] text-muted-foreground/60">Fila</div>
+                    <div className="mb-1 text-[10px] uppercase tracking-[0.18em] text-muted-foreground/60">
+                      Fila
+                    </div>
                     <div className="font-medium text-slate-200">{patient.queue_order || '--'}</div>
                   </div>
                 </div>
@@ -204,8 +209,12 @@ export const InfoPopup = React.memo(function InfoPopup({
                     <Phone className="h-4 w-4" />
                   </div>
                   <div className="min-w-0">
-                    <div className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground/60">Telefone</div>
-                    <div className="truncate font-mono text-sm text-slate-200">{patient.phone_number}</div>
+                    <div className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground/60">
+                      Telefone
+                    </div>
+                    <div className="truncate font-mono text-sm text-slate-200">
+                      {patient.phone_number}
+                    </div>
                   </div>
                 </div>
 
@@ -214,8 +223,12 @@ export const InfoPopup = React.memo(function InfoPopup({
                     <Calendar className="h-4 w-4" />
                   </div>
                   <div className="min-w-0">
-                    <div className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground/60">Nascimento</div>
-                    <div className="truncate font-mono text-sm text-slate-200">{formatDOB(patient.Data_nascimento)}</div>
+                    <div className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground/60">
+                      Nascimento
+                    </div>
+                    <div className="truncate font-mono text-sm text-slate-200">
+                      {formatDOB(patient.Data_nascimento)}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -225,7 +238,9 @@ export const InfoPopup = React.memo(function InfoPopup({
           <SectionBlock icon={<MessageSquare className="h-3.5 w-3.5" />} title="Procedimentos">
             <div className="rounded-2xl border border-white/8 bg-black/20 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]">
               <p className="line-clamp-4 overflow-hidden break-words text-sm leading-relaxed text-slate-300">
-                {patient.procedimentos || <span className="text-slate-500 italic">Não informado</span>}
+                {patient.procedimentos || (
+                  <span className="text-slate-500 italic">Não informado</span>
+                )}
               </p>
             </div>
           </SectionBlock>
@@ -233,19 +248,25 @@ export const InfoPopup = React.memo(function InfoPopup({
           <SectionBlock icon={<Clock className="h-3.5 w-3.5" />} title="Horarios da Sessao">
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
               <div className="min-w-0 overflow-hidden rounded-2xl border border-white/8 bg-black/20 p-4 text-center shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]">
-                <div className="mb-1 text-[10px] uppercase tracking-[0.18em] text-muted-foreground/60">Inicio</div>
+                <div className="mb-1 text-[10px] uppercase tracking-[0.18em] text-muted-foreground/60">
+                  Inicio
+                </div>
                 <div className="truncate text-lg font-mono font-semibold text-emerald-400">
                   {formatTimeStr(patient.horario_inicio)}
                 </div>
               </div>
               <div className="min-w-0 overflow-hidden rounded-2xl border border-white/8 bg-black/20 p-4 text-center shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]">
-                <div className="mb-1 text-[10px] uppercase tracking-[0.18em] text-muted-foreground/60">Fim</div>
+                <div className="mb-1 text-[10px] uppercase tracking-[0.18em] text-muted-foreground/60">
+                  Fim
+                </div>
                 <div className="truncate text-lg font-mono font-semibold text-blue-400">
                   {formatTimeStr(patient.horario_final)}
                 </div>
               </div>
               <div className="min-w-0 overflow-hidden rounded-2xl border border-white/8 bg-black/20 p-4 text-center shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] sm:col-span-2 lg:col-span-1">
-                <div className="mb-1 text-[10px] uppercase tracking-[0.18em] text-muted-foreground/60">Duracao</div>
+                <div className="mb-1 text-[10px] uppercase tracking-[0.18em] text-muted-foreground/60">
+                  Duracao
+                </div>
                 <div className="truncate text-lg font-mono font-semibold text-amber-400">
                   {formatDuration(patient.time_proce)}
                 </div>
@@ -256,7 +277,9 @@ export const InfoPopup = React.memo(function InfoPopup({
           <SectionBlock icon={<MessageSquare className="h-3.5 w-3.5" />} title="Mensagem WhatsApp">
             <div className="overflow-hidden rounded-2xl border border-blue-500/15 bg-blue-500/5 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]">
               <p className="max-h-40 overflow-y-auto break-words text-sm leading-relaxed text-slate-300 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-                {patient.message_body || <span className="text-slate-500 italic">Mensagem padrão</span>}
+                {patient.message_body || (
+                  <span className="text-slate-500 italic">Mensagem padrão</span>
+                )}
               </p>
             </div>
           </SectionBlock>
@@ -275,26 +298,29 @@ export const InfoPopup = React.memo(function InfoPopup({
             <div className="grid grid-cols-1 gap-2 text-xs font-mono sm:grid-cols-2 sm:gap-3">
               <div className="flex min-w-0 items-center justify-between gap-3 rounded-2xl border border-white/8 bg-white/[0.03] px-3.5 py-3">
                 <span className="shrink-0 text-muted-foreground">Aprovação</span>
-                <span className={cn('truncate', patient.is_approved ? 'text-emerald-400' : 'text-amber-400')}>
-                  {patient.is_approved ? "Liberado" : "Retido"}
+                <span
+                  className={cn(
+                    'truncate',
+                    patient.is_approved ? 'text-emerald-400' : 'text-amber-400',
+                  )}
+                >
+                  {patient.is_approved ? 'Liberado' : 'Retido'}
                 </span>
               </div>
               <div className="flex min-w-0 items-center justify-between gap-3 rounded-2xl border border-white/8 bg-white/[0.03] px-3.5 py-3">
                 <span className="shrink-0 text-muted-foreground">Disparo</span>
                 <span className="truncate text-slate-300">
-                  {format(new Date(patient.send_after), "dd/MM/yyyy", { locale: ptBR })}
+                  {format(new Date(patient.send_after), 'dd/MM/yyyy', { locale: ptBR })}
                 </span>
               </div>
               <div className="flex min-w-0 items-center justify-between gap-3 rounded-2xl border border-white/8 bg-white/[0.03] px-3.5 py-3">
                 <span className="shrink-0 text-muted-foreground">Posição</span>
-                <span className="truncate text-slate-300">
-                  {patient.queue_order || "--"}
-                </span>
+                <span className="truncate text-slate-300">{patient.queue_order || '--'}</span>
               </div>
               <div className="flex min-w-0 items-center justify-between gap-3 rounded-2xl border border-white/8 bg-white/[0.03] px-3.5 py-3">
                 <span className="shrink-0 text-muted-foreground">Atualizado</span>
                 <span className="truncate text-slate-300">
-                  {format(new Date(patient.updated_at), "dd/MM HH:mm", { locale: ptBR })}
+                  {format(new Date(patient.updated_at), 'dd/MM HH:mm', { locale: ptBR })}
                 </span>
               </div>
             </div>
@@ -305,29 +331,25 @@ export const InfoPopup = React.memo(function InfoPopup({
               Ações rápidas
             </div>
             <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              className="flex-1 border-emerald-400/30 text-emerald-400 hover:bg-emerald-400/10"
-              asChild
-            >
-              <a
-                href={getWhatsAppLink(patient.phone_number)}
-                target="_blank"
-                rel="noreferrer"
+              <Button
+                variant="outline"
+                size="sm"
+                className="flex-1 border-emerald-400/30 text-emerald-400 hover:bg-emerald-400/10"
+                asChild
               >
-                <Phone className="w-4 h-4 mr-2" />
-                WhatsApp
-              </a>
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              className="flex-1 border-white/10 bg-white/[0.03] hover:bg-white/[0.08]"
-              onClick={() => onOpenChange(false)}
-            >
-              Fechar
-            </Button>
+                <a href={getWhatsAppLink(patient.phone_number)} target="_blank" rel="noreferrer">
+                  <Phone className="w-4 h-4 mr-2" />
+                  WhatsApp
+                </a>
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="flex-1 border-white/10 bg-white/[0.03] hover:bg-white/[0.08]"
+                onClick={() => onOpenChange(false)}
+              >
+                Fechar
+              </Button>
             </div>
           </div>
         </div>

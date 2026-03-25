@@ -1,1189 +1,1276 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>PRN-Vigilante - Plano de Automação</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        color: #333;
+        line-height: 1.6;
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+
+      header {
+        text-align: center;
+        color: white;
+        padding: 40px 0;
+        margin-bottom: 40px;
+      }
+
+      header h1 {
+        font-size: 3em;
+        margin-bottom: 10px;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+      }
+
+      header p {
+        font-size: 1.3em;
+        opacity: 0.9;
+      }
+
+      .section {
+        background: white;
+        border-radius: 20px;
+        padding: 30px;
+        margin-bottom: 30px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+      }
+
+      .section h2 {
+        color: #667eea;
+        font-size: 2em;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .section h2 .icon {
+        font-size: 1.2em;
+      }
+
+      /* Contexto */
+      .context-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+        margin-top: 20px;
+      }
+
+      .context-card {
+        background: linear-gradient(145deg, #f5f7fa 0%, #e4e8ec 100%);
+        border-radius: 15px;
+        padding: 20px;
+        border-left: 5px solid #667eea;
+      }
+
+      .context-card h3 {
+        color: #764ba2;
+        margin-bottom: 10px;
+      }
+
+      /* Fluxo Principal */
+      .flow-diagram {
+        background: #f8f9fa;
+        border-radius: 15px;
+        padding: 30px;
+        margin-top: 20px;
+      }
+
+      .flow-step {
+        display: flex;
+        align-items: center;
+        margin-bottom: 20px;
+        padding: 20px;
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        transition: transform 0.3s;
+      }
+
+      .flow-step:hover {
+        transform: translateX(10px);
+      }
+
+      .step-number {
+        width: 50px;
+        height: 50px;
+        background: linear-gradient(145deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-size: 1.5em;
+        margin-right: 20px;
+        flex-shrink: 0;
+      }
+
+      .step-content h3 {
+        color: #333;
+        margin-bottom: 5px;
+      }
+
+      .step-content p {
+        color: #666;
+        font-size: 0.95em;
+      }
+
+      .arrow {
+        text-align: center;
+        font-size: 2em;
+        color: #667eea;
+        margin: 10px 0;
+      }
+
+      /* Componentes */
+      .components-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 20px;
+        margin-top: 20px;
+      }
+
+      .component-card {
+        background: linear-gradient(145deg, #ffffff 0%, #f0f0f0 100%);
+        border-radius: 15px;
+        padding: 25px;
+        border: 2px solid #e0e0e0;
+        transition: all 0.3s;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .component-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 5px;
+        background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+      }
+
+      .component-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+        border-color: #667eea;
+      }
+
+      .component-card.priority-high::before {
+        background: linear-gradient(90deg, #e74c3c 0%, #c0392b 100%);
+      }
+
+      .component-card.priority-medium::before {
+        background: linear-gradient(90deg, #f39c12 0%, #e67e22 100%);
+      }
+
+      .component-card.priority-low::before {
+        background: linear-gradient(90deg, #27ae60 0%, #2ecc71 100%);
+      }
+
+      .component-card h3 {
+        color: #333;
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .component-card .priority {
+        display: inline-block;
+        padding: 3px 10px;
+        border-radius: 20px;
+        font-size: 0.75em;
+        font-weight: bold;
+        text-transform: uppercase;
+      }
+
+      .priority-high-text {
+        background: #ffebee;
+        color: #c62828;
+      }
+      .priority-medium-text {
+        background: #fff3e0;
+        color: #ef6c00;
+      }
+      .priority-low-text {
+        background: #e8f5e9;
+        color: #2e7d32;
+      }
+
+      .component-card p {
+        color: #666;
+        margin-bottom: 10px;
+      }
+
+      .component-card ul {
+        list-style: none;
+        padding-left: 0;
+      }
+
+      .component-card ul li {
+        padding: 5px 0;
+        padding-left: 25px;
+        position: relative;
+        color: #555;
+      }
+
+      .component-card ul li::before {
+        content: '✓';
+        position: absolute;
+        left: 0;
+        color: #667eea;
+        font-weight: bold;
+      }
+
+      /* Arquitetura Visual */
+      .architecture-diagram {
+        background: #1a1a2e;
+        border-radius: 15px;
+        padding: 40px;
+        color: white;
+        margin-top: 20px;
+        overflow-x: auto;
+      }
+
+      .arch-container {
+        display: flex;
+        flex-direction: column;
+        gap: 30px;
+        min-width: 800px;
+      }
+
+      .arch-layer {
+        display: flex;
+        justify-content: center;
+        gap: 20px;
+        flex-wrap: wrap;
+      }
+
+      .arch-box {
+        background: linear-gradient(145deg, #16213e 0%, #0f3460 100%);
+        border: 2px solid #e94560;
+        border-radius: 10px;
+        padding: 20px 30px;
+        text-align: center;
+        min-width: 150px;
+      }
+
+      .arch-box.database {
+        border-color: #3498db;
+      }
+
+      .arch-box.api {
+        border-color: #2ecc71;
+      }
+
+      .arch-box h4 {
+        margin-bottom: 10px;
+        font-size: 1.1em;
+      }
+
+      .arch-box ul {
+        list-style: none;
+        font-size: 0.85em;
+        opacity: 0.8;
+      }
+
+      .arch-arrow {
+        text-align: center;
+        font-size: 2em;
+        color: #e94560;
+      }
+
+      /* Tasks Progress */
+      .tasks-container {
+        margin-top: 20px;
+      }
+
+      .task-category {
+        margin-bottom: 30px;
+      }
+
+      .task-category h3 {
+        color: #333;
+        margin-bottom: 15px;
+        padding: 10px 15px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .task-category.high h3 {
+        background: #ffebee;
+        border-left: 5px solid #c62828;
+      }
+      .task-category.medium h3 {
+        background: #fff3e0;
+        border-left: 5px solid #ef6c00;
+      }
+      .task-category.low h3 {
+        background: #e8f5e9;
+        border-left: 5px solid #2e7d32;
+      }
+
+      .task-item {
+        display: flex;
+        align-items: flex-start;
+        padding: 15px;
+        background: #f8f9fa;
+        border-radius: 8px;
+        margin-bottom: 10px;
+        border-left: 3px solid #ddd;
+      }
+
+      .task-item.pending {
+        border-left-color: #95a5a6;
+      }
+      .task-item.completed {
+        border-left-color: #27ae60;
+        background: #e8f5e9;
+      }
+
+      .task-number {
+        width: 30px;
+        height: 30px;
+        background: #667eea;
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-size: 0.9em;
+        margin-right: 15px;
+        flex-shrink: 0;
+      }
+
+      .task-content h4 {
+        color: #333;
+        margin-bottom: 5px;
+      }
+
+      .task-content p {
+        color: #666;
+        font-size: 0.9em;
+      }
+
+      .status-badge {
+        display: inline-block;
+        padding: 3px 8px;
+        border-radius: 4px;
+        font-size: 0.75em;
+        font-weight: bold;
+        margin-left: 10px;
+      }
+
+      .status-pending {
+        background: #ecf0f1;
+        color: #7f8c8d;
+      }
+      .status-completed {
+        background: #d5f4e6;
+        color: #27ae60;
+      }
+
+      /* Resumo */
+      .summary-cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        margin-top: 20px;
+      }
+
+      .summary-card {
+        background: linear-gradient(145deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 25px;
+        border-radius: 15px;
+        text-align: center;
+      }
+
+      .summary-card .number {
+        font-size: 3em;
+        font-weight: bold;
+        margin-bottom: 10px;
+      }
+
+      .summary-card .label {
+        font-size: 1.1em;
+        opacity: 0.9;
+      }
+
+      /* Footer */
+      footer {
+        text-align: center;
+        color: white;
+        padding: 40px 0;
+        margin-top: 40px;
+      }
+
+      footer p {
+        opacity: 0.8;
+      }
+
+      /* Animações */
+      @keyframes pulse {
+        0%,
+        100% {
+          transform: scale(1);
         }
-        
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            color: #333;
-            line-height: 1.6;
+        50% {
+          transform: scale(1.05);
         }
-        
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        
-        header {
-            text-align: center;
-            color: white;
-            padding: 40px 0;
-            margin-bottom: 40px;
-        }
-        
+      }
+
+      .pulse {
+        animation: pulse 2s infinite;
+      }
+
+      /* Responsivo */
+      @media (max-width: 768px) {
         header h1 {
-            font-size: 3em;
-            margin-bottom: 10px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+          font-size: 2em;
         }
-        
-        header p {
-            font-size: 1.3em;
-            opacity: 0.9;
-        }
-        
-        .section {
-            background: white;
-            border-radius: 20px;
-            padding: 30px;
-            margin-bottom: 30px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
-        }
-        
-        .section h2 {
-            color: #667eea;
-            font-size: 2em;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .section h2 .icon {
-            font-size: 1.2em;
-        }
-        
-        /* Contexto */
-        .context-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            margin-top: 20px;
-        }
-        
-        .context-card {
-            background: linear-gradient(145deg, #f5f7fa 0%, #e4e8ec 100%);
-            border-radius: 15px;
-            padding: 20px;
-            border-left: 5px solid #667eea;
-        }
-        
-        .context-card h3 {
-            color: #764ba2;
-            margin-bottom: 10px;
-        }
-        
-        /* Fluxo Principal */
-        .flow-diagram {
-            background: #f8f9fa;
-            border-radius: 15px;
-            padding: 30px;
-            margin-top: 20px;
-        }
-        
+
         .flow-step {
-            display: flex;
-            align-items: center;
-            margin-bottom: 20px;
-            padding: 20px;
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-            transition: transform 0.3s;
+          flex-direction: column;
+          text-align: center;
         }
-        
-        .flow-step:hover {
-            transform: translateX(10px);
-        }
-        
+
         .step-number {
-            width: 50px;
-            height: 50px;
-            background: linear-gradient(145deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            font-size: 1.5em;
-            margin-right: 20px;
-            flex-shrink: 0;
+          margin-right: 0;
+          margin-bottom: 15px;
         }
-        
-        .step-content h3 {
-            color: #333;
-            margin-bottom: 5px;
-        }
-        
-        .step-content p {
-            color: #666;
-            font-size: 0.95em;
-        }
-        
-        .arrow {
-            text-align: center;
-            font-size: 2em;
-            color: #667eea;
-            margin: 10px 0;
-        }
-        
-        /* Componentes */
-        .components-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
-            margin-top: 20px;
-        }
-        
-        .component-card {
-            background: linear-gradient(145deg, #ffffff 0%, #f0f0f0 100%);
-            border-radius: 15px;
-            padding: 25px;
-            border: 2px solid #e0e0e0;
-            transition: all 0.3s;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .component-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 5px;
-            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
-        }
-        
-        .component-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 15px 30px rgba(0,0,0,0.15);
-            border-color: #667eea;
-        }
-        
-        .component-card.priority-high::before {
-            background: linear-gradient(90deg, #e74c3c 0%, #c0392b 100%);
-        }
-        
-        .component-card.priority-medium::before {
-            background: linear-gradient(90deg, #f39c12 0%, #e67e22 100%);
-        }
-        
-        .component-card.priority-low::before {
-            background: linear-gradient(90deg, #27ae60 0%, #2ecc71 100%);
-        }
-        
-        .component-card h3 {
-            color: #333;
-            margin-bottom: 10px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .component-card .priority {
-            display: inline-block;
-            padding: 3px 10px;
-            border-radius: 20px;
-            font-size: 0.75em;
-            font-weight: bold;
-            text-transform: uppercase;
-        }
-        
-        .priority-high-text { background: #ffebee; color: #c62828; }
-        .priority-medium-text { background: #fff3e0; color: #ef6c00; }
-        .priority-low-text { background: #e8f5e9; color: #2e7d32; }
-        
-        .component-card p {
-            color: #666;
-            margin-bottom: 10px;
-        }
-        
-        .component-card ul {
-            list-style: none;
-            padding-left: 0;
-        }
-        
-        .component-card ul li {
-            padding: 5px 0;
-            padding-left: 25px;
-            position: relative;
-            color: #555;
-        }
-        
-        .component-card ul li::before {
-            content: '✓';
-            position: absolute;
-            left: 0;
-            color: #667eea;
-            font-weight: bold;
-        }
-        
-        /* Arquitetura Visual */
+
         .architecture-diagram {
-            background: #1a1a2e;
-            border-radius: 15px;
-            padding: 40px;
-            color: white;
-            margin-top: 20px;
-            overflow-x: auto;
+          padding: 20px;
         }
-        
+
         .arch-container {
-            display: flex;
-            flex-direction: column;
-            gap: 30px;
-            min-width: 800px;
+          min-width: auto;
         }
-        
-        .arch-layer {
-            display: flex;
-            justify-content: center;
-            gap: 20px;
-            flex-wrap: wrap;
-        }
-        
-        .arch-box {
-            background: linear-gradient(145deg, #16213e 0%, #0f3460 100%);
-            border: 2px solid #e94560;
-            border-radius: 10px;
-            padding: 20px 30px;
-            text-align: center;
-            min-width: 150px;
-        }
-        
-        .arch-box.database {
-            border-color: #3498db;
-        }
-        
-        .arch-box.api {
-            border-color: #2ecc71;
-        }
-        
-        .arch-box h4 {
-            margin-bottom: 10px;
-            font-size: 1.1em;
-        }
-        
-        .arch-box ul {
-            list-style: none;
-            font-size: 0.85em;
-            opacity: 0.8;
-        }
-        
-        .arch-arrow {
-            text-align: center;
-            font-size: 2em;
-            color: #e94560;
-        }
-        
-        /* Tasks Progress */
-        .tasks-container {
-            margin-top: 20px;
-        }
-        
-        .task-category {
-            margin-bottom: 30px;
-        }
-        
-        .task-category h3 {
-            color: #333;
-            margin-bottom: 15px;
-            padding: 10px 15px;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .task-category.high h3 { background: #ffebee; border-left: 5px solid #c62828; }
-        .task-category.medium h3 { background: #fff3e0; border-left: 5px solid #ef6c00; }
-        .task-category.low h3 { background: #e8f5e9; border-left: 5px solid #2e7d32; }
-        
-        .task-item {
-            display: flex;
-            align-items: flex-start;
-            padding: 15px;
-            background: #f8f9fa;
-            border-radius: 8px;
-            margin-bottom: 10px;
-            border-left: 3px solid #ddd;
-        }
-        
-        .task-item.pending { border-left-color: #95a5a6; }
-        .task-item.completed { border-left-color: #27ae60; background: #e8f5e9; }
-        
-        .task-number {
-            width: 30px;
-            height: 30px;
-            background: #667eea;
-            color: white;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            font-size: 0.9em;
-            margin-right: 15px;
-            flex-shrink: 0;
-        }
-        
-        .task-content h4 {
-            color: #333;
-            margin-bottom: 5px;
-        }
-        
-        .task-content p {
-            color: #666;
-            font-size: 0.9em;
-        }
-        
-        .status-badge {
-            display: inline-block;
-            padding: 3px 8px;
-            border-radius: 4px;
-            font-size: 0.75em;
-            font-weight: bold;
-            margin-left: 10px;
-        }
-        
-        .status-pending { background: #ecf0f1; color: #7f8c8d; }
-        .status-completed { background: #d5f4e6; color: #27ae60; }
-        
-        /* Resumo */
-        .summary-cards {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            margin-top: 20px;
-        }
-        
-        .summary-card {
-            background: linear-gradient(145deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 25px;
-            border-radius: 15px;
-            text-align: center;
-        }
-        
-        .summary-card .number {
-            font-size: 3em;
-            font-weight: bold;
-            margin-bottom: 10px;
-        }
-        
-        .summary-card .label {
-            font-size: 1.1em;
-            opacity: 0.9;
-        }
-        
-        /* Footer */
-        footer {
-            text-align: center;
-            color: white;
-            padding: 40px 0;
-            margin-top: 40px;
-        }
-        
-        footer p {
-            opacity: 0.8;
-        }
-        
-        /* Animações */
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-        }
-        
-        .pulse {
-            animation: pulse 2s infinite;
-        }
-        
-        /* Responsivo */
-        @media (max-width: 768px) {
-            header h1 {
-                font-size: 2em;
-            }
-            
-            .flow-step {
-                flex-direction: column;
-                text-align: center;
-            }
-            
-            .step-number {
-                margin-right: 0;
-                margin-bottom: 15px;
-            }
-            
-            .architecture-diagram {
-                padding: 20px;
-            }
-            
-            .arch-container {
-                min-width: auto;
-            }
-        }
-        
-        /* Timeline */
-        .timeline {
-            position: relative;
-            padding: 20px 0;
-        }
-        
-        .timeline::before {
-            content: '';
-            position: absolute;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 4px;
-            height: 100%;
-            background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
-            border-radius: 2px;
-        }
-        
-        .timeline-item {
-            display: flex;
-            justify-content: flex-end;
-            padding-right: 50%;
-            position: relative;
-            margin-bottom: 30px;
-        }
-        
-        .timeline-item:nth-child(even) {
-            justify-content: flex-start;
-            padding-right: 0;
-            padding-left: 50%;
-        }
-        
-        .timeline-content {
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-            max-width: 300px;
-            position: relative;
-        }
-        
-        .timeline-item:nth-child(odd) .timeline-content::after {
-            content: '';
-            position: absolute;
-            right: -10px;
-            top: 20px;
-            border: 10px solid transparent;
-            border-left-color: white;
-        }
-        
-        .timeline-item:nth-child(even) .timeline-content::after {
-            content: '';
-            position: absolute;
-            left: -10px;
-            top: 20px;
-            border: 10px solid transparent;
-            border-right-color: white;
-        }
-        
-        .timeline-dot {
-            position: absolute;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 20px;
-            height: 20px;
-            background: white;
-            border: 4px solid #667eea;
-            border-radius: 50%;
-            z-index: 1;
-        }
-        
-        .timeline-item.completed .timeline-dot {
-            background: #27ae60;
-            border-color: #27ae60;
-        }
-        
-        .timeline-item.in-progress .timeline-dot {
-            background: #f39c12;
-            border-color: #f39c12;
-            animation: pulse 1s infinite;
-        }
+      }
+
+      /* Timeline */
+      .timeline {
+        position: relative;
+        padding: 20px 0;
+      }
+
+      .timeline::before {
+        content: '';
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 4px;
+        height: 100%;
+        background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
+        border-radius: 2px;
+      }
+
+      .timeline-item {
+        display: flex;
+        justify-content: flex-end;
+        padding-right: 50%;
+        position: relative;
+        margin-bottom: 30px;
+      }
+
+      .timeline-item:nth-child(even) {
+        justify-content: flex-start;
+        padding-right: 0;
+        padding-left: 50%;
+      }
+
+      .timeline-content {
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        max-width: 300px;
+        position: relative;
+      }
+
+      .timeline-item:nth-child(odd) .timeline-content::after {
+        content: '';
+        position: absolute;
+        right: -10px;
+        top: 20px;
+        border: 10px solid transparent;
+        border-left-color: white;
+      }
+
+      .timeline-item:nth-child(even) .timeline-content::after {
+        content: '';
+        position: absolute;
+        left: -10px;
+        top: 20px;
+        border: 10px solid transparent;
+        border-right-color: white;
+      }
+
+      .timeline-dot {
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 20px;
+        height: 20px;
+        background: white;
+        border: 4px solid #667eea;
+        border-radius: 50%;
+        z-index: 1;
+      }
+
+      .timeline-item.completed .timeline-dot {
+        background: #27ae60;
+        border-color: #27ae60;
+      }
+
+      .timeline-item.in-progress .timeline-dot {
+        background: #f39c12;
+        border-color: #f39c12;
+        animation: pulse 1s infinite;
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <div class="container">
-        <header>
-            <h1>🤖 PRN-Vigilante</h1>
-            <p>Sistema de Automação de Mensagens WhatsApp</p>
-            <p style="font-size: 0.9em; margin-top: 10px;">Plano de Implementação Completo</p>
-        </header>
+      <header>
+        <h1>🤖 PRN-Vigilante</h1>
+        <p>Sistema de Automação de Mensagens WhatsApp</p>
+        <p style="font-size: 0.9em; margin-top: 10px">Plano de Implementação Completo</p>
+      </header>
 
-        <!-- CONTEXTO -->
-        <section class="section">
-            <h2><span class="icon">📋</span> O Que É Este Projeto?</h2>
-            <p style="margin-bottom: 20px; font-size: 1.1em; color: #555;">
-                Um sistema inteligente que envia lembretes de consultas médicas via WhatsApp de forma automatizada,
-                mas com comportamento humanizado para evitar bloqueios.
+      <!-- CONTEXTO -->
+      <section class="section">
+        <h2><span class="icon">📋</span> O Que É Este Projeto?</h2>
+        <p style="margin-bottom: 20px; font-size: 1.1em; color: #555">
+          Um sistema inteligente que envia lembretes de consultas médicas via WhatsApp de forma
+          automatizada, mas com comportamento humanizado para evitar bloqueios.
+        </p>
+
+        <div class="context-grid">
+          <div class="context-card">
+            <h3>🏥 Contexto</h3>
+            <p>
+              Clínica médica que precisa enviar lembretes de consultas para pacientes via WhatsApp
             </p>
-            
-            <div class="context-grid">
-                <div class="context-card">
-                    <h3>🏥 Contexto</h3>
-                    <p>Clínica médica que precisa enviar lembretes de consultas para pacientes via WhatsApp</p>
-                </div>
-                <div class="context-card">
-                    <h3>📱 Tecnologia</h3>
-                    <p>Evolution API (não-oficial) + Supabase (banco) + TypeScript</p>
-                </div>
-                <div class="context-card">
-                    <h3>⚖️ Desafio</h3>
-                    <p>Enviar mensagens sem parecer robô para não ser banido pelo WhatsApp</p>
-                </div>
-                <div class="context-card">
-                    <h3>🔒 Conformidade</h3>
-                    <p>Respeitar LGPD (consentimento, opt-out, retenção de dados)</p>
-                </div>
-            </div>
-        </section>
+          </div>
+          <div class="context-card">
+            <h3>📱 Tecnologia</h3>
+            <p>Evolution API (não-oficial) + Supabase (banco) + TypeScript</p>
+          </div>
+          <div class="context-card">
+            <h3>⚖️ Desafio</h3>
+            <p>Enviar mensagens sem parecer robô para não ser banido pelo WhatsApp</p>
+          </div>
+          <div class="context-card">
+            <h3>🔒 Conformidade</h3>
+            <p>Respeitar LGPD (consentimento, opt-out, retenção de dados)</p>
+          </div>
+        </div>
+      </section>
 
-        <!-- ARQUITETURA VISUAL -->
-        <section class="section">
-            <h2><span class="icon">🏗️</span> Arquitetura do Sistema</h2>
-            
-            <div class="architecture-diagram">
-                <div class="arch-container">
-                    <!-- Camada de Entrada -->
-                    <div class="arch-layer">
-                        <div class="arch-box database">
-                            <h4>📊 BANCO DE DADOS</h4>
-                            <ul>
-                                <li>patients_queue</li>
-                                <li>whatsapp_instances</li>
-                                <li>system_config</li>
-                                <li>message_logs</li>
-                            </ul>
-                        </div>
-                    </div>
-                    
-                    <div class="arch-arrow">⬇️</div>
-                    
-                    <!-- Motor Principal -->
-                    <div class="arch-layer">
-                        <div class="arch-box">
-                            <h4>🤖 Worker Engine</h4>
-                            <ul>
-                                <li>Loop Principal</li>
-                                <li>Fila de Mensagens</li>
-                                <li>Seleção de Instâncias</li>
-                            </ul>
-                        </div>
-                        <div class="arch-box">
-                            <h4>⚡ Processador</h4>
-                            <ul>
-                                <li>Delay Aleatório</li>
-                                <li>Retry com Backoff</li>
-                                <li>Circuit Breaker</li>
-                            </ul>
-                        </div>
-                        <div class="arch-box">
-                            <h4>📋 Queue Manager</h4>
-                            <ul>
-                                <li>SKIP LOCKED</li>
-                                <li>Round-Robin</li>
-                                <li>Lock Expirado</li>
-                            </ul>
-                        </div>
-                    </div>
-                    
-                    <div class="arch-arrow">⬇️</div>
-                    
-                    <!-- APIs Externas -->
-                    <div class="arch-layer">
-                        <div class="arch-box api">
-                            <h4>🚀 Evolution API</h4>
-                            <ul>
-                                <li>Enviar Mensagens</li>
-                                <li>Verificar Status</li>
-                                <li>Rate Limiting</li>
-                            </ul>
-                        </div>
-                        <div class="arch-box api" style="border-color: #3498db;">
-                            <h4>📱 WhatsApp</h4>
-                            <ul>
-                                <li>Entrega de Mensagens</li>
-                                <li>Recebe Respostas</li>
-                                <li>Opt-Out (SAIR)</li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
+      <!-- ARQUITETURA VISUAL -->
+      <section class="section">
+        <h2><span class="icon">🏗️</span> Arquitetura do Sistema</h2>
 
-        <!-- FLUXO PRINCIPAL -->
-        <section class="section">
-            <h2><span class="icon">🔄</span> Como Funciona? (Fluxo Principal)</h2>
-            
-            <div class="flow-diagram">
-                <div class="flow-step">
-                    <div class="step-number">1</div>
-                    <div class="step-content">
-                        <h3>📥 Recebe Mensagens</h3>
-                        <p>O sistema busca mensagens na fila com status "queued", aprovadas e agendadas para agora</p>
-                    </div>
-                </div>
-                
-                <div class="arrow">⬇️</div>
-                
-                <div class="flow-step">
-                    <div class="step-number">2</div>
-                    <div class="step-content">
-                        <h3>🔒 Trava a Mensagem</h3>
-                        <p>Usa "SKIP LOCKED" para garantir que só um worker processe cada mensagem (sem duplicar)</p>
-                    </div>
-                </div>
-                
-                <div class="arrow">⬇️</div>
-                
-                <div class="flow-step">
-                    <div class="step-number">3</div>
-                    <div class="step-content">
-                        <h3>🎯 Seleciona Instância</h3>
-                        <p>Escolhe qual WhatsApp usar (round-robin: um depois do outro, distribuindo carga)</p>
-                    </div>
-                </div>
-                
-                <div class="arrow">⬇️</div>
-                
-                <div class="flow-step">
-                    <div class="step-number">4</div>
-                    <div class="step-content">
-                        <h3>⏱️ Aguarda Delay</h3>
-                        <p>Espera tempo aleatório (3-12 minutos) desde o último envio daquela instância</p>
-                    </div>
-                </div>
-                
-                <div class="arrow">⬇️</div>
-                
-                <div class="flow-step">
-                    <div class="step-number">5</div>
-                    <div class="step-content">
-                        <h3>📤 Envia Mensagem</h3>
-                        <p>Chama Evolution API para enviar. Se falhar, tenta novamente (até 3x)</p>
-                    </div>
-                </div>
-                
-                <div class="arrow">⬇️</div>
-                
-                <div class="flow-step">
-                    <div class="step-number">6</div>
-                    <div class="step-content">
-                        <h3>✅ Atualiza Status</h3>
-                        <p>Marca como "delivered" no banco e registra métricas. Se falhou, marca como "failed"</p>
-                    </div>
-                </div>
+        <div class="architecture-diagram">
+          <div class="arch-container">
+            <!-- Camada de Entrada -->
+            <div class="arch-layer">
+              <div class="arch-box database">
+                <h4>📊 BANCO DE DADOS</h4>
+                <ul>
+                  <li>patients_queue</li>
+                  <li>whatsapp_instances</li>
+                  <li>system_config</li>
+                  <li>message_logs</li>
+                </ul>
+              </div>
             </div>
-        </section>
 
-        <!-- COMPONENTES PRINCIPAIS -->
-        <section class="section">
-            <h2><span class="icon">🧩</span> Componentes Principais</h2>
-            
-            <div class="components-grid">
-                <!-- HIGH PRIORITY -->
-                <div class="component-card priority-high">
-                    <h3>
-                        🗄️ Migrações do Banco
-                        <span class="priority priority-high-text">ALTA</span>
-                    </h3>
-                    <p>Adicionar campos necessários nas tabelas existentes</p>
-                    <ul>
-                        <li>Campos de lock (locked_by, locked_at)</li>
-                        <li>Contador de tentativas</li>
-                        <li>Consentimento LGPD</li>
-                        <li>Logs de auditoria</li>
-                    </ul>
-                </div>
-                
-                <div class="component-card priority-high">
-                    <h3>
-                        📁 Estrutura de Pastas
-                        <span class="priority priority-high-text">ALTA</span>
-                    </h3>
-                    <p>Organizar código em módulos separados</p>
-                    <ul>
-                        <li>/automation/src/engine/</li>
-                        <li>/automation/src/services/</li>
-                        <li>/automation/src/utils/</li>
-                        <li>/automation/src/types/</li>
-                    </ul>
-                </div>
-                
-                <div class="component-card priority-high">
-                    <h3>
-                        📐 Types TypeScript
-                        <span class="priority priority-high-text">ALTA</span>
-                    </h3>
-                    <p>Definir interfaces para tipagem forte</p>
-                    <ul>
-                        <li>PatientQueue (fila de pacientes)</li>
-                        <li>WhatsAppInstance (instâncias)</li>
-                        <li>SendResult (resultado do envio)</li>
-                        <li>MessageStatus (status da mensagem)</li>
-                    </ul>
-                </div>
-                
-                <div class="component-card priority-high">
-                    <h3>
-                        🔄 Queries do Banco
-                        <span class="priority priority-high-text">ALTA</span>
-                    </h3>
-                    <p>Funções SQL otimizadas para concorrência</p>
-                    <ul>
-                        <li>claim_next_message (selecionar próxima)</li>
-                        <li>update_message_status (atualizar)</li>
-                        <li>release_expired_locks (liberar locks)</li>
-                    </ul>
-                </div>
-                
-                <div class="component-card priority-high">
-                    <h3>
-                        🔌 Evolution Driver
-                        <span class="priority priority-high-text">ALTA</span>
-                    </h3>
-                    <p>Cliente para comunicação com Evolution API</p>
-                    <ul>
-                        <li>sendTextMessage (enviar texto)</li>
-                        <li>getConnectionStatus (verificar status)</li>
-                        <li>Retry com backoff exponencial</li>
-                        <li>Rate limiting</li>
-                    </ul>
-                </div>
-                
-                <div class="component-card priority-high">
-                    <h3>
-                        📋 Queue Manager
-                        <span class="priority priority-high-text">ALTA</span>
-                    </h3>
-                    <p>Gerenciamento da fila de mensagens</p>
-                    <ul>
-                        <li>Buscar mensagens disponíveis</li>
-                        <li>Lock atômico (SKIP LOCKED)</li>
-                        <li>Marcar como enviada/falhou</li>
-                    </ul>
-                </div>
-                
-                <div class="component-card priority-high">
-                    <h3>
-                        🎯 Instance Selector
-                        <span class="priority priority-high-text">ALTA</span>
-                    </h3>
-                    <p>Escolher qual WhatsApp usar</p>
-                    <ul>
-                        <li>Round-robin simples</li>
-                        <li>Load-based (menor carga primeiro)</li>
-                        <li>Health check</li>
-                    </ul>
-                </div>
-                
-                <div class="component-card priority-high">
-                    <h3>
-                        🤖 Worker Engine
-                        <span class="priority priority-high-text">ALTA</span>
-                    </h3>
-                    <p>Motor principal que roda continuamente</p>
-                    <ul>
-                        <li>Loop principal</li>
-                        <li>Graceful shutdown</li>
-                        <li>Heartbeat (sinal de vida)</li>
-                        <li>Orquestração</li>
-                    </ul>
-                </div>
-                
-                <!-- MEDIUM PRIORITY -->
-                <div class="component-card priority-medium">
-                    <h3>
-                        🔄 Retry Manager
-                        <span class="priority priority-medium-text">MÉDIA</span>
-                    </h3>
-                    <p>Tentar novamente em caso de falha</p>
-                    <ul>
-                        <li>Backoff exponencial (1s, 2s, 4s, 8s...)</li>
-                        <li>Máximo 3 tentativas</li>
-                        <li>Apenas erros recuperáveis</li>
-                    </ul>
-                </div>
-                
-                <div class="component-card priority-medium">
-                    <h3>
-                        ⚡ Circuit Breaker
-                        <span class="priority priority-medium-text">MÉDIA</span>
-                    </h3>
-                    <p>Proteção contra falhas em cascata</p>
-                    <ul>
-                        <li>Fechar após 5 falhas</li>
-                        <li>Reabrir após 1 minuto</li>
-                        <li>Evita sobrecarga</li>
-                    </ul>
-                </div>
-                
-                <div class="component-card priority-medium">
-                    <h3>
-                        📝 Logger Estruturado
-                        <span class="priority priority-medium-text">MÉDIA</span>
-                    </h3>
-                    <p>Logs em JSON para monitoramento</p>
-                    <ul>
-                        <li>Níveis: trace, debug, info, warn, error</li>
-                        <li>Sanitização LGPD (anonimizar telefones)</li>
-                        <li>Correlation ID</li>
-                    </ul>
-                </div>
-                
-                <div class="component-card priority-medium">
-                    <h3>
-                        📊 Metrics Collector
-                        <span class="priority priority-medium-text">MÉDIA</span>
-                    </h3>
-                    <p>Métricas para dashboard</p>
-                    <ul>
-                        <li>Taxa de sucesso</li>
-                        <li>Tempo médio de entrega</li>
-                        <li>Mensagens por hora</li>
-                        <li>Exportar Prometheus</li>
-                    </ul>
-                </div>
-                
-                <!-- LOW PRIORITY -->
-                <div class="component-card priority-low">
-                    <h3>
-                        ⏱️ Anti-Ban Delay
-                        <span class="priority priority-low-text">BAIXA</span>
-                    </h3>
-                    <p>Delay aleatório para parecer humano</p>
-                    <ul>
-                        <li>3-12 minutos aleatórios</li>
-                        <li>Por instância</li>
-                        <li>Respeita último envio</li>
-                    </ul>
-                </div>
-                
-                <div class="component-card priority-low">
-                    <h3>
-                        🎭 Text Spinning
-                        <span class="priority priority-low-text">BAIXA</span>
-                    </h3>
-                    <p>Variar texto para não repetir</p>
-                    <ul>
-                        <li>Templates com sinônimos</li>
-                        <li>"Olá" vs "Oi" vs "Bom dia"</li>
-                        <li>Rotação de variações</li>
-                    </ul>
-                </div>
-                
-                <div class="component-card priority-low">
-                    <h3>
-                        ✂️ Message Splitter
-                        <span class="priority priority-low-text">BAIXA</span>
-                    </h3>
-                    <p>Dividir mensagens longas</p>
-                    <ul>
-                        <li>Quebrar em 1000-1500 caracteres</li>
-                        <li>Respeitar parágrafos</li>
-                        <li>Delay entre partes</li>
-                    </ul>
-                </div>
+            <div class="arch-arrow">⬇️</div>
+
+            <!-- Motor Principal -->
+            <div class="arch-layer">
+              <div class="arch-box">
+                <h4>🤖 Worker Engine</h4>
+                <ul>
+                  <li>Loop Principal</li>
+                  <li>Fila de Mensagens</li>
+                  <li>Seleção de Instâncias</li>
+                </ul>
+              </div>
+              <div class="arch-box">
+                <h4>⚡ Processador</h4>
+                <ul>
+                  <li>Delay Aleatório</li>
+                  <li>Retry com Backoff</li>
+                  <li>Circuit Breaker</li>
+                </ul>
+              </div>
+              <div class="arch-box">
+                <h4>📋 Queue Manager</h4>
+                <ul>
+                  <li>SKIP LOCKED</li>
+                  <li>Round-Robin</li>
+                  <li>Lock Expirado</li>
+                </ul>
+              </div>
             </div>
-        </section>
 
-        <!-- ROADMAP/TASKS -->
-        <section class="section">
-            <h2><span class="icon">📋</span> Roadmap de Implementação</h2>
-            
-            <div class="tasks-container">
-                <!-- HIGH PRIORITY -->
-                <div class="task-category high">
-                    <h3>🚨 PRIORIDADE ALTA (Fase 1 - Fundação)</h3>
-                    
-                    <div class="task-item pending">
-                        <div class="task-number">1</div>
-                        <div class="task-content">
-                            <h4>Executar Migrações SQL <span class="status-badge status-pending">Pendente</span></h4>
-                            <p>Adicionar campos nas tabelas: locked_by, locked_at, attempt_count, consent_status</p>
-                        </div>
-                    </div>
-                    
-                    <div class="task-item pending">
-                        <div class="task-number">2</div>
-                        <div class="task-content">
-                            <h4>Criar Estrutura de Pastas <span class="status-badge status-pending">Pendente</span></h4>
-                            <p>/automation/src/engine/, /services/, /utils/, /types/</p>
-                        </div>
-                    </div>
-                    
-                    <div class="task-item pending">
-                        <div class="task-number">3</div>
-                        <div class="task-content">
-                            <h4>Definir Types TypeScript <span class="status-badge status-pending">Pendente</span></h4>
-                            <p>Interfaces: PatientQueue, WhatsAppInstance, SendResult, MessageStatus</p>
-                        </div>
-                    </div>
-                    
-                    <div class="task-item pending">
-                        <div class="task-number">4</div>
-                        <div class="task-content">
-                            <h4>Implementar Queries SQL <span class="status-badge status-pending">Pendente</span></h4>
-                            <p>Funções: claim_next_message, update_status, release_expired_locks</p>
-                        </div>
-                    </div>
-                    
-                    <div class="task-item pending">
-                        <div class="task-number">5</div>
-                        <div class="task-content">
-                            <h4>Criar Evolution Driver <span class="status-badge status-pending">Pendente</span></h4>
-                            <p>Cliente com retry, rate limiting e health check</p>
-                        </div>
-                    </div>
-                    
-                    <div class="task-item pending">
-                        <div class="task-number">6</div>
-                        <div class="task-content">
-                            <h4>Implementar Queue Manager <span class="status-badge status-pending">Pendente</span></h4>
-                            <p>Gerenciamento da fila com SKIP LOCKED</p>
-                        </div>
-                    </div>
-                    
-                    <div class="task-item pending">
-                        <div class="task-number">7</div>
-                        <div class="task-content">
-                            <h4>Criar Instance Selector <span class="status-badge status-pending">Pendente</span></h4>
-                            <p>Round-robin + load-based selection</p>
-                        </div>
-                    </div>
-                    
-                    <div class="task-item pending">
-                        <div class="task-number">8</div>
-                        <div class="task-content">
-                            <h4>Desenvolver Worker Engine <span class="status-badge status-pending">Pendente</span></h4>
-                            <p>Loop principal, graceful shutdown, heartbeat</p>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- MEDIUM PRIORITY -->
-                <div class="task-category medium">
-                    <h3>⚡ PRIORIDADE MÉDIA (Fase 2 - Resiliência)</h3>
-                    
-                    <div class="task-item pending">
-                        <div class="task-number">9</div>
-                        <div class="task-content">
-                            <h4>Retry com Backoff <span class="status-badge status-pending">Pendente</span></h4>
-                            <p>Tentativas exponenciais: 1s, 2s, 4s...</p>
-                        </div>
-                    </div>
-                    
-                    <div class="task-item pending">
-                        <div class="task-number">10</div>
-                        <div class="task-content">
-                            <h4>Circuit Breaker <span class="status-badge status-pending">Pendente</span></h4>
-                            <p>Proteção contra falhas em cascata</p>
-                        </div>
-                    </div>
-                    
-                    <div class="task-item pending">
-                        <div class="task-number">11</div>
-                        <div class="task-content">
-                            <h4>Logger JSON <span class="status-badge status-pending">Pendente</span></h4>
-                            <p>Logs estruturados com sanitização LGPD</p>
-                        </div>
-                    </div>
-                    
-                    <div class="task-item pending">
-                        <div class="task-number">12</div>
-                        <div class="task-content">
-                            <h4>Metrics Collector <span class="status-badge status-pending">Pendente</span></h4>
-                            <p>Métricas para dashboard</p>
-                        </div>
-                    </div>
-                    
-                    <div class="task-item pending">
-                        <div class="task-number">13</div>
-                        <div class="task-content">
-                            <h4>Lock Cleanup Job <span class="status-badge status-pending">Pendente</span></h4>
-                            <p>Liberação automática de locks expirados</p>
-                        </div>
-                    </div>
-                    
-                    <div class="task-item pending">
-                        <div class="task-number">14</div>
-                        <div class="task-content">
-                            <h4>LGPD Compliance <span class="status-badge status-pending">Pendente</span></h4>
-                            <p>Consentimento, opt-out, retenção</p>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- LOW PRIORITY -->
-                <div class="task-category low">
-                    <h3>🎨 PRIORIDADE BAIXA (Fase 3 - Humanização)</h3>
-                    
-                    <div class="task-item pending">
-                        <div class="task-number">15</div>
-                        <div class="task-content">
-                            <h4>Delay Anti-Ban (3-12min) <span class="status-badge status-pending">Pendente</span></h4>
-                            <p>Variação aleatória de tempo entre envios</p>
-                        </div>
-                    </div>
-                    
-                    <div class="task-item pending">
-                        <div class="task-number">16</div>
-                        <div class="task-content">
-                            <h4>Text Spinning <span class="status-badge status-pending">Pendente</span></h4>
-                            <p>Variação de texto para não repetir</p>
-                        </div>
-                    </div>
-                    
-                    <div class="task-item pending">
-                        <div class="task-number">17</div>
-                        <div class="task-content">
-                            <h4>Quebra de Mensagens <span class="status-badge status-pending">Pendente</span></h4>
-                            <p>Dividir mensagens longas em partes</p>
-                        </div>
-                    </div>
-                    
-                    <div class="task-item pending">
-                        <div class="task-number">18</div>
-                        <div class="task-content">
-                            <h4>Sistema de Alertas <span class="status-badge status-pending">Pendente</span></h4>
-                            <p>Notificações para problemas críticos</p>
-                        </div>
-                    </div>
-                    
-                    <div class="task-item pending">
-                        <div class="task-number">19</div>
-                        <div class="task-content">
-                            <h4>Dashboard Views <span class="status-badge status-pending">Pendente</span></h4>
-                            <p>Views SQL para métricas em tempo real</p>
-                        </div>
-                    </div>
-                    
-                    <div class="task-item pending">
-                        <div class="task-number">20</div>
-                        <div class="task-content">
-                            <h4>Testes Automatizados <span class="status-badge status-pending">Pendente</span></h4>
-                            <p>Unitários e de integração</p>
-                        </div>
-                    </div>
-                </div>
+            <div class="arch-arrow">⬇️</div>
+
+            <!-- APIs Externas -->
+            <div class="arch-layer">
+              <div class="arch-box api">
+                <h4>🚀 Evolution API</h4>
+                <ul>
+                  <li>Enviar Mensagens</li>
+                  <li>Verificar Status</li>
+                  <li>Rate Limiting</li>
+                </ul>
+              </div>
+              <div class="arch-box api" style="border-color: #3498db">
+                <h4>📱 WhatsApp</h4>
+                <ul>
+                  <li>Entrega de Mensagens</li>
+                  <li>Recebe Respostas</li>
+                  <li>Opt-Out (SAIR)</li>
+                </ul>
+              </div>
             </div>
-        </section>
+          </div>
+        </div>
+      </section>
 
-        <!-- TIMELINE -->
-        <section class="section">
-            <h2><span class="icon">📅</span> Timeline de Implementação</h2>
-            
-            <div class="timeline">
-                <div class="timeline-item">
-                    <div class="timeline-dot"></div>
-                    <div class="timeline-content">
-                        <h3>Semana 1: Fundação</h3>
-                        <p>Migrações SQL + Estrutura + Types + Queries</p>
-                        <small>Tasks 1-4</small>
-                    </div>
-                </div>
-                
-                <div class="timeline-item">
-                    <div class="timeline-dot"></div>
-                    <div class="timeline-content">
-                        <h3>Semana 2: Core Engine</h3>
-                        <p>Evolution Driver + Queue Manager + Instance Selector</p>
-                        <small>Tasks 5-7</small>
-                    </div>
-                </div>
-                
-                <div class="timeline-item">
-                    <div class="timeline-dot"></div>
-                    <div class="timeline-content">
-                        <h3>Semana 3: Worker</h3>
-                        <p>Worker Engine + Retry + Circuit Breaker</p>
-                        <small>Tasks 8-10</small>
-                    </div>
-                </div>
-                
-                <div class="timeline-item">
-                    <div class="timeline-dot"></div>
-                    <div class="timeline-content">
-                        <h3>Semana 4: Observabilidade</h3>
-                        <p>Logger + Métricas + Alertas + Cleanup</p>
-                        <small>Tasks 11-14</small>
-                    </div>
-                </div>
-                
-                <div class="timeline-item">
-                    <div class="timeline-dot"></div>
-                    <div class="timeline-content">
-                        <h3>Semana 5-6: Humanização</h3>
-                        <p>Delays + Spinning + Split + Testes</p>
-                        <small>Tasks 15-20</small>
-                    </div>
-                </div>
+      <!-- FLUXO PRINCIPAL -->
+      <section class="section">
+        <h2><span class="icon">🔄</span> Como Funciona? (Fluxo Principal)</h2>
+
+        <div class="flow-diagram">
+          <div class="flow-step">
+            <div class="step-number">1</div>
+            <div class="step-content">
+              <h3>📥 Recebe Mensagens</h3>
+              <p>
+                O sistema busca mensagens na fila com status "queued", aprovadas e agendadas para
+                agora
+              </p>
             </div>
-        </section>
+          </div>
 
-        <!-- RESUMO -->
-        <section class="section">
-            <h2><span class="icon">📊</span> Resumo do Projeto</h2>
-            
-            <div class="summary-cards">
-                <div class="summary-card">
-                    <div class="number">20</div>
-                    <div class="label">Tasks Totais</div>
-                </div>
-                <div class="summary-card">
-                    <div class="number">8</div>
-                    <div class="label">Prioridade Alta</div>
-                </div>
-                <div class="summary-card">
-                    <div class="number">6</div>
-                    <div class="label">Semanas Est.</div>
-                </div>
-                <div class="summary-card">
-                    <div class="number">7</div>
-                    <div class="label">Sub-Agentes</div>
-                </div>
+          <div class="arrow">⬇️</div>
+
+          <div class="flow-step">
+            <div class="step-number">2</div>
+            <div class="step-content">
+              <h3>🔒 Trava a Mensagem</h3>
+              <p>
+                Usa "SKIP LOCKED" para garantir que só um worker processe cada mensagem (sem
+                duplicar)
+              </p>
             </div>
-        </section>
+          </div>
 
-        <!-- PRÓXIMOS PASSOS -->
-        <section class="section">
-            <h2><span class="icon">🚀</span> Próximos Passos</h2>
-            <div style="background: #f8f9fa; padding: 30px; border-radius: 10px; border-left: 5px solid #667eea;">
-                <h3 style="color: #667eea; margin-bottom: 15px;">Para Começar Agora:</h3>
-                <ol style="font-size: 1.1em; line-height: 2; color: #333;">
-                    <li><strong>Executar migrações SQL</strong> - Adicionar campos nas tabelas existentes</li>
-                    <li><strong>Criar estrutura de pastas</strong> - Organizar o código em módulos</li>
-                    <li><strong>Implementar Types</strong> - Definir interfaces TypeScript</li>
-                    <li><strong>Criar Queries SQL</strong> - Funções de seleção e atualização</li>
-                </ol>
-                <p style="margin-top: 20px; color: #666; font-style: italic;">
-                    💡 <strong>Dica:</strong> Comece pelas tasks HIGH priority para ter uma versão funcional rapidamente.
-                    As técnicas de humanização podem ser adicionadas depois sem quebrar o sistema.
+          <div class="arrow">⬇️</div>
+
+          <div class="flow-step">
+            <div class="step-number">3</div>
+            <div class="step-content">
+              <h3>🎯 Seleciona Instância</h3>
+              <p>
+                Escolhe qual WhatsApp usar (round-robin: um depois do outro, distribuindo carga)
+              </p>
+            </div>
+          </div>
+
+          <div class="arrow">⬇️</div>
+
+          <div class="flow-step">
+            <div class="step-number">4</div>
+            <div class="step-content">
+              <h3>⏱️ Aguarda Delay</h3>
+              <p>Espera tempo aleatório (3-12 minutos) desde o último envio daquela instância</p>
+            </div>
+          </div>
+
+          <div class="arrow">⬇️</div>
+
+          <div class="flow-step">
+            <div class="step-number">5</div>
+            <div class="step-content">
+              <h3>📤 Envia Mensagem</h3>
+              <p>Chama Evolution API para enviar. Se falhar, tenta novamente (até 3x)</p>
+            </div>
+          </div>
+
+          <div class="arrow">⬇️</div>
+
+          <div class="flow-step">
+            <div class="step-number">6</div>
+            <div class="step-content">
+              <h3>✅ Atualiza Status</h3>
+              <p>
+                Marca como "delivered" no banco e registra métricas. Se falhou, marca como "failed"
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- COMPONENTES PRINCIPAIS -->
+      <section class="section">
+        <h2><span class="icon">🧩</span> Componentes Principais</h2>
+
+        <div class="components-grid">
+          <!-- HIGH PRIORITY -->
+          <div class="component-card priority-high">
+            <h3>
+              🗄️ Migrações do Banco
+              <span class="priority priority-high-text">ALTA</span>
+            </h3>
+            <p>Adicionar campos necessários nas tabelas existentes</p>
+            <ul>
+              <li>Campos de lock (locked_by, locked_at)</li>
+              <li>Contador de tentativas</li>
+              <li>Consentimento LGPD</li>
+              <li>Logs de auditoria</li>
+            </ul>
+          </div>
+
+          <div class="component-card priority-high">
+            <h3>
+              📁 Estrutura de Pastas
+              <span class="priority priority-high-text">ALTA</span>
+            </h3>
+            <p>Organizar código em módulos separados</p>
+            <ul>
+              <li>/automation/src/engine/</li>
+              <li>/automation/src/services/</li>
+              <li>/automation/src/utils/</li>
+              <li>/automation/src/types/</li>
+            </ul>
+          </div>
+
+          <div class="component-card priority-high">
+            <h3>
+              📐 Types TypeScript
+              <span class="priority priority-high-text">ALTA</span>
+            </h3>
+            <p>Definir interfaces para tipagem forte</p>
+            <ul>
+              <li>PatientQueue (fila de pacientes)</li>
+              <li>WhatsAppInstance (instâncias)</li>
+              <li>SendResult (resultado do envio)</li>
+              <li>MessageStatus (status da mensagem)</li>
+            </ul>
+          </div>
+
+          <div class="component-card priority-high">
+            <h3>
+              🔄 Queries do Banco
+              <span class="priority priority-high-text">ALTA</span>
+            </h3>
+            <p>Funções SQL otimizadas para concorrência</p>
+            <ul>
+              <li>claim_next_message (selecionar próxima)</li>
+              <li>update_message_status (atualizar)</li>
+              <li>release_expired_locks (liberar locks)</li>
+            </ul>
+          </div>
+
+          <div class="component-card priority-high">
+            <h3>
+              🔌 Evolution Driver
+              <span class="priority priority-high-text">ALTA</span>
+            </h3>
+            <p>Cliente para comunicação com Evolution API</p>
+            <ul>
+              <li>sendTextMessage (enviar texto)</li>
+              <li>getConnectionStatus (verificar status)</li>
+              <li>Retry com backoff exponencial</li>
+              <li>Rate limiting</li>
+            </ul>
+          </div>
+
+          <div class="component-card priority-high">
+            <h3>
+              📋 Queue Manager
+              <span class="priority priority-high-text">ALTA</span>
+            </h3>
+            <p>Gerenciamento da fila de mensagens</p>
+            <ul>
+              <li>Buscar mensagens disponíveis</li>
+              <li>Lock atômico (SKIP LOCKED)</li>
+              <li>Marcar como enviada/falhou</li>
+            </ul>
+          </div>
+
+          <div class="component-card priority-high">
+            <h3>
+              🎯 Instance Selector
+              <span class="priority priority-high-text">ALTA</span>
+            </h3>
+            <p>Escolher qual WhatsApp usar</p>
+            <ul>
+              <li>Round-robin simples</li>
+              <li>Load-based (menor carga primeiro)</li>
+              <li>Health check</li>
+            </ul>
+          </div>
+
+          <div class="component-card priority-high">
+            <h3>
+              🤖 Worker Engine
+              <span class="priority priority-high-text">ALTA</span>
+            </h3>
+            <p>Motor principal que roda continuamente</p>
+            <ul>
+              <li>Loop principal</li>
+              <li>Graceful shutdown</li>
+              <li>Heartbeat (sinal de vida)</li>
+              <li>Orquestração</li>
+            </ul>
+          </div>
+
+          <!-- MEDIUM PRIORITY -->
+          <div class="component-card priority-medium">
+            <h3>
+              🔄 Retry Manager
+              <span class="priority priority-medium-text">MÉDIA</span>
+            </h3>
+            <p>Tentar novamente em caso de falha</p>
+            <ul>
+              <li>Backoff exponencial (1s, 2s, 4s, 8s...)</li>
+              <li>Máximo 3 tentativas</li>
+              <li>Apenas erros recuperáveis</li>
+            </ul>
+          </div>
+
+          <div class="component-card priority-medium">
+            <h3>
+              ⚡ Circuit Breaker
+              <span class="priority priority-medium-text">MÉDIA</span>
+            </h3>
+            <p>Proteção contra falhas em cascata</p>
+            <ul>
+              <li>Fechar após 5 falhas</li>
+              <li>Reabrir após 1 minuto</li>
+              <li>Evita sobrecarga</li>
+            </ul>
+          </div>
+
+          <div class="component-card priority-medium">
+            <h3>
+              📝 Logger Estruturado
+              <span class="priority priority-medium-text">MÉDIA</span>
+            </h3>
+            <p>Logs em JSON para monitoramento</p>
+            <ul>
+              <li>Níveis: trace, debug, info, warn, error</li>
+              <li>Sanitização LGPD (anonimizar telefones)</li>
+              <li>Correlation ID</li>
+            </ul>
+          </div>
+
+          <div class="component-card priority-medium">
+            <h3>
+              📊 Metrics Collector
+              <span class="priority priority-medium-text">MÉDIA</span>
+            </h3>
+            <p>Métricas para dashboard</p>
+            <ul>
+              <li>Taxa de sucesso</li>
+              <li>Tempo médio de entrega</li>
+              <li>Mensagens por hora</li>
+              <li>Exportar Prometheus</li>
+            </ul>
+          </div>
+
+          <!-- LOW PRIORITY -->
+          <div class="component-card priority-low">
+            <h3>
+              ⏱️ Anti-Ban Delay
+              <span class="priority priority-low-text">BAIXA</span>
+            </h3>
+            <p>Delay aleatório para parecer humano</p>
+            <ul>
+              <li>3-12 minutos aleatórios</li>
+              <li>Por instância</li>
+              <li>Respeita último envio</li>
+            </ul>
+          </div>
+
+          <div class="component-card priority-low">
+            <h3>
+              🎭 Text Spinning
+              <span class="priority priority-low-text">BAIXA</span>
+            </h3>
+            <p>Variar texto para não repetir</p>
+            <ul>
+              <li>Templates com sinônimos</li>
+              <li>"Olá" vs "Oi" vs "Bom dia"</li>
+              <li>Rotação de variações</li>
+            </ul>
+          </div>
+
+          <div class="component-card priority-low">
+            <h3>
+              ✂️ Message Splitter
+              <span class="priority priority-low-text">BAIXA</span>
+            </h3>
+            <p>Dividir mensagens longas</p>
+            <ul>
+              <li>Quebrar em 1000-1500 caracteres</li>
+              <li>Respeitar parágrafos</li>
+              <li>Delay entre partes</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- ROADMAP/TASKS -->
+      <section class="section">
+        <h2><span class="icon">📋</span> Roadmap de Implementação</h2>
+
+        <div class="tasks-container">
+          <!-- HIGH PRIORITY -->
+          <div class="task-category high">
+            <h3>🚨 PRIORIDADE ALTA (Fase 1 - Fundação)</h3>
+
+            <div class="task-item pending">
+              <div class="task-number">1</div>
+              <div class="task-content">
+                <h4>
+                  Executar Migrações SQL <span class="status-badge status-pending">Pendente</span>
+                </h4>
+                <p>
+                  Adicionar campos nas tabelas: locked_by, locked_at, attempt_count, consent_status
                 </p>
+              </div>
             </div>
-        </section>
 
-        <footer>
-            <p>PRN-Vigilante Automation System</p>
-            <p style="font-size: 0.9em; margin-top: 10px;">Plano gerado em 13/03/2026 | 7 Sub-Agentes | 20 Tasks</p>
-        </footer>
+            <div class="task-item pending">
+              <div class="task-number">2</div>
+              <div class="task-content">
+                <h4>
+                  Criar Estrutura de Pastas
+                  <span class="status-badge status-pending">Pendente</span>
+                </h4>
+                <p>/automation/src/engine/, /services/, /utils/, /types/</p>
+              </div>
+            </div>
+
+            <div class="task-item pending">
+              <div class="task-number">3</div>
+              <div class="task-content">
+                <h4>
+                  Definir Types TypeScript <span class="status-badge status-pending">Pendente</span>
+                </h4>
+                <p>Interfaces: PatientQueue, WhatsAppInstance, SendResult, MessageStatus</p>
+              </div>
+            </div>
+
+            <div class="task-item pending">
+              <div class="task-number">4</div>
+              <div class="task-content">
+                <h4>
+                  Implementar Queries SQL <span class="status-badge status-pending">Pendente</span>
+                </h4>
+                <p>Funções: claim_next_message, update_status, release_expired_locks</p>
+              </div>
+            </div>
+
+            <div class="task-item pending">
+              <div class="task-number">5</div>
+              <div class="task-content">
+                <h4>
+                  Criar Evolution Driver <span class="status-badge status-pending">Pendente</span>
+                </h4>
+                <p>Cliente com retry, rate limiting e health check</p>
+              </div>
+            </div>
+
+            <div class="task-item pending">
+              <div class="task-number">6</div>
+              <div class="task-content">
+                <h4>
+                  Implementar Queue Manager
+                  <span class="status-badge status-pending">Pendente</span>
+                </h4>
+                <p>Gerenciamento da fila com SKIP LOCKED</p>
+              </div>
+            </div>
+
+            <div class="task-item pending">
+              <div class="task-number">7</div>
+              <div class="task-content">
+                <h4>
+                  Criar Instance Selector <span class="status-badge status-pending">Pendente</span>
+                </h4>
+                <p>Round-robin + load-based selection</p>
+              </div>
+            </div>
+
+            <div class="task-item pending">
+              <div class="task-number">8</div>
+              <div class="task-content">
+                <h4>
+                  Desenvolver Worker Engine
+                  <span class="status-badge status-pending">Pendente</span>
+                </h4>
+                <p>Loop principal, graceful shutdown, heartbeat</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- MEDIUM PRIORITY -->
+          <div class="task-category medium">
+            <h3>⚡ PRIORIDADE MÉDIA (Fase 2 - Resiliência)</h3>
+
+            <div class="task-item pending">
+              <div class="task-number">9</div>
+              <div class="task-content">
+                <h4>Retry com Backoff <span class="status-badge status-pending">Pendente</span></h4>
+                <p>Tentativas exponenciais: 1s, 2s, 4s...</p>
+              </div>
+            </div>
+
+            <div class="task-item pending">
+              <div class="task-number">10</div>
+              <div class="task-content">
+                <h4>Circuit Breaker <span class="status-badge status-pending">Pendente</span></h4>
+                <p>Proteção contra falhas em cascata</p>
+              </div>
+            </div>
+
+            <div class="task-item pending">
+              <div class="task-number">11</div>
+              <div class="task-content">
+                <h4>Logger JSON <span class="status-badge status-pending">Pendente</span></h4>
+                <p>Logs estruturados com sanitização LGPD</p>
+              </div>
+            </div>
+
+            <div class="task-item pending">
+              <div class="task-number">12</div>
+              <div class="task-content">
+                <h4>Metrics Collector <span class="status-badge status-pending">Pendente</span></h4>
+                <p>Métricas para dashboard</p>
+              </div>
+            </div>
+
+            <div class="task-item pending">
+              <div class="task-number">13</div>
+              <div class="task-content">
+                <h4>Lock Cleanup Job <span class="status-badge status-pending">Pendente</span></h4>
+                <p>Liberação automática de locks expirados</p>
+              </div>
+            </div>
+
+            <div class="task-item pending">
+              <div class="task-number">14</div>
+              <div class="task-content">
+                <h4>LGPD Compliance <span class="status-badge status-pending">Pendente</span></h4>
+                <p>Consentimento, opt-out, retenção</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- LOW PRIORITY -->
+          <div class="task-category low">
+            <h3>🎨 PRIORIDADE BAIXA (Fase 3 - Humanização)</h3>
+
+            <div class="task-item pending">
+              <div class="task-number">15</div>
+              <div class="task-content">
+                <h4>
+                  Delay Anti-Ban (3-12min) <span class="status-badge status-pending">Pendente</span>
+                </h4>
+                <p>Variação aleatória de tempo entre envios</p>
+              </div>
+            </div>
+
+            <div class="task-item pending">
+              <div class="task-number">16</div>
+              <div class="task-content">
+                <h4>Text Spinning <span class="status-badge status-pending">Pendente</span></h4>
+                <p>Variação de texto para não repetir</p>
+              </div>
+            </div>
+
+            <div class="task-item pending">
+              <div class="task-number">17</div>
+              <div class="task-content">
+                <h4>
+                  Quebra de Mensagens <span class="status-badge status-pending">Pendente</span>
+                </h4>
+                <p>Dividir mensagens longas em partes</p>
+              </div>
+            </div>
+
+            <div class="task-item pending">
+              <div class="task-number">18</div>
+              <div class="task-content">
+                <h4>
+                  Sistema de Alertas <span class="status-badge status-pending">Pendente</span>
+                </h4>
+                <p>Notificações para problemas críticos</p>
+              </div>
+            </div>
+
+            <div class="task-item pending">
+              <div class="task-number">19</div>
+              <div class="task-content">
+                <h4>Dashboard Views <span class="status-badge status-pending">Pendente</span></h4>
+                <p>Views SQL para métricas em tempo real</p>
+              </div>
+            </div>
+
+            <div class="task-item pending">
+              <div class="task-number">20</div>
+              <div class="task-content">
+                <h4>
+                  Testes Automatizados <span class="status-badge status-pending">Pendente</span>
+                </h4>
+                <p>Unitários e de integração</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TIMELINE -->
+      <section class="section">
+        <h2><span class="icon">📅</span> Timeline de Implementação</h2>
+
+        <div class="timeline">
+          <div class="timeline-item">
+            <div class="timeline-dot"></div>
+            <div class="timeline-content">
+              <h3>Semana 1: Fundação</h3>
+              <p>Migrações SQL + Estrutura + Types + Queries</p>
+              <small>Tasks 1-4</small>
+            </div>
+          </div>
+
+          <div class="timeline-item">
+            <div class="timeline-dot"></div>
+            <div class="timeline-content">
+              <h3>Semana 2: Core Engine</h3>
+              <p>Evolution Driver + Queue Manager + Instance Selector</p>
+              <small>Tasks 5-7</small>
+            </div>
+          </div>
+
+          <div class="timeline-item">
+            <div class="timeline-dot"></div>
+            <div class="timeline-content">
+              <h3>Semana 3: Worker</h3>
+              <p>Worker Engine + Retry + Circuit Breaker</p>
+              <small>Tasks 8-10</small>
+            </div>
+          </div>
+
+          <div class="timeline-item">
+            <div class="timeline-dot"></div>
+            <div class="timeline-content">
+              <h3>Semana 4: Observabilidade</h3>
+              <p>Logger + Métricas + Alertas + Cleanup</p>
+              <small>Tasks 11-14</small>
+            </div>
+          </div>
+
+          <div class="timeline-item">
+            <div class="timeline-dot"></div>
+            <div class="timeline-content">
+              <h3>Semana 5-6: Humanização</h3>
+              <p>Delays + Spinning + Split + Testes</p>
+              <small>Tasks 15-20</small>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- RESUMO -->
+      <section class="section">
+        <h2><span class="icon">📊</span> Resumo do Projeto</h2>
+
+        <div class="summary-cards">
+          <div class="summary-card">
+            <div class="number">20</div>
+            <div class="label">Tasks Totais</div>
+          </div>
+          <div class="summary-card">
+            <div class="number">8</div>
+            <div class="label">Prioridade Alta</div>
+          </div>
+          <div class="summary-card">
+            <div class="number">6</div>
+            <div class="label">Semanas Est.</div>
+          </div>
+          <div class="summary-card">
+            <div class="number">7</div>
+            <div class="label">Sub-Agentes</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- PRÓXIMOS PASSOS -->
+      <section class="section">
+        <h2><span class="icon">🚀</span> Próximos Passos</h2>
+        <div
+          style="
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 10px;
+            border-left: 5px solid #667eea;
+          "
+        >
+          <h3 style="color: #667eea; margin-bottom: 15px">Para Começar Agora:</h3>
+          <ol style="font-size: 1.1em; line-height: 2; color: #333">
+            <li>
+              <strong>Executar migrações SQL</strong> - Adicionar campos nas tabelas existentes
+            </li>
+            <li><strong>Criar estrutura de pastas</strong> - Organizar o código em módulos</li>
+            <li><strong>Implementar Types</strong> - Definir interfaces TypeScript</li>
+            <li><strong>Criar Queries SQL</strong> - Funções de seleção e atualização</li>
+          </ol>
+          <p style="margin-top: 20px; color: #666; font-style: italic">
+            💡 <strong>Dica:</strong> Comece pelas tasks HIGH priority para ter uma versão funcional
+            rapidamente. As técnicas de humanização podem ser adicionadas depois sem quebrar o
+            sistema.
+          </p>
+        </div>
+      </section>
+
+      <footer>
+        <p>PRN-Vigilante Automation System</p>
+        <p style="font-size: 0.9em; margin-top: 10px">
+          Plano gerado em 13/03/2026 | 7 Sub-Agentes | 20 Tasks
+        </p>
+      </footer>
     </div>
-</body>
+  </body>
 </html>

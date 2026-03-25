@@ -10,7 +10,7 @@ export async function runDiagnostics() {
   console.log('─'.repeat(60))
   console.log('🔍 DIAGNÓSTICO DO SISTEMA PRN-VIGILANTE')
   console.log('─'.repeat(60))
-  
+
   // 1. Teste claimNextMessage
   console.log('\n[1/6] Testando claimNextMessage()...')
   const claimed = await claimNextMessage('diag-worker', 3)
@@ -23,7 +23,7 @@ export async function runDiagnostics() {
   } else {
     console.log('ℹ️  Nenhuma mensagem elegível (fila vazia ou todas pendentes)')
   }
-  
+
   // 2. Teste getSystemConfig
   console.log('\n[2/6] Testando getSystemConfig()...')
   const config = await getSystemConfig()
@@ -34,7 +34,7 @@ export async function runDiagnostics() {
   } else {
     console.log('❌ Erro ao carregar configuração')
   }
-  
+
   // 3. Teste checkEvolutionHealth
   console.log('\n[3/6] Testando checkEvolutionHealth()...')
   const evolutionHealthy = await checkEvolutionHealth()
@@ -43,7 +43,7 @@ export async function runDiagnostics() {
   } else {
     console.log('❌ Evolution API indisponível')
   }
-  
+
   // 4. Teste getConnectionStatus (se houver instância)
   console.log('\n[4/6] Testando getConnectionStatus()...')
   try {
@@ -52,7 +52,7 @@ export async function runDiagnostics() {
   } catch (error) {
     console.log('ℹ️  Não foi possível verificar status da instância')
   }
-  
+
   // 5. Métricas em tempo real
   console.log('\n[5/6] Métricas em tempo real...')
   const metrics = await getRealtimeMetrics()
@@ -66,19 +66,19 @@ export async function runDiagnostics() {
   } else {
     console.log('❌ Erro ao carregar métricas')
   }
-  
+
   // 6. Locks expirados
   console.log('\n[6/6] Verificando locks expirados...')
   const expiredLocks = await getExpiredLocks()
   if (expiredLocks.length > 0) {
     console.log(`⚠️  ${expiredLocks.length} lock(s) expirado(s) encontrado(s):`)
-    expiredLocks.forEach(lock => {
+    expiredLocks.forEach((lock) => {
       console.log(`   - ID: ${lock.released_id} | Falha: ${lock.was_failed}`)
     })
   } else {
     console.log('✅ Nenhum lock expirado encontrado')
   }
-  
+
   console.log('\n' + '─'.repeat(60))
   console.log('✅ DIAGNÓSTICO CONCLUÍDO')
   console.log('─'.repeat(60) + '\n')

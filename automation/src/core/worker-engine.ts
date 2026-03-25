@@ -50,7 +50,9 @@ export class WorkerEngine {
     this.running = true
     console.log(`[${timestamp()}] 🤖 Worker iniciado: ${this.workerName} (${this.workerId})`)
     if (this.dryRun) {
-      console.log(`[${timestamp()}] 🔍 MODO DRY RUN ATIVADO — Mensagens NÃO serão enviadas de verdade`)
+      console.log(
+        `[${timestamp()}] 🔍 MODO DRY RUN ATIVADO — Mensagens NÃO serão enviadas de verdade`,
+      )
     }
 
     await this.cleanupOperationalState()
@@ -63,10 +65,13 @@ export class WorkerEngine {
       try {
         const hasLease = await this.ensureWorkerLease()
         if (!hasLease) {
-          console.warn(`[${timestamp()}] ⛔ Outro worker possui o lease ativo. Aguardando proximo ciclo.`, {
-            workerId: this.workerId,
-            leaseSeconds: this.leaseSeconds,
-          })
+          console.warn(
+            `[${timestamp()}] ⛔ Outro worker possui o lease ativo. Aguardando proximo ciclo.`,
+            {
+              workerId: this.workerId,
+              leaseSeconds: this.leaseSeconds,
+            },
+          )
           this.currentJobId = null
           this.currentJobStartedAt = null
           await this.registerHeartbeat()
@@ -119,7 +124,9 @@ export class WorkerEngine {
         // ── 4. Liberar locks expirados ──
         const releasedLocks = await releaseExpiredLocks(this.lockTimeoutMinutes)
         if (releasedLocks.length > 0) {
-          console.log(`[${timestamp()}] 🔓 ${releasedLocks.length} lock(s) expirado(s) liberado(s).`)
+          console.log(
+            `[${timestamp()}] 🔓 ${releasedLocks.length} lock(s) expirado(s) liberado(s).`,
+          )
         }
 
         // ── 5. Claimar próxima mensagem ──
@@ -137,20 +144,30 @@ export class WorkerEngine {
         this.currentJobStartedAt = new Date().toISOString()
         await this.registerHeartbeat()
 
-        console.log(`[${timestamp()}] 📩 Mensagem claimada: ${claimed.id} → ${claimed.instance_name}`)
+        console.log(
+          `[${timestamp()}] 📩 Mensagem claimada: ${claimed.id} → ${claimed.instance_name}`,
+        )
 
         // ── 6. Processar mensagem ──
-        const result = await this.queueManager.processClaimedMessage(claimed, this.workerId, this.dryRun)
+        const result = await this.queueManager.processClaimedMessage(
+          claimed,
+          this.workerId,
+          this.dryRun,
+        )
 
         if (result.status === 'delivered') {
           this.processed += 1
           console.log(`[${timestamp()}] ✅ Entregue: ${claimed.id} (total: ${this.processed})`)
         } else if (result.status === 'failed') {
           this.failed += 1
-          console.log(`[${timestamp()}] ❌ Falhou: ${claimed.id} (${result.reason || 'sem motivo'})`)
+          console.log(
+            `[${timestamp()}] ❌ Falhou: ${claimed.id} (${result.reason || 'sem motivo'})`,
+          )
         } else if (result.status === 'skipped') {
           this.skipped += 1
-          console.log(`[${timestamp()}] ⏭️ Ignorada: ${claimed.id} (${result.reason || 'sem motivo'})`)
+          console.log(
+            `[${timestamp()}] ⏭️ Ignorada: ${claimed.id} (${result.reason || 'sem motivo'})`,
+          )
         }
 
         this.currentJobId = null
@@ -182,7 +199,9 @@ export class WorkerEngine {
     await removeHeartbeat(this.workerId)
     await releaseWorkerLease(this.workerId)
     console.log(`[${timestamp()}] 🛑 Worker finalizado: ${this.workerId}`)
-    console.log(`[${timestamp()}] 📊 Resumo: ${this.processed} entregues | ${this.failed} falhas | ${this.skipped} ignoradas`)
+    console.log(
+      `[${timestamp()}] 📊 Resumo: ${this.processed} entregues | ${this.failed} falhas | ${this.skipped} ignoradas`,
+    )
   }
 
   private startHeartbeatLoop() {
@@ -222,7 +241,9 @@ export class WorkerEngine {
         })
 
         if (rec.processed > 0) {
-          console.log(`[${timestamp()}] 🔁 Follow-up scheduler: ${rec.processed} ação(ões) enfileirada(s).`)
+          console.log(
+            `[${timestamp()}] 🔁 Follow-up scheduler: ${rec.processed} ação(ões) enfileirada(s).`,
+          )
         }
       } catch (error) {
         console.error(`[${timestamp()}] ❌ Erro no scheduler de follow-up`, {

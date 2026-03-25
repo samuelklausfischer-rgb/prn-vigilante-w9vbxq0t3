@@ -144,7 +144,11 @@ export function DateRangePicker({ value, selectedPreset, onChange }: DateRangePi
 
           <div className="rounded-2xl border border-white/10 bg-background/40 px-4 py-3 text-sm text-muted-foreground">
             <div className="text-[11px] font-semibold uppercase tracking-[0.16em]">Modo atual</div>
-            <div className="mt-1 font-medium text-white">{selectedPreset === 'custom' ? 'Calendario personalizado' : quickOptions.find((option) => option.key === selectedPreset)?.label}</div>
+            <div className="mt-1 font-medium text-white">
+              {selectedPreset === 'custom'
+                ? 'Calendario personalizado'
+                : quickOptions.find((option) => option.key === selectedPreset)?.label}
+            </div>
           </div>
         </div>
       </div>

@@ -3,17 +3,17 @@
 ## Tables (14 total)
 
 ### Core Tables
+
 1. **patients_queue** (main queue)
    - 30+ columns: id, patient_name, phone, status, locked_by, instance_id
    - 13 indexes including unique constraints
-   
 2. **patient_journeys**
    - journey_id, patient_name, canonical_phone, status
-   
 3. **journey_messages**
    - message tracking within journeys
 
 ### Supporting Tables
+
 4. **whatsapp_instances** - connected WhatsApp instances
 5. **message_logs** - delivery history
 6. **worker_heartbeats** - worker monitoring
@@ -28,18 +28,20 @@
 ## Indexes (45)
 
 ### Critical Indexes
+
 - idx_patients_queue_claim (status, is_approved, send_after)
 - idx_patients_queue_locks (locked_by, locked_at)
 - idx_patients_queue_dedupe_hash_unique
 - idx_message_events_daily (timezone-aware)
 
 ### Missing Indexes (PRIORITY HIGH)
+
 ```sql
-CREATE INDEX CONCURRENTLY idx_patients_queue_send_after_simple 
+CREATE INDEX CONCURRENTLY idx_patients_queue_send_after_simple
 ON patients_queue(send_after);
 
-CREATE INDEX CONCURRENTLY idx_patients_queue_status_simple 
-ON patients_queue(status) 
+CREATE INDEX CONCURRENTLY idx_patients_queue_status_simple
+ON patients_queue(status)
 WHERE status IN ('queued', 'failed');
 ```
 

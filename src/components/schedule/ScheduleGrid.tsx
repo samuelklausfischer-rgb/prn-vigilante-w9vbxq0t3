@@ -122,12 +122,16 @@ export function ScheduleGrid({ date, onSlotClick }: ScheduleGridProps) {
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle className="text-white">{formatDateBr(date)}</CardTitle>
-          <Button variant="outline" size="sm" onClick={() => {
-            fetchDaySchedule(date).then(data => {
-              const grouped = groupByTimeSlot(data)
-              setSchedule(grouped)
-            })
-          }}>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              fetchDaySchedule(date).then((data) => {
+                const grouped = groupByTimeSlot(data)
+                setSchedule(grouped)
+              })
+            }}
+          >
             <RefreshCw className="mr-2 h-4 w-4" />
             Atualizar
           </Button>

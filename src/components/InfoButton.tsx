@@ -13,10 +13,10 @@ export interface InfoButtonProps extends React.ButtonHTMLAttributes<HTMLButtonEl
 
 export function InfoButton({
   onClick,
-  ariaLabel = "Mais informações do paciente",
+  ariaLabel = 'Mais informações do paciente',
   icon = <InfoIcon className="w-4 h-4" />,
-  variant = "ghost",
-  size = "icon",
+  variant = 'ghost',
+  size = 'icon',
   className,
   ...props
 }: InfoButtonProps) {
@@ -27,8 +27,8 @@ export function InfoButton({
       variant={variant}
       size={size}
       className={cn(
-        "text-slate-400 hover:text-blue-400 hover:bg-blue-400/10 transition-colors",
-        className
+        'text-slate-400 hover:text-blue-400 hover:bg-blue-400/10 transition-colors',
+        className,
       )}
       {...props}
     >

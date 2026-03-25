@@ -50,10 +50,12 @@ export async function updateJourneyManualPriority(
   priority: ManualPriority,
 ): Promise<boolean> {
   try {
-    const { error } = await (supabase.from('patient_journeys') as any).update({
-      manual_priority: priority,
-      updated_at: new Date().toISOString(),
-    }).eq('id', journeyId)
+    const { error } = await (supabase.from('patient_journeys') as any)
+      .update({
+        manual_priority: priority,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', journeyId)
 
     if (error) throw error
     return true
@@ -78,7 +80,9 @@ export async function updateJourneyStatus(
       updates.manual_note = manualNote
     }
 
-    const { error } = await (supabase.from('patient_journeys') as any).update(updates).eq('id', journeyId)
+    const { error } = await (supabase.from('patient_journeys') as any)
+      .update(updates)
+      .eq('id', journeyId)
 
     if (error) throw error
     return true
@@ -88,13 +92,18 @@ export async function updateJourneyStatus(
   }
 }
 
-export async function markJourneyAsResolved(journeyId: string, resolvedAt?: string): Promise<boolean> {
+export async function markJourneyAsResolved(
+  journeyId: string,
+  resolvedAt?: string,
+): Promise<boolean> {
   try {
-    const { error } = await (supabase.from('patient_journeys') as any).update({
-      resolved_at: resolvedAt || new Date().toISOString(),
-      journey_status: 'confirmed',
-      updated_at: new Date().toISOString(),
-    }).eq('id', journeyId)
+    const { error } = await (supabase.from('patient_journeys') as any)
+      .update({
+        resolved_at: resolvedAt || new Date().toISOString(),
+        journey_status: 'confirmed',
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', journeyId)
 
     if (error) throw error
     return true
@@ -106,10 +115,12 @@ export async function markJourneyAsResolved(journeyId: string, resolvedAt?: stri
 
 export async function archiveJourney(journeyId: string): Promise<boolean> {
   try {
-    const { error } = await (supabase.from('patient_journeys') as any).update({
-      journey_status: 'archived',
-      updated_at: new Date().toISOString(),
-    }).eq('id', journeyId)
+    const { error } = await (supabase.from('patient_journeys') as any)
+      .update({
+        journey_status: 'archived',
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', journeyId)
 
     if (error) throw error
     return true
@@ -121,12 +132,14 @@ export async function archiveJourney(journeyId: string): Promise<boolean> {
 
 export async function returnJourneyToPending(journeyId: string): Promise<boolean> {
   try {
-    const { error } = await (supabase.from('patient_journeys') as any).update({
-      journey_status: 'pending_manual',
-      pending_at: new Date().toISOString(),
-      needs_manual_action: true,
-      updated_at: new Date().toISOString(),
-    }).eq('id', journeyId)
+    const { error } = await (supabase.from('patient_journeys') as any)
+      .update({
+        journey_status: 'pending_manual',
+        pending_at: new Date().toISOString(),
+        needs_manual_action: true,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', journeyId)
 
     if (error) throw error
     return true

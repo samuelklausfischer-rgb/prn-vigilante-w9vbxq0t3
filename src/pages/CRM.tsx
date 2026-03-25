@@ -51,9 +51,15 @@ function getClassificationBadge(classification: string | null) {
   if (!classification) return null
   switch (classification) {
     case 'confirmado_positivo':
-      return { label: 'Confirmado', className: 'bg-green-500/20 text-green-300 border-green-500/30' }
+      return {
+        label: 'Confirmado',
+        className: 'bg-green-500/20 text-green-300 border-green-500/30',
+      }
     case 'quer_remarcar':
-      return { label: 'Remarcar', className: 'bg-orange-500/20 text-orange-300 border-orange-500/30' }
+      return {
+        label: 'Remarcar',
+        className: 'bg-orange-500/20 text-orange-300 border-orange-500/30',
+      }
     case 'nao_pode_comparecer':
       return { label: 'Não pode', className: 'bg-red-500/20 text-red-300 border-red-500/30' }
     case 'cancelado':
@@ -61,7 +67,10 @@ function getClassificationBadge(classification: string | null) {
     case 'duvida':
       return { label: 'Dúvida', className: 'bg-yellow-500/20 text-yellow-300 border-yellow-500/30' }
     case 'ambigua':
-      return { label: 'Ambígua', className: 'bg-purple-500/20 text-purple-300 border-purple-500/30' }
+      return {
+        label: 'Ambígua',
+        className: 'bg-purple-500/20 text-purple-300 border-purple-500/30',
+      }
     default:
       return { label: classification, className: 'bg-blue-500/20 text-blue-300 border-blue-500/30' }
   }
@@ -85,9 +94,7 @@ function KanbanCardComponent({ card }: { card: KanbanCard }) {
               <span className="font-mono">{formatPhoneBR(card.canonical_phone)}</span>
             </div>
           </div>
-          <Badge className={`text-xs ${journeyStatus.className}`}>
-            {journeyStatus.label}
-          </Badge>
+          <Badge className={`text-xs ${journeyStatus.className}`}>{journeyStatus.label}</Badge>
         </div>
 
         {card.data_exame && (
@@ -153,7 +160,11 @@ export default function CRM() {
       setBoardData(data)
     } catch (e) {
       console.error('Error fetching kanban data:', e)
-      toast({ title: 'Erro ao carregar dados', description: 'Falha ao buscar dados do CRM.', variant: 'destructive' })
+      toast({
+        title: 'Erro ao carregar dados',
+        description: 'Falha ao buscar dados do CRM.',
+        variant: 'destructive',
+      })
     } finally {
       setRefreshing(false)
       setLoading(false)
@@ -182,9 +193,13 @@ export default function CRM() {
       const results = await searchKanbanCards(search)
       const searchResults = {
         aguardando_envio: results.filter((r) => r.journey_status === 'queued'),
-        em_contato: results.filter((r) => ['contacting', 'delivered_waiting_reply', 'followup_sent'].includes(r.journey_status)),
+        em_contato: results.filter((r) =>
+          ['contacting', 'delivered_waiting_reply', 'followup_sent'].includes(r.journey_status),
+        ),
         respostas: results.filter((r) => r.has_reply && r.journey_status !== 'confirmed'),
-        critico: results.filter((r) => r.phone_ladder_exhausted || r.journey_status === 'pending_manual'),
+        critico: results.filter(
+          (r) => r.phone_ladder_exhausted || r.journey_status === 'pending_manual',
+        ),
         confirmados: results.filter((r) => r.journey_status === 'confirmed'),
       }
       setBoardData(searchResults)
@@ -223,7 +238,7 @@ export default function CRM() {
     <div className="space-y-6 animate-fade-in-up">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <h1 className="text-2xl font-bold text-white">CRM Kanban</h1>
-        
+
         <form onSubmit={handleSearch} className="flex gap-2 w-full lg:w-auto">
           <div className="relative flex-1 lg:flex-none lg:w-96">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
@@ -234,11 +249,7 @@ export default function CRM() {
               className="pl-10 bg-slate-800/50 border-slate-700 text-white"
             />
           </div>
-          <Button
-            type="submit"
-            variant="outline"
-            className="border-slate-700 text-white"
-          >
+          <Button type="submit" variant="outline" className="border-slate-700 text-white">
             Buscar
           </Button>
           {search && (
@@ -258,7 +269,9 @@ export default function CRM() {
             variant="outline"
             size="sm"
             onClick={() => setAutoRefresh(!autoRefresh)}
-            className={autoRefresh ? 'border-green-500/50 text-green-300' : 'border-slate-700 text-slate-300'}
+            className={
+              autoRefresh ? 'border-green-500/50 text-green-300' : 'border-slate-700 text-slate-300'
+            }
           >
             Auto-refresh {autoRefresh ? 'ON' : 'OFF'}
           </Button>
@@ -296,13 +309,9 @@ export default function CRM() {
 
               <div className="flex-1 overflow-y-auto space-y-2 mt-3 pr-2">
                 {cards.length === 0 ? (
-                  <div className="text-center py-8 text-slate-400 text-sm">
-                    Vazio
-                  </div>
+                  <div className="text-center py-8 text-slate-400 text-sm">Vazio</div>
                 ) : (
-                  cards.map((card) => (
-                    <KanbanCardComponent key={card.journey_id} card={card} />
-                  ))
+                  cards.map((card) => <KanbanCardComponent key={card.journey_id} card={card} />)
                 )}
               </div>
             </div>

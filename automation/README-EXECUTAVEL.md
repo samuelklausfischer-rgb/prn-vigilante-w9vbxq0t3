@@ -23,14 +23,15 @@ cp .env.example .env
 
 Abra o arquivo `.env` em um editor de texto e preencha:
 
-| Variável | Descrição | Exemplo |
-|----------|-----------|---------|
-| `SUPABASE_URL` | URL do projeto Supabase | `https://your-project.supabase.co` |
-| `SUPABASE_SERVICE_ROLE_KEY` | Chave de serviço do Supabase | `eyJhbGc...` |
-| `EVOLUTION_API_URL` | URL da Evolution API | `http://127.0.0.1:8080` |
-| `EVOLUTION_API_KEY` | Chave da Evolution API | `evolution_api_key_12345` |
+| Variável                    | Descrição                    | Exemplo                            |
+| --------------------------- | ---------------------------- | ---------------------------------- |
+| `SUPABASE_URL`              | URL do projeto Supabase      | `https://your-project.supabase.co` |
+| `SUPABASE_SERVICE_ROLE_KEY` | Chave de serviço do Supabase | `eyJhbGc...`                       |
+| `EVOLUTION_API_URL`         | URL da Evolution API         | `http://127.0.0.1:8080`            |
+| `EVOLUTION_API_KEY`         | Chave da Evolution API       | `evolution_api_key_12345`          |
 
 **Variáveis opcionais:**
+
 - `WORKER_POLL_INTERVAL_MS` (padrão: 5000)
 - `WORKER_HEARTBEAT_INTERVAL_MS` (padrão: 30000)
 - `WORKER_LOCK_TIMEOUT_MINUTES` (padrão: 5)
@@ -117,14 +118,17 @@ bun run src/index.ts --diag
 ## ❓ Solução de Problemas
 
 ### Erro: "SUPABASE_URL não encontrado"
+
 - Verifique se o arquivo `.env` existe
 - Verifique se a variável foi preenchida
 
 ### Erro: "Conexão com Evolution API falhou"
+
 - Verifique se o Docker está rodando
 - Verifique se a URL está correta (`http://127.0.0.1:8080`)
 
 ### Erro: "Executável não roda"
+
 - Certifique-se de usar Windows (o build é específico para Windows)
 - Rebuild o executável se mudar o código fonte
 

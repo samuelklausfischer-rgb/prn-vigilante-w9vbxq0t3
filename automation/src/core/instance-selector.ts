@@ -34,10 +34,13 @@ export class InstanceSelector {
       const affinityInstance = await getInstanceById(claim.locked_instance_id)
 
       if (!affinityInstance?.instance_name) {
-        console.warn(`[${timestamp()}] ⚠️ Instância vinculada ${claim.locked_instance_id} não encontrada no banco. BLOQUEANDO envio.`, {
-          messageId: claim.id,
-          lockedInstanceId: claim.locked_instance_id,
-        })
+        console.warn(
+          `[${timestamp()}] ⚠️ Instância vinculada ${claim.locked_instance_id} não encontrada no banco. BLOQUEANDO envio.`,
+          {
+            messageId: claim.id,
+            lockedInstanceId: claim.locked_instance_id,
+          },
+        )
         // NÃO trocar — a instância pode ter sido deletada. Exigir intervenção manual.
         return null
       }
@@ -46,20 +49,26 @@ export class InstanceSelector {
       const normalized = String(status).toLowerCase()
 
       if (!['open', 'connected'].includes(normalized)) {
-        console.warn(`[${timestamp()}] ⛔ AFINIDADE BLOQUEADA: Instância ${affinityInstance.instance_name} está OFFLINE (status: ${normalized}). NÃO será trocada — aguardando reconexão ou intervenção manual.`, {
-          messageId: claim.id,
-          lockedInstanceId: claim.locked_instance_id,
-          instanceName: affinityInstance.instance_name,
-          instanceStatus: normalized,
-        })
+        console.warn(
+          `[${timestamp()}] ⛔ AFINIDADE BLOQUEADA: Instância ${affinityInstance.instance_name} está OFFLINE (status: ${normalized}). NÃO será trocada — aguardando reconexão ou intervenção manual.`,
+          {
+            messageId: claim.id,
+            lockedInstanceId: claim.locked_instance_id,
+            instanceName: affinityInstance.instance_name,
+            instanceStatus: normalized,
+          },
+        )
         // Retorna null — a mensagem volta para a fila e aguarda
         return null
       }
 
-      console.log(`[${timestamp()}] 🔗 Afinidade respeitada: ${affinityInstance.instance_name} continua dona do número`, {
-        messageId: claim.id,
-        instanceName: affinityInstance.instance_name,
-      })
+      console.log(
+        `[${timestamp()}] 🔗 Afinidade respeitada: ${affinityInstance.instance_name} continua dona do número`,
+        {
+          messageId: claim.id,
+          instanceName: affinityInstance.instance_name,
+        },
+      )
 
       return {
         id: claim.locked_instance_id,
@@ -81,14 +90,19 @@ export class InstanceSelector {
     const normalized = String(status).toLowerCase()
 
     if (!['open', 'connected'].includes(normalized)) {
-      console.log(`[${timestamp()}] ⚠️ Instância ${instance.instance_name} offline (status: ${normalized}).`)
+      console.log(
+        `[${timestamp()}] ⚠️ Instância ${instance.instance_name} offline (status: ${normalized}).`,
+      )
       return null
     }
 
-    console.log(`[${timestamp()}] 🆕 Novo vínculo: ${instance.instance_name} será dona deste número`, {
-      messageId: claim.id,
-      instanceName: instance.instance_name,
-    })
+    console.log(
+      `[${timestamp()}] 🆕 Novo vínculo: ${instance.instance_name} será dona deste número`,
+      {
+        messageId: claim.id,
+        instanceName: instance.instance_name,
+      },
+    )
 
     return {
       id: claim.instance_id,
@@ -105,7 +119,7 @@ export class InstanceSelector {
     const cached = this.statusCache.get(instanceName)
     const now = Date.now()
 
-    if (cached && (now - cached.cachedAt) < this.cacheTtlMs) {
+    if (cached && now - cached.cachedAt < this.cacheTtlMs) {
       return cached.status
     }
 

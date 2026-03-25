@@ -11,11 +11,13 @@
 ### 1. Template SARA Consolidado
 
 **Arquivos modificados:**
+
 - ✅ `packages/shared/templates/sara-message.ts` (NOVO)
 - ✅ `supabase/functions/organize-patient-list/index.ts`
 - ✅ `src/components/AddPatientModal.tsx`
 
 **Otimizações:**
+
 - Eliminada redundância de ~2,400 tokens (template repetido 3x)
 - Centralização do template em único arquivo
 - Reutilização em 3 locais diferentes
@@ -28,10 +30,12 @@
 ### 2. Tabela de Tempos de Exames
 
 **Arquivos modificados:**
+
 - ✅ `packages/shared/config/exam-durations.ts` (NOVO)
 - ✅ `supabase/functions/organize-patient-list/index.ts`
 
 **Otimizações:**
+
 - Extração de tabela de tempos hardcoded
 - Cache de valores de duração
 - Funções helper para consulta de tempos
@@ -44,9 +48,11 @@
 ### 3. Cache de System Message
 
 **Arquivos modificados:**
+
 - ✅ `supabase/functions/organize-patient-list/index.ts`
 
 **Otimizações:**
+
 - System message movida para constante global
 - Eliminada repetição (~30 tokens) por request
 - Mantido em cache em memória
@@ -70,12 +76,12 @@ packages/shared/
 
 ## 💰 ROI Estimado
 
-| Categoria | Economia/Request | Requests/dia | Economia Total/dia |
-|-----------|------------------|--------------|-------------------|
-| Template SARA | ~2,400 tokens | 50-100 | ~120,000-240,000 |
-| Tabela Tempos | ~200 tokens | 50-100 | ~10,000-20,000 |
-| System Message | ~30 tokens | 50-100 | ~1,500-3,000 |
-| **TOTAL** | **~2,630 tokens** | **50-100** | **~131,500-263,000** |
+| Categoria      | Economia/Request  | Requests/dia | Economia Total/dia   |
+| -------------- | ----------------- | ------------ | -------------------- |
+| Template SARA  | ~2,400 tokens     | 50-100       | ~120,000-240,000     |
+| Tabela Tempos  | ~200 tokens       | 50-100       | ~10,000-20,000       |
+| System Message | ~30 tokens        | 50-100       | ~1,500-3,000         |
+| **TOTAL**      | **~2,630 tokens** | **50-100**   | **~131,500-263,000** |
 
 ---
 
@@ -100,7 +106,7 @@ import { buildSaraMessage } from '@/../../packages/shared/templates/sara-message
 
 const message = buildSaraMessage({
   data_exame_iso: '2026-03-18',
-  horario: '14:30–15:00'
+  horario: '14:30–15:00',
 })
 ```
 
@@ -146,6 +152,7 @@ const duration = getExamDuration('Ressonância Magnética de Crânio')
 Para garantir que sub-agentes (task tool) usem automaticamente as otimizações implementadas, criamos um sistema de instruções estratégicas:
 
 ### 1. **AGENTS.md** (Raiz do projeto)
+
 - **Propósito:** Documentação central com instruções OBRIGATÓRIAS para todos os sub-agentes
 - **Conteúdo:**
   - Instruções críticas (ler antes de implementar)
@@ -158,6 +165,7 @@ Para garantir que sub-agentes (task tool) usem automaticamente as otimizações 
   - FAQ
 
 ### 2. **.agents/workflows/use-optimizations.md**
+
 - **Propósito:** Workflow de verificação obrigatória
 - **Conteúdo:**
   - Pré-verificação obrigatória
@@ -166,6 +174,7 @@ Para garantir que sub-agentes (task tool) usem automaticamente as otimizações 
   - Checkpoint final
 
 ### 3. **.agents/prompts/agent-starter.md**
+
 - **Propósito:** Template de prompt para lançar sub-agentes com instruções embutidas
 - **Conteúdo:**
   - Instruções iniciais obrigatórias
@@ -183,6 +192,7 @@ Ao lançar um sub-agente, inclua estas instruções no prompt:
 Você está trabalhando no projeto PRN-Vigilante.
 
 ANTES DE COMEÇAR:
+
 1. LEIA o arquivo AGENTS.md na raiz do projeto
 2. VERIFIQUE se a funcionalidade existe em packages/shared/
 3. USE as otimizações existentes

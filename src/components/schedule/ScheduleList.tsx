@@ -1,4 +1,14 @@
-import { Clock, Phone, User, Calendar, AlertTriangle, Plus, CheckCircle2, XCircle, MessageCircle } from 'lucide-react'
+import {
+  Clock,
+  Phone,
+  User,
+  Calendar,
+  AlertTriangle,
+  Plus,
+  CheckCircle2,
+  XCircle,
+  MessageCircle,
+} from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -30,19 +40,34 @@ function formatDuration(minutes: number | null): string {
 function getJourneyStatusStyle(status: string | null) {
   switch (status) {
     case 'confirmed':
-      return { label: 'Confirmado', className: 'bg-green-500/15 text-green-300 border-green-500/30' }
+      return {
+        label: 'Confirmado',
+        className: 'bg-green-500/15 text-green-300 border-green-500/30',
+      }
     case 'contacting':
-      return { label: 'Enviando', className: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30' }
+      return {
+        label: 'Enviando',
+        className: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30',
+      }
     case 'delivered_waiting_reply':
-      return { label: 'Aguardando resposta', className: 'bg-amber-500/15 text-amber-300 border-amber-500/30' }
+      return {
+        label: 'Aguardando resposta',
+        className: 'bg-amber-500/15 text-amber-300 border-amber-500/30',
+      }
     case 'followup_sent':
-      return { label: 'Follow-up', className: 'bg-purple-500/15 text-purple-300 border-purple-500/30' }
+      return {
+        label: 'Follow-up',
+        className: 'bg-purple-500/15 text-purple-300 border-purple-500/30',
+      }
     case 'pending_manual':
       return { label: 'Pendente', className: 'bg-red-500/15 text-red-300 border-red-500/30' }
     case 'cancelled':
       return { label: 'Cancelado', className: 'bg-gray-500/15 text-gray-300 border-gray-500/30' }
     default:
-      return { label: status || 'Desconhecido', className: 'bg-white/10 text-white border-white/10' }
+      return {
+        label: status || 'Desconhecido',
+        className: 'bg-white/10 text-white border-white/10',
+      }
   }
 }
 
@@ -70,7 +95,7 @@ function PatientCard({ item, onClick }: { item: ScheduleItem; onClick?: () => vo
   const classification = getClassificationStyle(item.latest_classification)
 
   return (
-    <Card 
+    <Card
       className="border-white/10 bg-slate-800/50 hover:bg-slate-800/80 transition-colors cursor-pointer"
       onClick={onClick}
     >
@@ -79,9 +104,7 @@ function PatientCard({ item, onClick }: { item: ScheduleItem; onClick?: () => vo
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1">
               <User className="w-4 h-4 text-slate-400" />
-              <span className="font-medium text-sm text-white truncate">
-                {item.patient_name}
-              </span>
+              <span className="font-medium text-sm text-white truncate">{item.patient_name}</span>
             </div>
             {item.phone && (
               <div className="flex items-center gap-2 text-xs text-slate-400 mb-1">
@@ -90,9 +113,7 @@ function PatientCard({ item, onClick }: { item: ScheduleItem; onClick?: () => vo
               </div>
             )}
             {item.procedimentos && (
-              <div className="text-xs text-slate-300 line-clamp-1">
-                📋 {item.procedimentos}
-              </div>
+              <div className="text-xs text-slate-300 line-clamp-1">📋 {item.procedimentos}</div>
             )}
           </div>
           <Badge variant="outline" className={status.className}>
@@ -118,9 +139,7 @@ function PatientCard({ item, onClick }: { item: ScheduleItem; onClick?: () => vo
             </Badge>
           )}
           {classification && (
-            <Badge className={`text-xs ${classification.className}`}>
-              {classification.label}
-            </Badge>
+            <Badge className={`text-xs ${classification.className}`}>{classification.label}</Badge>
           )}
           {item.phone_ladder_exhausted && (
             <Badge variant="outline" className="text-xs border-red-500/50 text-red-300">
@@ -138,7 +157,7 @@ function GapCard({ item, onClick }: { item: ScheduleItem; onClick?: () => void }
   if (!classification) return null
 
   return (
-    <Card 
+    <Card
       className={`border-2 ${classification.color.replace('text-', 'border-')} cursor-pointer hover:opacity-90 transition-opacity`}
       onClick={onClick}
     >
@@ -156,12 +175,14 @@ function GapCard({ item, onClick }: { item: ScheduleItem; onClick?: () => void }
               <div className="text-xs text-slate-300">
                 {formatTime(item.horario_inicio)} - {formatTime(item.horario_final)} disponível
               </div>
-              <div className="text-xs text-slate-400 mt-1">
-                {classification.description}
-              </div>
+              <div className="text-xs text-slate-400 mt-1">{classification.description}</div>
             </div>
           </div>
-          <Button size="sm" variant="outline" className="border-white/20 text-white hover:bg-white/10">
+          <Button
+            size="sm"
+            variant="outline"
+            className="border-white/20 text-white hover:bg-white/10"
+          >
             <Plus className="w-4 h-4 mr-1" />
             Preencher
           </Button>
@@ -184,27 +205,16 @@ export function ScheduleList({ schedule, onPatientClick, onGapClick }: ScheduleL
   return (
     <div className="space-y-2">
       {schedule.map((item, index) => {
-        const key = item.item_type === 'patient' 
-          ? `patient-${item.journey_id}` 
-          : `gap-${item.horario_inicio}-${index}`
+        const key =
+          item.item_type === 'patient'
+            ? `patient-${item.journey_id}`
+            : `gap-${item.horario_inicio}-${index}`
 
         if (item.item_type === 'gap') {
-          return (
-            <GapCard 
-              key={key} 
-              item={item} 
-              onClick={() => onGapClick?.(item)} 
-            />
-          )
+          return <GapCard key={key} item={item} onClick={() => onGapClick?.(item)} />
         }
 
-        return (
-          <PatientCard 
-            key={key} 
-            item={item} 
-            onClick={() => onPatientClick?.(item)} 
-          />
-        )
+        return <PatientCard key={key} item={item} onClick={() => onPatientClick?.(item)} />
       })}
     </div>
   )

@@ -71,12 +71,12 @@ export function createWorkerId(workerName: string): string {
 export function force9Digit(phone: string): string {
   let clean = phone.replace(/\D/g, '')
   if (!clean.startsWith('55')) clean = '55' + clean
-  
+
   if (clean.length === 12) {
     // 55 (2) + DDD (2) + 8 dígitos = 12
     return clean.substring(0, 4) + '9' + clean.substring(4)
   }
-  
+
   return clean
 }
 
@@ -87,25 +87,25 @@ export function force9Digit(phone: string): string {
 export function force8Digit(phone: string): string {
   let clean = phone.replace(/\D/g, '')
   if (!clean.startsWith('55')) clean = '55' + clean
-  
+
   if (clean.length === 13) {
     // 55 (2) + DDD (2) + 9 (1) + 8 dígitos = 13
     return clean.substring(0, 4) + clean.substring(5)
   }
-  
+
   return clean
 }
 
 /**
  * 🇧🇷 Sanetizador de Números Brasileiros (Anti-Ban e JID Fix)
- * 
+ *
  * Regra:
  * - DDD 11 a 28: Mantém o nono dígito (9).
  * - DDD 29 a 99: Remove o nono dígito (9) para envio via API Baileys/Evolution.
  */
 export function sanitizeBrazilianNumber(phone: string): string {
   let clean = phone.replace(/\D/g, '')
-  
+
   // Se não tem DDI 55, adiciona (assumindo Brasil)
   if (!clean.startsWith('55') && (clean.length === 10 || clean.length === 11)) {
     clean = '55' + clean
@@ -114,7 +114,7 @@ export function sanitizeBrazilianNumber(phone: string): string {
   // Se é Brasil e tem tamanho de celular com 9 dígitos (55 + DDD + 9 + 8 digitos = 13)
   if (clean.startsWith('55') && clean.length === 13) {
     const ddd = parseInt(clean.substring(2, 4))
-    
+
     // Se o DDD for maior que 28, remove o 9 (o quinto caractere)
     if (ddd > 28) {
       clean = clean.substring(0, 4) + clean.substring(5)

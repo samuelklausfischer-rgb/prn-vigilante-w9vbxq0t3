@@ -17,9 +17,7 @@ const supabaseUrl = process.env.SUPABASE_URL
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY
 
 if (!supabaseUrl || !supabaseKey) {
-  throw new Error(
-    '❌ SUPABASE_URL ou SUPABASE_ANON_KEY não encontrados no .env da automação.',
-  )
+  throw new Error('❌ SUPABASE_URL ou SUPABASE_ANON_KEY não encontrados no .env da automação.')
 }
 
 export const supabase = createClient(supabaseUrl, supabaseKey)
@@ -93,7 +91,9 @@ export async function markMessageAccepted(
     }
 
     if (!updatedRows || updatedRows.length === 0) {
-      console.warn(`⚠️ Mensagem ${messageId} não pôde ser marcada como aceita porque o lock não pertence mais a este worker.`)
+      console.warn(
+        `⚠️ Mensagem ${messageId} não pôde ser marcada como aceita porque o lock não pertence mais a este worker.`,
+      )
       return false
     }
 
@@ -165,7 +165,9 @@ export async function markMessageDelivered(
     }
 
     if (!updatedRows || updatedRows.length === 0) {
-      console.warn(`⚠️ Mensagem ${messageId} não pôde ser finalizada como entregue porque o lock não pertence mais a este worker.`)
+      console.warn(
+        `⚠️ Mensagem ${messageId} não pôde ser finalizada como entregue porque o lock não pertence mais a este worker.`,
+      )
       return false
     }
 
@@ -263,7 +265,9 @@ export async function markMessageFailed(
     }
 
     if (!updatedRows || updatedRows.length === 0) {
-      console.warn(`⚠️ Mensagem ${messageId} não pôde ser finalizada como falha porque o lock não pertence mais a este worker.`)
+      console.warn(
+        `⚠️ Mensagem ${messageId} não pôde ser finalizada como falha porque o lock não pertence mais a este worker.`,
+      )
       return false
     }
 
@@ -350,11 +354,11 @@ export async function handlePhoneLadderEscalation(
   sendAfterDelay?: Date,
 ): Promise<PhoneLadderResult> {
   // Buscar row completa para ter phone_2, phone_3 e dados do paciente
-  const { data: fullRow } = await supabase
+  const { data: fullRow } = (await supabase
     .from('patients_queue')
     .select('*')
     .eq('id', message.id)
-    .single() as any
+    .single()) as any
 
   if (!fullRow) {
     console.error(`❌ handlePhoneLadderEscalation: Mensagem ${message.id} não encontrada`)
@@ -399,10 +403,7 @@ export async function handlePhoneLadderEscalation(
       journeyUpdate.journey_status = 'pending_manual'
     }
 
-    await supabase
-      .from('patient_journeys')
-      .update(journeyUpdate)
-      .eq('id', fullRow.journey_id)
+    await supabase.from('patient_journeys').update(journeyUpdate).eq('id', fullRow.journey_id)
 
     await insertJourneyEvent(
       fullRow.journey_id,
@@ -472,17 +473,15 @@ export async function handlePhoneLadderEscalation(
 
   // Rastreamento na jornada
   if (fullRow.journey_id) {
-    await supabase
-      .from('journey_messages')
-      .insert({
-        journey_id: fullRow.journey_id,
-        queue_message_id: result.id,
-        direction: 'outbound',
-        message_kind: dedupeKind,
-        phone_number: nextPhone,
-        message_body: fullRow.message_body,
-        status: 'queued',
-      })
+    await supabase.from('journey_messages').insert({
+      journey_id: fullRow.journey_id,
+      queue_message_id: result.id,
+      direction: 'outbound',
+      message_kind: dedupeKind,
+      phone_number: nextPhone,
+      message_body: fullRow.message_body,
+      status: 'queued',
+    })
   }
 
   console.log(`🪜 Escada: ${dedupeKind} enfileirado para ${sanitizeBrazilianNumber(nextPhone)}`)
@@ -594,13 +593,13 @@ export async function runSecondCallRecovery(): Promise<{ processed: number }> {
 
   let processed = 0
 
-  const { data: queuedPhones } = await supabase
+  const { data: queuedPhones } = (await supabase
     .from('patients_queue')
     .select('id,phone_number,phone_2,phone_3,data_exame,horario_inicio,is_landline')
     .eq('is_landline', false)
     .eq('status', 'queued')
     .gte('data_exame', today)
-    .limit(200) as any
+    .limit(200)) as any
 
   if (Array.isArray(queuedPhones)) {
     for (const row of queuedPhones) {
@@ -615,16 +614,22 @@ export async function runSecondCallRecovery(): Promise<{ processed: number }> {
       if (isLikelyLandlineBR(row.phone_number) && !row.phone_2 && !row.phone_3) {
         await supabase
           .from('patients_queue')
-          .update({ is_landline: true, needs_second_call: true, second_call_reason: 'landline_only' })
+          .update({
+            is_landline: true,
+            needs_second_call: true,
+            second_call_reason: 'landline_only',
+          })
           .eq('id', row.id)
         processed += 1
       }
     }
   }
 
-  const { data: notReceived } = await supabase
+  const { data: notReceived } = (await supabase
     .from('patients_queue')
-    .select('id,patient_name,phone_number,phone_2,phone_3,message_body,send_accepted_at,delivered_at,retry_phone2_sent_at,retry_phone3_sent_at,journey_id,locked_instance_id,phone_attempt_index,Data_nascimento,data_exame,procedimentos,horario_inicio,horario_final,time_proce')
+    .select(
+      'id,patient_name,phone_number,phone_2,phone_3,message_body,send_accepted_at,delivered_at,retry_phone2_sent_at,retry_phone3_sent_at,journey_id,locked_instance_id,phone_attempt_index,Data_nascimento,data_exame,procedimentos,horario_inicio,horario_final,time_proce',
+    )
     .is('delivered_at', null)
     .not('send_accepted_at', 'is', null)
     .lte('send_accepted_at', cutoff)
@@ -632,7 +637,7 @@ export async function runSecondCallRecovery(): Promise<{ processed: number }> {
     .not('phone_2', 'is', null)
     .eq('dedupe_kind', 'original')
     .gte('data_exame', today)
-    .limit(50) as any
+    .limit(50)) as any
 
   if (Array.isArray(notReceived)) {
     const connectedInstance = await getConnectedInstance()
@@ -642,95 +647,125 @@ export async function runSecondCallRecovery(): Promise<{ processed: number }> {
       const examTime = row.horario_inicio
       const examHour = examTime ? parseInt(examTime.split(':')[0], 10) : 18
 
-if (examDate === today && examHour < currentHour) {
+      if (examDate === today && examHour < currentHour) {
         continue
       }
 
       const toPhone2 = String(row.phone_2 || '').trim()
       if (!toPhone2) continue
-      
+
       // Verificar se phone_2 tem WhatsApp ANTES de enfileirar
       if (connectedInstance) {
         const hasWhatsApp = await checkWhatsAppNumber(connectedInstance.instance_name, toPhone2)
-        
+
         // Atualizar resultado da verificação
-        await supabase.from('patients_queue').update({
-          phone_2_whatsapp_valid: hasWhatsApp,
-          phone_2_whatsapp_checked_at: new Date().toISOString(),
-        }).eq('id', row.id)
-        
+        await supabase
+          .from('patients_queue')
+          .update({
+            phone_2_whatsapp_valid: hasWhatsApp,
+            phone_2_whatsapp_checked_at: new Date().toISOString(),
+          })
+          .eq('id', row.id)
+
         // Se não tem WhatsApp, tentar phone_3
         if (!hasWhatsApp) {
-          console.log(`⚠️ Phone2 ${toPhone2} não tem WhatsApp, verificando phone_3 para paciente ${row.patient_name}`)
-          
+          console.log(
+            `⚠️ Phone2 ${toPhone2} não tem WhatsApp, verificando phone_3 para paciente ${row.patient_name}`,
+          )
+
           const toPhone3 = String(row.phone_3 || '').trim()
           if (toPhone3) {
             // Verificar phone_3
-            const hasWhatsApp3 = await checkWhatsAppNumber(connectedInstance.instance_name, toPhone3)
-            await supabase.from('patients_queue').update({
-              phone_3_whatsapp_valid: hasWhatsApp3,
-              phone_3_whatsapp_checked_at: new Date().toISOString(),
-              notes: 'Tel2 sem WhatsApp - tentando Tel3',
-            }).eq('id', row.id)
-            
+            const hasWhatsApp3 = await checkWhatsAppNumber(
+              connectedInstance.instance_name,
+              toPhone3,
+            )
+            await supabase
+              .from('patients_queue')
+              .update({
+                phone_3_whatsapp_valid: hasWhatsApp3,
+                phone_3_whatsapp_checked_at: new Date().toISOString(),
+                notes: 'Tel2 sem WhatsApp - tentando Tel3',
+              })
+              .eq('id', row.id)
+
             if (!hasWhatsApp3) {
               // phone_3 também não tem WhatsApp → marcar como crítico
-              await supabase.from('patients_queue').update({
-                needs_second_call: true,
-                second_call_reason: 'phone_ladder_exhausted',
-                notes: 'Tel1, Tel2 e Tel3 sem WhatsApp',
-              }).eq('id', row.id)
+              await supabase
+                .from('patients_queue')
+                .update({
+                  needs_second_call: true,
+                  second_call_reason: 'phone_ladder_exhausted',
+                  notes: 'Tel1, Tel2 e Tel3 sem WhatsApp',
+                })
+                .eq('id', row.id)
               continue
             }
           } else {
             // Não tem phone_3 → marcar como crítico
-            await supabase.from('patients_queue').update({
-              needs_second_call: true,
-              second_call_reason: 'phone_ladder_exhausted',
-              notes: 'Tel1 e Tel2 sem WhatsApp, não há Tel3',
-            }).eq('id', row.id)
+            await supabase
+              .from('patients_queue')
+              .update({
+                needs_second_call: true,
+                second_call_reason: 'phone_ladder_exhausted',
+                notes: 'Tel1 e Tel2 sem WhatsApp, não há Tel3',
+              })
+              .eq('id', row.id)
             continue
           }
-          
+
           // Se chegou aqui, phone_3 tem WhatsApp → usar phone_3
           const normalizedPhone = normalizePhone(toPhone3)
-          const { data: enqueueResult, error: enqueueError } = await supabase.rpc('enqueue_patient', {
-            p_patient_name: row.patient_name,
-            p_phone_number: toPhone3,
-            p_message_body: row.message_body,
-            p_status: 'queued',
-            p_is_approved: true,
-            p_send_after: new Date().toISOString(),
-            p_notes: 'Terceira chamada: retry_phone3 (Tel2 sem WhatsApp)',
-            p_attempt_count: 0,
-            p_dedupe_kind: 'retry_phone3',
-            p_origin_queue_id: row.id,
-            p_canonical_phone: normalizedPhone,
-            p_data_nascimento: row.Data_nascimento,
-            p_data_exame: row.data_exame,
-            p_procedimentos: row.procedimentos,
-            p_horario_inicio: row.horario_inicio,
-            p_horario_final: row.horario_final,
-            p_time_proce: row.time_proce,
-            p_phone_2: row.phone_2,
-            p_phone_3: row.phone_3,
-            p_phone_attempt_index: 3,
-            p_last_phone_used: toPhone3,
-          })
-          
+          const { data: enqueueResult, error: enqueueError } = await supabase.rpc(
+            'enqueue_patient',
+            {
+              p_patient_name: row.patient_name,
+              p_phone_number: toPhone3,
+              p_message_body: row.message_body,
+              p_status: 'queued',
+              p_is_approved: true,
+              p_send_after: new Date().toISOString(),
+              p_notes: 'Terceira chamada: retry_phone3 (Tel2 sem WhatsApp)',
+              p_attempt_count: 0,
+              p_dedupe_kind: 'retry_phone3',
+              p_origin_queue_id: row.id,
+              p_canonical_phone: normalizedPhone,
+              p_data_nascimento: row.Data_nascimento,
+              p_data_exame: row.data_exame,
+              p_procedimentos: row.procedimentos,
+              p_horario_inicio: row.horario_inicio,
+              p_horario_final: row.horario_final,
+              p_time_proce: row.time_proce,
+              p_phone_2: row.phone_2,
+              p_phone_3: row.phone_3,
+              p_phone_attempt_index: 3,
+              p_last_phone_used: toPhone3,
+            },
+          )
+
           if (enqueueError) {
-            console.error(`❌ Erro ao enfileirar retry_phone3 para paciente ${row.patient_name}:`, enqueueError)
+            console.error(
+              `❌ Erro ao enfileirar retry_phone3 para paciente ${row.patient_name}:`,
+              enqueueError,
+            )
             continue
           }
-          
-          const result = enqueueResult as { id: string; status: string; error_message: string } | null
+
+          const result = enqueueResult as {
+            id: string
+            status: string
+            error_message: string
+          } | null
           if (result && result.status === 'success') {
-            await supabase.from('patients_queue').update({
-              retry_phone3_sent_at: new Date().toISOString(),
-              last_contact_phone: toPhone3,
-              updated_at: new Date().toISOString(),
-            }).eq('id', row.id)
-            
+            await supabase
+              .from('patients_queue')
+              .update({
+                retry_phone3_sent_at: new Date().toISOString(),
+                last_contact_phone: toPhone3,
+                updated_at: new Date().toISOString(),
+              })
+              .eq('id', row.id)
+
             if (row.journey_id) {
               await insertJourneyEvent(row.journey_id, null, 'retry_phone3_sent', 'worker', {
                 to_phone: sanitizeBrazilianNumber(toPhone3),
@@ -741,7 +776,7 @@ if (examDate === today && examHour < currentHour) {
           continue
         }
       }
-      
+
       const normalizedPhone = normalizePhone(toPhone2)
 
       const { data: enqueueResult, error: enqueueError } = await supabase.rpc('enqueue_patient', {
@@ -764,12 +799,15 @@ if (examDate === today && examHour < currentHour) {
         p_time_proce: row.time_proce,
         p_phone_2: row.phone_2,
         p_phone_3: row.phone_3,
-        p_locked_instance_id: null,      // TEL2 = número DIFERENTE → round-robin (nova instância)
-        p_phone_attempt_index: 2,        // Posição 2 na escada
+        p_locked_instance_id: null, // TEL2 = número DIFERENTE → round-robin (nova instância)
+        p_phone_attempt_index: 2, // Posição 2 na escada
       })
 
       if (enqueueError) {
-        console.error(`❌ Erro ao enfileirar retry_phone2 para paciente ${row.patient_name}:`, enqueueError)
+        console.error(
+          `❌ Erro ao enfileirar retry_phone2 para paciente ${row.patient_name}:`,
+          enqueueError,
+        )
         continue
       }
 
@@ -822,7 +860,12 @@ if (examDate === today && examHour < currentHour) {
           .single()
 
         if (journeyMessageData) {
-          await insertJourneyEvent(row.journey_id, journeyMessageData.id, 'message_queued', 'worker')
+          await insertJourneyEvent(
+            row.journey_id,
+            journeyMessageData.id,
+            'message_queued',
+            'worker',
+          )
         }
       }
 
@@ -838,16 +881,18 @@ if (examDate === today && examHour < currentHour) {
     }
   }
 
-  const { data: needsFollowup } = await supabase
+  const { data: needsFollowup } = (await supabase
     .from('patients_queue')
-    .select('id,patient_name,phone_number,delivered_at,replied_at,followup_sent_at,journey_id,locked_instance_id,phone_attempt_index,Data_nascimento,data_exame,procedimentos,horario_inicio,horario_final,time_proce,phone_2,phone_3')
+    .select(
+      'id,patient_name,phone_number,delivered_at,replied_at,followup_sent_at,journey_id,locked_instance_id,phone_attempt_index,Data_nascimento,data_exame,procedimentos,horario_inicio,horario_final,time_proce,phone_2,phone_3',
+    )
     .not('delivered_at', 'is', null)
     .is('replied_at', null)
     .lte('delivered_at', cutoff)
     .is('followup_sent_at', null)
     .eq('dedupe_kind', 'original')
     .gte('data_exame', today)
-    .limit(50) as any
+    .limit(50)) as any
 
   if (Array.isArray(needsFollowup)) {
     for (const row of needsFollowup) {
@@ -882,12 +927,15 @@ if (examDate === today && examHour < currentHour) {
         p_time_proce: row.time_proce,
         p_phone_2: row.phone_2,
         p_phone_3: row.phone_3,
-        p_locked_instance_id: row.locked_instance_id || null,   // MESMO número → propagar instância
-        p_phone_attempt_index: row.phone_attempt_index || 1,    // Manter posição na escada
+        p_locked_instance_id: row.locked_instance_id || null, // MESMO número → propagar instância
+        p_phone_attempt_index: row.phone_attempt_index || 1, // Manter posição na escada
       })
 
       if (enqueueError) {
-        console.error(`❌ Erro ao enfileirar followup para paciente ${row.patient_name}:`, enqueueError)
+        console.error(
+          `❌ Erro ao enfileirar followup para paciente ${row.patient_name}:`,
+          enqueueError,
+        )
         continue
       }
 
@@ -945,7 +993,12 @@ if (examDate === today && examHour < currentHour) {
           .single()
 
         if (journeyMessageData) {
-          await insertJourneyEvent(row.journey_id, journeyMessageData.id, 'message_queued', 'worker')
+          await insertJourneyEvent(
+            row.journey_id,
+            journeyMessageData.id,
+            'message_queued',
+            'worker',
+          )
         }
       }
 
@@ -964,9 +1017,11 @@ if (examDate === today && examHour < currentHour) {
   // ========================================
   // BLOCO 3: retry_phone3 (60min após retry_phone2)
   // ========================================
-const { data: notReceivedPhone3 } = await supabase
+  const { data: notReceivedPhone3 } = (await supabase
     .from('patients_queue')
-    .select('id,patient_name,phone_number,phone_2,phone_3,message_body,send_accepted_at,delivered_at,retry_phone2_sent_at,retry_phone3_sent_at,journey_id,locked_instance_id,Data_nascimento,data_exame,procedimentos,horario_inicio,horario_final,time_proce')
+    .select(
+      'id,patient_name,phone_number,phone_2,phone_3,message_body,send_accepted_at,delivered_at,retry_phone2_sent_at,retry_phone3_sent_at,journey_id,locked_instance_id,Data_nascimento,data_exame,procedimentos,horario_inicio,horario_final,time_proce',
+    )
     .is('delivered_at', null)
     .not('retry_phone2_sent_at', 'is', null)
     .lte('retry_phone2_sent_at', cutoff)
@@ -974,7 +1029,7 @@ const { data: notReceivedPhone3 } = await supabase
     .not('phone_3', 'is', null)
     .eq('dedupe_kind', 'original')
     .gte('data_exame', today)
-    .limit(50) as any
+    .limit(50)) as any
 
   if (Array.isArray(notReceivedPhone3)) {
     const instanceToUse = await getConnectedInstance()
@@ -990,29 +1045,37 @@ const { data: notReceivedPhone3 } = await supabase
 
       const toPhone3 = String(row.phone_3 || '').trim()
       if (!toPhone3) continue
-      
+
       // Verificar se phone_3 tem WhatsApp ANTES de enfileirar
       if (instanceToUse) {
         const hasWhatsApp = await checkWhatsAppNumber(instanceToUse.instance_name, toPhone3)
-        
+
         // Atualizar resultado da verificação
-        await supabase.from('patients_queue').update({
-          phone_3_whatsapp_valid: hasWhatsApp,
-          phone_3_whatsapp_checked_at: new Date().toISOString(),
-        }).eq('id', row.id)
-        
+        await supabase
+          .from('patients_queue')
+          .update({
+            phone_3_whatsapp_valid: hasWhatsApp,
+            phone_3_whatsapp_checked_at: new Date().toISOString(),
+          })
+          .eq('id', row.id)
+
         // Se não tem WhatsApp → marcar como crítico (não há mais números)
         if (!hasWhatsApp) {
-          console.log(`⚠️ Phone3 ${toPhone3} não tem WhatsApp para paciente ${row.patient_name} - esgotado`)
-          await supabase.from('patients_queue').update({
-            needs_second_call: true,
-            second_call_reason: 'phone_ladder_exhausted',
-            notes: 'Tel1, Tel2 e Tel3 sem WhatsApp',
-          }).eq('id', row.id)
+          console.log(
+            `⚠️ Phone3 ${toPhone3} não tem WhatsApp para paciente ${row.patient_name} - esgotado`,
+          )
+          await supabase
+            .from('patients_queue')
+            .update({
+              needs_second_call: true,
+              second_call_reason: 'phone_ladder_exhausted',
+              notes: 'Tel1, Tel2 e Tel3 sem WhatsApp',
+            })
+            .eq('id', row.id)
           continue
         }
       }
-      
+
       const normalizedPhone = normalizePhone(toPhone3)
 
       const { data: enqueueResult, error: enqueueError } = await supabase.rpc('enqueue_patient', {
@@ -1040,7 +1103,10 @@ const { data: notReceivedPhone3 } = await supabase
       })
 
       if (enqueueError) {
-        console.error(`❌ Erro ao enfileirar retry_phone3 para paciente ${row.patient_name}:`, enqueueError)
+        console.error(
+          `❌ Erro ao enfileirar retry_phone3 para paciente ${row.patient_name}:`,
+          enqueueError,
+        )
         continue
       }
 
@@ -1095,14 +1161,14 @@ const { data: notReceivedPhone3 } = await supabase
   // ========================================
   // BLOCO 4: Marcar esgotados como Crítico
   // ========================================
-  const { data: allFailed } = await supabase
+  const { data: allFailed } = (await supabase
     .from('patients_queue')
     .select('id,journey_id,patient_name,phone_number,phone_2,phone_3')
     .eq('status', 'failed')
     .eq('needs_second_call', true)
     .eq('second_call_reason', 'not_received_retry_phone3')
     .is('delivered_at', null)
-    .limit(50) as any
+    .limit(50)) as any
 
   if (Array.isArray(allFailed)) {
     for (const row of allFailed) {
@@ -1137,7 +1203,8 @@ const { data: notReceivedPhone3 } = await supabase
               phone_ladder_exhausted: true,
               needs_manual_action: true,
               journey_status: 'pending_manual',
-              automation_notes: (row.automation_notes || '') + ' | Esgotado: Todos os telefones falharam',
+              automation_notes:
+                (row.automation_notes || '') + ' | Esgotado: Todos os telefones falharam',
               last_event_at: new Date().toISOString(),
               updated_at: new Date().toISOString(),
             })
@@ -1164,9 +1231,7 @@ const { data: notReceivedPhone3 } = await supabase
   return { processed }
 }
 
-export async function releaseExpiredLocks(
-  lockTimeoutMinutes = 5,
-): Promise<ExpiredLock[]> {
+export async function releaseExpiredLocks(lockTimeoutMinutes = 5): Promise<ExpiredLock[]> {
   try {
     const { data, error } = await supabase.rpc('release_expired_locks', {
       p_lock_timeout_minutes: lockTimeoutMinutes,
@@ -1271,14 +1336,15 @@ export async function refreshMessageLock(messageId: string, workerId: string): P
 
 export async function upsertHeartbeat(heartbeat: Partial<WorkerHeartbeat>): Promise<boolean> {
   try {
-    const { error } = await supabase
-      .from('worker_heartbeats')
-      .upsert({
+    const { error } = await supabase.from('worker_heartbeats').upsert(
+      {
         ...heartbeat,
         last_heartbeat: new Date().toISOString(),
-      }, {
+      },
+      {
         onConflict: 'worker_id',
-      })
+      },
+    )
 
     if (error) {
       console.error(`❌ Erro ao registrar heartbeat:`, error)
@@ -1294,10 +1360,7 @@ export async function upsertHeartbeat(heartbeat: Partial<WorkerHeartbeat>): Prom
 
 export async function removeHeartbeat(workerId: string): Promise<boolean> {
   try {
-    const { error } = await supabase
-      .from('worker_heartbeats')
-      .delete()
-      .eq('worker_id', workerId)
+    const { error } = await supabase.from('worker_heartbeats').delete().eq('worker_id', workerId)
 
     if (error) {
       console.error(`❌ Erro ao remover heartbeat:`, error)
@@ -1317,11 +1380,7 @@ export async function removeHeartbeat(workerId: string): Promise<boolean> {
 
 export async function getSystemConfig(): Promise<SystemConfig | null> {
   try {
-    const { data, error } = await supabase
-      .from('system_config')
-      .select('*')
-      .eq('id', 1)
-      .single()
+    const { data, error } = await supabase.from('system_config').select('*').eq('id', 1).single()
 
     if (error) {
       console.error(`❌ Erro ao buscar configuração do sistema:`, error)
@@ -1442,10 +1501,7 @@ export async function blockNumber(
 
 export async function getRealtimeMetrics() {
   try {
-    const { data, error } = await supabase
-      .from('dashboard_realtime_metrics')
-      .select('*')
-      .single()
+    const { data, error } = await supabase.from('dashboard_realtime_metrics').select('*').single()
 
     if (error) {
       console.error(`❌ Erro ao buscar métricas:`, error)
@@ -1562,10 +1618,7 @@ export async function createJourneyAndMessage(
       return null
     }
 
-    void supabase
-      .from('patients_queue')
-      .update({ journey_id: journeyId })
-      .eq('id', queueMessageId)
+    void supabase.from('patients_queue').update({ journey_id: journeyId }).eq('id', queueMessageId)
 
     await insertJourneyEvent(journeyId, messageData.id, 'message_claimed', 'worker')
 

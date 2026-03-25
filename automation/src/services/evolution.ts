@@ -189,7 +189,7 @@ export async function getConnectionStatus(instanceName: string): Promise<string>
 /**
  * Verifica proativamente se um número possui WhatsApp.
  * Usa o endpoint /chat/whatsappNumbers da Evolution API.
- * 
+ *
  * @param instanceName - Nome da instância para fazer a verificação
  * @param phoneNumber - Número bruto (será sanitizado internamente)
  * @returns true se o número tem WhatsApp, false se é fixo/inválido
@@ -205,15 +205,19 @@ export async function checkWhatsAppNumber(
       instanceName,
     })
 
-    const result = await callEvolution(`/chat/whatsappNumbers/${instanceName}`, {
-      method: 'POST',
-      body: JSON.stringify({
-        numbers: [cleanNumber],
-      }),
-    }, 10000)
+    const result = await callEvolution(
+      `/chat/whatsappNumbers/${instanceName}`,
+      {
+        method: 'POST',
+        body: JSON.stringify({
+          numbers: [cleanNumber],
+        }),
+      },
+      10000,
+    )
 
     // A Evolution API retorna um array com objetos { exists: boolean, jid: string }
-    const numbers = Array.isArray(result) ? result : (result?.data || result?.numbers || [])
+    const numbers = Array.isArray(result) ? result : result?.data || result?.numbers || []
 
     if (!Array.isArray(numbers) || numbers.length === 0) {
       console.warn(`[${timestamp()}] ⚠️ Resposta inesperada do check WhatsApp`, {
@@ -228,11 +232,14 @@ export async function checkWhatsAppNumber(
     const entry = numbers[0]
     const exists = Boolean(entry?.exists ?? entry?.numberExists ?? entry?.isWhatsapp)
 
-    console.log(`[${timestamp()}] ${exists ? '✅' : '❌'} WhatsApp check: ${maskPhone(cleanNumber)} → ${exists ? 'TEM WhatsApp' : 'NÃO tem WhatsApp (fixo/inválido)'}`, {
-      instanceName,
-      exists,
-      jid: entry?.jid || entry?.number || null,
-    })
+    console.log(
+      `[${timestamp()}] ${exists ? '✅' : '❌'} WhatsApp check: ${maskPhone(cleanNumber)} → ${exists ? 'TEM WhatsApp' : 'NÃO tem WhatsApp (fixo/inválido)'}`,
+      {
+        instanceName,
+        exists,
+        jid: entry?.jid || entry?.number || null,
+      },
+    )
 
     return exists
   } catch (error) {
@@ -261,15 +268,18 @@ export async function validatePhoneForWhatsApp(
   // 2. Determina qual testar primeiro (baseado na regra do sanitize)
   const ddd = parseInt(v8.substring(2, 4))
   const defaultIs8 = ddd > 28
-  
+
   const first = defaultIs8 ? v8 : v9
   const second = defaultIs8 ? v9 : v8
-  
-  console.log(`[${timestamp()}] 🧪 Iniciando validacao dupla: ${maskPhone(v8)} vs ${maskPhone(v9)}`, {
-    instanceName,
-    ddd,
-    testingFirst: maskPhone(first),
-  })
+
+  console.log(
+    `[${timestamp()}] 🧪 Iniciando validacao dupla: ${maskPhone(v8)} vs ${maskPhone(v9)}`,
+    {
+      instanceName,
+      ddd,
+      testingFirst: maskPhone(first),
+    },
+  )
 
   // 3. Testa o formato padrão primeiro
   const existsFirst = await checkWhatsAppNumber(instanceName, first)
@@ -285,7 +295,7 @@ export async function validatePhoneForWhatsApp(
   console.log(`[${timestamp()}] 🔍 Tentando formato alternativo para ${maskPhone(second)}`, {
     instanceName,
   })
-  
+
   const existsSecond = await checkWhatsAppNumber(instanceName, second)
   if (existsSecond) {
     return {
@@ -304,12 +314,7 @@ export async function validatePhoneForWhatsApp(
  * Tenta múltiplos endpoints para compatibilidade com diferentes versões.
  */
 export async function checkEvolutionHealth(): Promise<boolean> {
-  const endpoints = [
-    '/instance/fetchInstances',
-    '/instance/list',
-    '/health',
-    '/',
-  ]
+  const endpoints = ['/instance/fetchInstances', '/instance/list', '/health', '/']
 
   for (const endpoint of endpoints) {
     try {
@@ -322,25 +327,30 @@ export async function checkEvolutionHealth(): Promise<boolean> {
         continue
       }
       if (err.status === 401 || err.status === 403) {
-        console.log(`[${timestamp()}] ⚠️ Endpoint ${endpoint} requer autenticação, tentanto próximo...`)
+        console.log(
+          `[${timestamp()}] ⚠️ Endpoint ${endpoint} requer autenticação, tentanto próximo...`,
+        )
         continue
       }
-      if (err.status === undefined || err.status >= 200 && err.status < 500) {
+      if (err.status === undefined || (err.status >= 200 && err.status < 500)) {
         return true
       }
     }
   }
 
-  console.error(`[${timestamp()}] ❌ Health check da Evolution falhou - nenhum endpoint funcionou`, {
-    attempted: endpoints,
-  })
+  console.error(
+    `[${timestamp()}] ❌ Health check da Evolution falhou - nenhum endpoint funcionou`,
+    {
+      attempted: endpoints,
+    },
+  )
   return false
 }
 
 /**
  * Busca histórico de mensagens de uma instância
  * Retorna status atual de mensagens enviadas para um número específico
- * 
+ *
  * @param instanceName - Nome da instância da Evolution API
  * @param phoneNumber - Número de telefone sanitizado (com DD, já formatado)
  * @param limit - Limite de mensagens a buscar (padrão: 10)
@@ -349,15 +359,11 @@ export async function checkEvolutionHealth(): Promise<boolean> {
 export async function fetchMessageHistory(
   instanceName: string,
   phoneNumber: string,
-  limit = 10
+  limit = 10,
 ): Promise<any[]> {
   try {
-    const data = await callEvolution(
-      `/message/history/${instanceName}`,
-      { method: 'GET' },
-      5000
-    )
-    
+    const data = await callEvolution(`/message/history/${instanceName}`, { method: 'GET' }, 5000)
+
     if (!Array.isArray(data)) {
       console.warn(`[${timestamp()}] ⚠️ Histórico não é array`, {
         instanceName,
@@ -366,7 +372,7 @@ export async function fetchMessageHistory(
       })
       return []
     }
-    
+
     const cleanNumber = sanitizeBrazilianNumber(phoneNumber)
     const messages = data
       .filter((msg: any) => {
@@ -374,7 +380,7 @@ export async function fetchMessageHistory(
         return sanitizeBrazilianNumber(remoteNumber) === cleanNumber
       })
       .slice(0, limit)
-    
+
     console.log(`[${timestamp()}] 📋 Histórico obtido`, {
       instanceName,
       phone: maskPhone(phoneNumber),
@@ -382,7 +388,7 @@ export async function fetchMessageHistory(
       filteredMessages: messages.length,
       statuses: messages.map((m) => m.status),
     })
-    
+
     return messages
   } catch (error) {
     console.error(`[${timestamp()}] ❌ Falha ao buscar histórico`, {
@@ -397,7 +403,7 @@ export async function fetchMessageHistory(
 /**
  * Sincroniza status de delivery de uma mensagem via polling
  * Consulta histórico periodicamente e atualiza timestamps no banco
- * 
+ *
  * @param messageId - ID da mensagem (do Evolution API) para rastrear
  * @param patientId - ID do paciente na tabela patients_queue
  * @param phoneNumber - Número de telefone sanitizado
@@ -408,21 +414,21 @@ export async function syncDeliveryStatus(
   messageId: string,
   patientId: string,
   phoneNumber: string,
-  instanceName: string
+  instanceName: string,
 ): Promise<void> {
   const RETRY_DELAYS_MS = [60_000, 300_000, 900_000]
-  
+
   for (let attempt = 0; attempt < RETRY_DELAYS_MS.length; attempt++) {
     const delayMs = RETRY_DELAYS_MS[attempt]
-    
+
     await new Promise((resolve) => setTimeout(resolve, delayMs))
-    
+
     const attemptNum = attempt + 1
     const now = new Date().toISOString()
-    
+
     try {
       const history = await fetchMessageHistory(instanceName, phoneNumber, 5)
-      
+
       if (history.length === 0) {
         console.warn(`[${now}] ⚠️ Histórico vazio para ${maskPhone(phoneNumber)}`, {
           patientId,
@@ -430,17 +436,17 @@ export async function syncDeliveryStatus(
         })
         continue
       }
-      
+
       let foundMessage: any = null
       for (const msg of history) {
         const msgId = msg.key?.id
-        
+
         if (msgId === messageId || msgId === patientId) {
           foundMessage = msg
           break
         }
       }
-      
+
       if (!foundMessage) {
         console.warn(`[${now}] ⚠️ Mensagem não encontrada no histórico`, {
           patientId,
@@ -451,20 +457,20 @@ export async function syncDeliveryStatus(
         })
         continue
       }
-      
+
       const status = String(foundMessage?.status || '').toLowerCase()
-      
+
       if (status === 'delivered' || status === 'success') {
         const deliveredAt = new Date(foundMessage?.timestamp || Date.now()).toISOString()
-        
+
         await supabase
           .from('patients_queue')
-          .update({ 
+          .update({
             delivered_at: deliveredAt,
-            last_delivery_status: 'delivered'
+            last_delivery_status: 'delivered',
           })
           .eq('id', patientId)
-        
+
         console.log(`[${now}] ✅ Sync: delivered_at atualizado via polling`, {
           patientId,
           phone: maskPhone(phoneNumber),
@@ -472,18 +478,16 @@ export async function syncDeliveryStatus(
           attempt: attemptNum,
         })
         return
-      }
-      
-      else if (status === 'read' || status === 'seen') {
+      } else if (status === 'read' || status === 'seen') {
         const readAt = new Date(foundMessage.timestamp || Date.now()).toISOString()
-        
+
         await supabase
           .from('patients_queue')
-          .update({ 
-            read_at: readAt
+          .update({
+            read_at: readAt,
           })
           .eq('id', patientId)
-        
+
         console.log(`[${now}] ✅ Sync: read_at atualizado via polling`, {
           patientId,
           phone: maskPhone(phoneNumber),
@@ -491,22 +495,19 @@ export async function syncDeliveryStatus(
           attempt: attemptNum,
         })
         return
-      }
-      
-      else if (status === 'pending' || status === 'sending' || status === 'sendingerror') {
+      } else if (status === 'pending' || status === 'sending' || status === 'sendingerror') {
         console.log(`[${now}] ⏳ Mensagem ainda em progresso`, {
           patientId,
           phone: maskPhone(phoneNumber),
           status,
           attempt: attemptNum,
-          nextRetry: attemptNum < RETRY_DELAYS_MS.length 
-            ? `${RETRY_DELAYS_MS[attempt] / 60000} min` 
-            : 'última',
+          nextRetry:
+            attemptNum < RETRY_DELAYS_MS.length
+              ? `${RETRY_DELAYS_MS[attempt] / 60000} min`
+              : 'última',
         })
         continue
-      }
-      
-      else {
+      } else {
         console.warn(`[${now}] ⚠️ Status desconhecido`, {
           patientId,
           phone: maskPhone(phoneNumber),
@@ -514,7 +515,6 @@ export async function syncDeliveryStatus(
         })
         continue
       }
-      
     } catch (error) {
       console.error(`[${now}] ❌ Erro ao sincronizar status`, {
         patientId,
@@ -522,13 +522,13 @@ export async function syncDeliveryStatus(
         attempt: attemptNum,
         error: serializeError(error),
       })
-      
+
       if (attemptNum < RETRY_DELAYS_MS.length) {
         continue
       }
     }
   }
-  
+
   console.warn(`[${timestamp()}] ⚠️ Timeout: não foi possível sincronizar status`, {
     patientId,
     phone: maskPhone(phoneNumber),

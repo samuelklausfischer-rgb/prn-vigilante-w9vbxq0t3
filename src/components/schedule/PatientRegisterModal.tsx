@@ -2,12 +2,32 @@ import { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from '@/components/ui/dialog'
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { useToast } from '@/hooks/use-toast'
 import { enqueuePatient, type ScheduleItem } from '@/services/schedule'
 import { buildSaraMessage } from '@shared/templates/sara-message'
@@ -50,12 +70,12 @@ const PROCEDURE_TYPES = [
 
 const DEFAULT_TIME_PROCE = '00:30:00'
 
-export function PatientRegisterModal({ 
-  open, 
-  onOpenChange, 
+export function PatientRegisterModal({
+  open,
+  onOpenChange,
   selectedDate,
   prefillTime,
-  onSuccess 
+  onSuccess,
 }: PatientRegisterModalProps) {
   const { toast } = useToast()
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -91,13 +111,13 @@ export function PatientRegisterModal({
         const dataIso = data_exame.split('/').reverse().join('-')
         const duration = time_proce || DEFAULT_TIME_PROCE
         const durationStr = duration.replace(':', 'h') + 'min'
-        
+
         const message = buildSaraMessage({
           data_exame_iso: dataIso,
           dataBr: data_exame,
           horario: `${horario_inicio}–${calculateEndTime(horario_inicio, duration)}`,
         })
-        
+
         form.setValue('message_body', message)
       }
     })
@@ -108,11 +128,11 @@ export function PatientRegisterModal({
     try {
       const [hours, minutes] = startTime.split(':').map(Number)
       const [durHours, durMinutes] = duration.split(':').map(Number)
-      
+
       let totalMinutes = hours * 60 + minutes + durHours * 60 + durMinutes
       const endHours = Math.floor(totalMinutes / 60) % 24
       const endMinutes = totalMinutes % 60
-      
+
       return `${String(endHours).padStart(2, '0')}:${String(endMinutes).padStart(2, '0')}`
     } catch {
       return startTime
@@ -274,8 +294,8 @@ export function PatientRegisterModal({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Duração do Procedimento</FormLabel>
-                    <Select 
-                      onValueChange={field.onChange} 
+                    <Select
+                      onValueChange={field.onChange}
                       defaultValue={field.value || DEFAULT_TIME_PROCE}
                     >
                       <FormControl>
@@ -334,10 +354,10 @@ export function PatientRegisterModal({
                 <FormItem>
                   <FormLabel>Mensagem (SARA) *</FormLabel>
                   <FormControl>
-                    <Textarea 
-                      placeholder="Mensagem automática..." 
+                    <Textarea
+                      placeholder="Mensagem automática..."
                       className="min-h-[120px]"
-                      {...field} 
+                      {...field}
                     />
                   </FormControl>
                   <FormMessage />
@@ -346,17 +366,10 @@ export function PatientRegisterModal({
             />
 
             <DialogFooter>
-              <Button 
-                type="button" 
-                variant="ghost" 
-                onClick={() => handleClose(false)}
-              >
+              <Button type="button" variant="ghost" onClick={() => handleClose(false)}>
                 Cancelar
               </Button>
-              <Button 
-                type="submit" 
-                disabled={isSubmitting}
-              >
+              <Button type="submit" disabled={isSubmitting}>
                 {isSubmitting ? 'Enviando...' : 'Cadastrar & Enviar'}
               </Button>
             </DialogFooter>
