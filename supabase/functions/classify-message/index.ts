@@ -8,12 +8,17 @@ serve(async (req) => {
 
   try {
     const { message } = await req.json()
+
+    // Using Deno.env.get() to securely access environment variables
+    const apiKey = Deno.env.get('NVIDIA_API_KEY') || Deno.env.get('GLM_API_KEY')
+
     return new Response(
       JSON.stringify({
         success: true,
         classification: 'respondido',
         confidence: 0.95,
         originalMessage: message,
+        hasKey: !!apiKey,
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },

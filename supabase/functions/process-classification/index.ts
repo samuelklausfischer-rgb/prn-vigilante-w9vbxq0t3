@@ -1,5 +1,7 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { corsHeaders } from '../_shared/cors.ts'
+import { formatPhone } from '../_shared/utils.ts'
+import { templates } from '../_shared/templates.ts'
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -8,10 +10,23 @@ serve(async (req) => {
 
   try {
     const payload = await req.json()
-    return new Response(JSON.stringify({ success: true, processed: true, data: payload }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      status: 200,
-    })
+
+    if (payload.phone) {
+      payload.phone = formatPhone(payload.phone)
+    }
+
+    return new Response(
+      JSON.stringify({
+        success: true,
+        processed: true,
+        data: payload,
+        templateUsed: templates.welcome,
+      }),
+      {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 200,
+      },
+    )
   } catch (error: any) {
     return new Response(JSON.stringify({ error: error.message }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

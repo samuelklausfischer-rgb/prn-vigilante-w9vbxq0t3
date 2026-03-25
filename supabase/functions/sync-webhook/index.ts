@@ -1,5 +1,6 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { corsHeaders } from '../_shared/cors.ts'
+import { formatPhone } from '../_shared/utils.ts'
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -8,6 +9,11 @@ serve(async (req) => {
 
   try {
     const payload = await req.json()
+
+    if (payload.phone) {
+      payload.phone = formatPhone(payload.phone)
+    }
+
     return new Response(JSON.stringify({ success: true, message: 'Webhook synced', payload }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 200,
