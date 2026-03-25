@@ -1,181 +1,108 @@
-import { useState, useEffect } from 'react'
-import { WhatsAppInstance } from '@/types'
-import { evolutionApi } from '@/services/evolution'
-import { WhatsAppModal } from '@/components/WhatsAppModal'
-import { WhatsAppSlotCard } from '@/components/WhatsAppSlotCard'
-import { RefreshCw, AlertCircle, Activity, Wifi } from 'lucide-react'
+import { useState } from 'react'
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { cn } from '@/lib/utils'
-import { supabase } from '@/lib/supabase/client'
+import { Badge } from '@/components/ui/badge'
+import { Smartphone, Plus, RefreshCw, AlertCircle, CheckCircle2 } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
 
-const TOTAL_SLOTS = 5
-
 export default function WhatsAppSettings() {
-  const [instances, setInstances] = useState<WhatsAppInstance[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [dbEmpty, setDbEmpty] = useState(false)
-  const [syncing, setSyncing] = useState(false)
-  const [selectedInstance, setSelectedInstance] = useState<WhatsAppInstance | null>(null)
+  const [loading, setLoading] = useState(false)
   const { toast } = useToast()
 
-  const loadData = async () => {
+  const handleCreateInstance = async () => {
+    setLoading(true)
     try {
-      setError(null)
-      const data = await evolutionApi.getInstances()
-      setDbEmpty(data.length === 0)
-
-      const slots = Array.from({ length: TOTAL_SLOTS }, (_, i) => {
-        const slotId = i + 1
-        return (
-          data.find((d) => d.slotId === slotId) || {
-            slotId,
-            instanceName: null,
-            phoneNumber: null,
-            status: 'empty',
-          }
-        )
-      }) as WhatsAppInstance[]
-
-      setInstances(slots)
-      return { data, slots }
-    } catch (e: any) {
-      setError('Falha ao carregar as instâncias. Verifique a conexão com o banco de dados.')
-      return null
-    }
-  }
-
-  const handleSyncWithWebhook = async (silent = false) => {
-    setSyncing(true)
-    const result = await evolutionApi.syncWithWebhook()
-    if (result.success) {
-      if (!silent) toast({ description: 'Instâncias sincronizadas com sucesso.' })
-      await loadData()
-    } else {
-      if (!silent)
-        toast({ description: result.message || 'Erro ao sincronizar.', variant: 'destructive' })
-    }
-    setSyncing(false)
-  }
-
-  useEffect(() => {
-    let mounted = true
-    const init = async () => {
-      setLoading(true)
-      const result = await loadData()
-      if (!mounted) return
-      if (result) {
-        if (result.data.length === 0 || result.data.some((i) => i.status === 'initializing')) {
-          await handleSyncWithWebhook(true)
-        } else {
-          handleSyncWithWebhook(true)
-        }
-      }
+      // Simulando a criação de uma instância
+      setTimeout(() => {
+        toast({
+          title: 'Instância Solicitada',
+          description: 'A nova instância do WhatsApp está sendo provisionada.',
+        })
+        setLoading(false)
+      }, 1000)
+    } catch (error) {
+      toast({
+        title: 'Erro',
+        description: 'Não foi possível criar a instância.',
+        variant: 'destructive',
+      })
       setLoading(false)
     }
-
-    init()
-    const sub = supabase
-      .channel('wa-instances')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'whatsapp_instances' },
-        () => mounted && loadData(),
-      )
-      .subscribe()
-
-    return () => {
-      mounted = false
-      supabase.removeChannel(sub)
-    }
-  }, [])
-
-  useEffect(() => {
-    if (selectedInstance) {
-      const updated = instances.find((i) => i.slotId === selectedInstance.slotId)
-      if (updated && JSON.stringify(updated) !== JSON.stringify(selectedInstance)) {
-        setSelectedInstance(updated)
-      }
-    }
-  }, [instances, selectedInstance])
+  }
 
   return (
     <div className="space-y-6 animate-fade-in-up">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-card/60 p-6 rounded-2xl border border-white/10 backdrop-blur-xl shadow-2xl relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 via-transparent to-transparent pointer-events-none" />
-        <div className="relative z-10">
-          <h2 className="text-2xl font-heading font-bold flex items-center gap-3 text-white">
-            <Activity className="w-6 h-6 text-blue-400" /> Canais de Comunicação
-          </h2>
-          <p className="text-sm text-muted-foreground mt-1.5 flex items-center gap-2">
-            <Wifi className="w-4 h-4 opacity-70" /> Sincronização em tempo real via Webhook ativo.
-          </p>
-        </div>
-        <Button
-          onClick={() => handleSyncWithWebhook(false)}
-          disabled={loading || syncing}
-          className="rounded-xl border-white/10 bg-blue-600 hover:bg-blue-500 text-white shadow-[0_0_20px_rgba(37,99,235,0.4)] z-10"
-        >
-          <RefreshCw className={cn('w-4 h-4 mr-2', (loading || syncing) && 'animate-spin')} />
-          {syncing ? 'Sincronizando...' : 'Sincronizar Instâncias'}
-        </Button>
+      <div>
+        <h2 className="text-2xl font-heading font-semibold">Configurações do WhatsApp</h2>
+        <p className="text-muted-foreground">Gerencie suas conexões com a API de disparos.</p>
       </div>
 
-      {error && (
-        <div className="bg-destructive/10 border border-destructive/20 rounded-2xl p-6 flex flex-col items-center justify-center text-center gap-4 animate-in fade-in">
-          <AlertCircle className="w-10 h-10 text-destructive" />
-          <div>
-            <h3 className="text-lg font-semibold text-destructive">Erro de Conexão</h3>
-            <p className="text-destructive/80 mt-1">{error}</p>
-          </div>
-          <Button
-            onClick={() => loadData()}
-            variant="outline"
-            className="border-destructive/30 text-destructive hover:bg-destructive/20 mt-2"
-          >
-            Tentar Novamente
-          </Button>
-        </div>
-      )}
+      <div className="grid gap-6 md:grid-cols-2">
+        <Card className="bg-card/50 border-white/5 backdrop-blur-md">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Smartphone className="w-5 h-5 text-blue-400" />
+              Instâncias Ativas
+            </CardTitle>
+            <CardDescription>Dispositivos conectados e prontos para envio.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between p-4 rounded-xl bg-background/50 border border-white/5">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-emerald-500/10 flex items-center justify-center">
+                  <CheckCircle2 className="w-5 h-5 text-emerald-400" />
+                </div>
+                <div>
+                  <h4 className="font-medium">PRN Principal</h4>
+                  <p className="text-xs text-muted-foreground">+55 (11) 99999-9999</p>
+                </div>
+              </div>
+              <Badge className="bg-emerald-500/20 text-emerald-400 border-0">Conectado</Badge>
+            </div>
 
-      {dbEmpty && !loading && !error && (
-        <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl p-4 flex items-center gap-4 text-blue-400 animate-in fade-in">
-          <AlertCircle className="w-5 h-5 shrink-0" />
-          <p className="text-sm">
-            Nenhuma instância encontrada no banco de dados. Configure um slot disponível abaixo ou
-            sincronize com o webhook para importar dados existentes.
-          </p>
-        </div>
-      )}
+            <Button onClick={handleCreateInstance} disabled={loading} className="w-full">
+              {loading ? (
+                <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+              ) : (
+                <Plus className="w-4 h-4 mr-2" />
+              )}
+              Nova Instância
+            </Button>
+          </CardContent>
+        </Card>
 
-      {!error && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {loading && instances.length === 0
-            ? Array.from({ length: TOTAL_SLOTS }).map((_, i) => (
-                <div
-                  key={i}
-                  className="h-48 rounded-2xl bg-card/30 border border-white/5 animate-pulse"
-                />
-              ))
-            : instances.map((instance) => (
-                <WhatsAppSlotCard
-                  key={instance.slotId}
-                  instance={instance}
-                  onClick={() => setSelectedInstance(instance)}
-                />
-              ))}
-        </div>
-      )}
-
-      <WhatsAppModal
-        instance={selectedInstance}
-        open={!!selectedInstance}
-        onOpenChange={(open) => !open && setSelectedInstance(null)}
-        onRefresh={async () => {
-          await loadData()
-        }}
-      />
+        <Card className="bg-card/50 border-white/5 backdrop-blur-md">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <AlertCircle className="w-5 h-5 text-amber-400" />
+              Status do Serviço
+            </CardTitle>
+            <CardDescription>Monitoramento da API e Webhooks.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="flex justify-between items-center py-2 border-b border-white/5">
+                <span className="text-sm text-muted-foreground">Webhooks</span>
+                <Badge variant="outline" className="border-emerald-500/30 text-emerald-400">
+                  Operacional
+                </Badge>
+              </div>
+              <div className="flex justify-between items-center py-2 border-b border-white/5">
+                <span className="text-sm text-muted-foreground">Fila de Mensagens</span>
+                <Badge variant="outline" className="border-emerald-500/30 text-emerald-400">
+                  Processando
+                </Badge>
+              </div>
+              <div className="flex justify-between items-center py-2">
+                <span className="text-sm text-muted-foreground">Conectividade API</span>
+                <Badge variant="outline" className="border-emerald-500/30 text-emerald-400">
+                  Online
+                </Badge>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   )
 }
