@@ -27,16 +27,35 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
+      // FORBIDDEN: no async/await inside this callback — sync only
       setSession(session)
       setUser(session?.user ?? null)
       setLoading(false)
     })
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session)
-      setUser(session?.user ?? null)
-      setLoading(false)
-    })
+    supabase.auth
+      .getSession()
+      .then(({ data: { session }, error }) => {
+        if (error) {
+          console.warn('Session check error:', error.message)
+          if (error.message.includes('Refresh Token')) {
+            // Attempt to clear corrupted session state
+            supabase.auth.signOut().catch(() => {})
+          }
+          setSession(null)
+          setUser(null)
+        } else {
+          setSession(session)
+          setUser(session?.user ?? null)
+        }
+        setLoading(false)
+      })
+      .catch((err) => {
+        console.error('Unhandled session error:', err)
+        setSession(null)
+        setUser(null)
+        setLoading(false)
+      })
 
     return () => subscription.unsubscribe()
   }, [])
