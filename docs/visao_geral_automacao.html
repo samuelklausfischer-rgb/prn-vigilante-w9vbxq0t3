@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Raio-X: Automação PRN-Vigilante</title>
+    <!-- Tailwind CSS para Estilização Rápida e Bonita -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #0f172a; color: white; }
+        .glass-panel { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); }
+        .pulse-dot { animation: pulse 2s infinite; }
+        @keyframes pulse { 0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.7); } 70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(74, 222, 128, 0); } 100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(74, 222, 128, 0); } }
+        /* Scrollbar customizada */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #475569; }
+    </style>
+</head>
+<body class="min-h-screen relative overflow-x-hidden antialiased">
+    <!-- Efeitos de Fundo -->
+    <div class="absolute inset-0 bg-[radial-gradient(circle_at_top,_var(--tw-gradient-stops))] from-blue-900/20 via-slate-900 to-slate-900 -z-10"></div>
+    <div class="absolute top-0 right-0 w-[500px] h-[500px] bg-sky-500/10 rounded-full blur-[120px] -z-10 mix-blend-screen pointer-events-none"></div>
+    <div class="absolute bottom-0 left-0 w-[500px] h-[500px] bg-emerald-500/10 rounded-full blur-[120px] -z-10 mix-blend-screen pointer-events-none"></div>
+
+    <div class="max-w-7xl mx-auto px-4 py-12 relative z-10">
+        
+        <!-- Header Principal -->
+        <header class="text-center mb-16">
+            <h1 class="text-4xl md:text-5xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-sky-400 to-emerald-400 mb-4 tracking-tight drop-shadow-sm">
+                <i class="fa-solid fa-microchip mr-3 text-sky-400"></i>O Cérebro da Sara: Status da Automação
+            </h1>
+            <p class="text-xl text-slate-400 max-w-2xl mx-auto leading-relaxed">
+                Um raio-X simples visualizando o que já <strong>construímos perfeitamente</strong> (o Motor) e as <strong>peças que faltam</strong> para plugar na tomada do mundo real (as Pontes).
+            </p>
+        </header>
+
+        <!-- Fluxo de Arquitetura Visual -->
+        <div class="glass-panel rounded-3xl p-8 lg:p-12 mb-16 shadow-[0_8px_32px_rgba(0,0,0,0.5)] border-t border-white/5 relative overflow-hidden">
+            <div class="absolute top-0 right-0 p-4">
+                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-slate-800 text-slate-300 border border-slate-700">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 mr-2 pulse-dot"></span> Motor Operacional
+                </span>
+            </div>
+
+            <h2 class="text-2xl font-bold mb-8 text-white flex items-center border-b border-slate-700 pb-4">
+                <i class="fa-solid fa-gears mr-3 text-slate-400"></i> O Motor: Área 100% Concluída
+                <span class="ml-auto text-sm font-normal text-emerald-400 bg-emerald-400/10 px-3 py-1 rounded-lg border border-emerald-400/20"><i class="fa-solid fa-check mr-1"></i> Fases 1 a 3</span>
+            </h2>
+
+            <p class="text-slate-300 mb-8 border-l-4 border-slate-600 pl-4">A engenharia interna pesada. O cérebro foi treinado. O banco de dados está musculoso. A IA Anti-ban sabe como humano digita. <strong>A máquina gira sozinha.</strong></p>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <!-- Card 1 -->
+                <div class="bg-slate-800/80 rounded-2xl p-6 border border-slate-700 hover:border-emerald-500/50 transition-all duration-300 group hover:-translate-y-1 shadow-lg hover:shadow-emerald-900/20 relative overflow-hidden">
+                    <div class="absolute -right-4 -top-4 w-24 h-24 bg-emerald-500/10 rounded-full blur-xl group-hover:bg-emerald-500/20 transition-all"></div>
+                    <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500/20 to-teal-500/20 flex items-center justify-center mb-4 border border-emerald-500/30">
+                        <i class="fa-solid fa-database text-2xl text-emerald-400"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-white mb-2">Fundação (Supabase)</h3>
+                    <p class="text-sm text-slate-400">Tabelas avançadas para filas, tracking, métricas (heartbeats) e bloqueadores. Tudo protegido com concorrência rigorosa.</p>
+                </div>
+
+                <!-- Card 2 -->
+                <div class="bg-slate-800/80 rounded-2xl p-6 border border-slate-700 hover:border-sky-500/50 transition-all duration-300 group hover:-translate-y-1 shadow-lg hover:shadow-sky-900/20 relative overflow-hidden">
+                    <div class="absolute -right-4 -top-4 w-24 h-24 bg-sky-500/10 rounded-full blur-xl group-hover:bg-sky-500/20 transition-all"></div>
+                    <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-sky-500/20 to-blue-500/20 flex items-center justify-center mb-4 border border-sky-500/30">
+                        <i class="fa-solid fa-user-ninja text-2xl text-sky-400"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-white mb-2">Engenharia Anti-Ban</h3>
+                    <p class="text-sm text-slate-400">Módulo Humanizer calcula se a hora é útil, simula a velocidade exata de digitação pelo tamanho do texto e atrasa de forma matemática (Jitter).</p>
+                </div>
+
+                <!-- Card 3 -->
+                <div class="bg-slate-800/80 rounded-2xl p-6 border border-slate-700 hover:border-violet-500/50 transition-all duration-300 group hover:-translate-y-1 shadow-lg hover:shadow-violet-900/20 relative overflow-hidden">
+                    <div class="absolute -right-4 -top-4 w-24 h-24 bg-violet-500/10 rounded-full blur-xl group-hover:bg-violet-500/20 transition-all"></div>
+                    <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-violet-500/20 to-purple-500/20 flex items-center justify-center mb-4 border border-violet-500/30">
+                        <i class="fa-solid fa-shield-halved text-2xl text-violet-400"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-white mb-2">Compliance & LGPD</h3>
+                    <p class="text-sm text-slate-400">Barreiras nativas no Pipeline. O motor descarta sozinho tentativas de contato com números que não querem as mensagens ou não assinaram consentimento.</p>
+                </div>
+
+                <!-- Card 4 -->
+                <div class="bg-slate-800/80 rounded-2xl p-6 border border-slate-700 hover:border-amber-500/50 transition-all duration-300 group hover:-translate-y-1 shadow-lg hover:shadow-amber-900/20 relative overflow-hidden">
+                     <div class="absolute -right-4 -top-4 w-24 h-24 bg-amber-500/10 rounded-full blur-xl group-hover:bg-amber-500/20 transition-all"></div>
+                    <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-500/20 to-orange-500/20 flex items-center justify-center mb-4 border border-amber-500/30">
+                        <i class="fa-solid fa-power-off text-2xl text-amber-400"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-white mb-2">Resiliência Base</h3>
+                    <p class="text-sm text-slate-400">Se interrompido, cai de pé (Graceful Shutdown). Tem Cache de EvolutionAPI para não derrubar o servidor e libera registros presos de envios perdidos.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Seção: O que Faltam (As Pontes) -->
+        <h2 class="text-3xl font-extrabold text-center mb-4">O Furo na Engrenagem</h2>
+        <p class="text-center text-slate-400 mb-12 max-w-2xl mx-auto">O motor funciona no computador, mas está cego e isolado. Para conectá-lo ao consultório real e à clínica médica, precisamos das <strong>quatro pontes abaixo:</strong></p>
+
+        <div class="space-y-6 max-w-5xl mx-auto">
+
+            <!-- Gap 1 -->
+            <div class="bg-slate-800/50 rounded-2xl p-6 md:p-8 border border-rose-500/30 flex flex-col md:flex-row items-start md:items-center gap-6 shadow-[0_0_20px_rgba(244,63,94,0.05)]">
+                <div class="flex-shrink-0 w-16 h-16 rounded-2xl bg-rose-500/10 border border-rose-500/30 flex items-center justify-center text-rose-500 text-2xl shadow-inner">
+                    <i class="fa-solid fa-ear-listen"></i>
+                </div>
+                <div class="flex-grow">
+                    <div class="flex items-center gap-3 mb-2">
+                        <h3 class="text-xl font-bold text-white">1. O Furo no Opt-out (Escutar o "SAIR")</h3>
+                        <span class="text-xs font-bold uppercase tracking-wider text-rose-400 bg-rose-400/10 px-2 py-1 rounded border border-rose-500/20">Crítico (Anti-Ban)</span>
+                    </div>
+                    <p class="text-slate-400 mb-3">Sara sabe não mandar mensagens, se o banco mandar bloqueá-los. <strong>Mas ela ainda é surda.</strong> Se o paciente responder "NÃO QUERO", ninguém avisa o Banco.</p>
+                    <div class="bg-slate-900/50 rounded-lg p-3 border border-slate-700/50 flex items-center gap-3 text-sm">
+                        <i class="fa-solid fa-wrench text-slate-500"></i>
+                        <span class="text-slate-300"><strong>A Solução:</strong> Criar um Webhook (uma caixa de correio) que captura respostas da Evolution API e aplica bloqueios na hora.</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Gap 2 -->
+            <div class="bg-slate-800/50 rounded-2xl p-6 md:p-8 border border-sky-500/30 flex flex-col md:flex-row items-start md:items-center gap-6 shadow-[0_0_20px_rgba(14,165,233,0.05)]">
+                <div class="flex-shrink-0 w-16 h-16 rounded-2xl bg-sky-500/10 border border-sky-500/30 flex items-center justify-center text-sky-500 text-2xl shadow-inner">
+                    <i class="fa-solid fa-desktop"></i>
+                </div>
+                <div class="flex-grow">
+                     <div class="flex items-center gap-3 mb-2">
+                        <h3 class="text-xl font-bold text-white">2. O Furo na Tela (O Dashboard)</h3>
+                        <span class="text-xs font-bold uppercase tracking-wider text-sky-400 bg-sky-400/10 px-2 py-1 rounded border border-sky-500/20">Urgente (Gerência)</span>
+                    </div>
+                    <p class="text-slate-400 mb-3">Sara gera relatórios e sinais vitais incríveis a cada minuto no Banco de Dados. Mas vocês, da clínica, <strong>não conseguem visualizar</strong> isso ainda nas telas do App React.</p>
+                    <div class="bg-slate-900/50 rounded-lg p-3 border border-slate-700/50 flex items-center gap-3 text-sm">
+                        <i class="fa-solid fa-wrench text-slate-500"></i>
+                        <span class="text-slate-300"><strong>A Solução:</strong> Modificar (ou criar) uma página no Front-End para espelhar as views das tabelas de auditoria que construímos.</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Gap 3 -->
+            <div class="bg-slate-800/50 rounded-2xl p-6 md:p-8 border border-indigo-500/30 flex flex-col md:flex-row items-start md:items-center gap-6 shadow-[0_0_20px_rgba(99,102,241,0.05)]">
+                <div class="flex-shrink-0 w-16 h-16 rounded-2xl bg-indigo-500/10 border border-indigo-500/30 flex items-center justify-center text-indigo-500 text-2xl shadow-inner">
+                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                </div>
+                <div class="flex-grow">
+                    <div class="flex items-center gap-3 mb-2">
+                        <h3 class="text-xl font-bold text-white">3. O Furo da Conexão (Servidor 24h)</h3>
+                        <span class="text-xs font-bold uppercase tracking-wider text-indigo-400 bg-indigo-400/10 px-2 py-1 rounded border border-indigo-500/20">Infraestrutura</span>
+                    </div>
+                    <p class="text-slate-400 mb-3">O script que gira a engrenagem (o loop que você via no console) precisa estar atrelado ao computador de alguém hoje. Se fechar a janela preta, ele morre.</p>
+                    <div class="bg-slate-900/50 rounded-lg p-3 border border-slate-700/50 flex items-center gap-3 text-sm">
+                        <i class="fa-solid fa-wrench text-slate-500"></i>
+                        <span class="text-slate-300"><strong>A Solução:</strong> Definir uma casa para Sara: Configurar rodar nativamente via PM2 (se for VPS da clínica) ou colocar num Railway/Cloudflare.</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Gap 4 -->
+            <div class="bg-slate-800/50 rounded-2xl p-6 md:p-8 border border-emerald-500/30 flex flex-col md:flex-row items-start md:items-center gap-6 shadow-[0_0_20px_rgba(16,185,129,0.05)]">
+                <div class="flex-shrink-0 w-16 h-16 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-500 text-2xl shadow-inner">
+                    <i class="fa-solid fa-vial-circle-check"></i>
+                </div>
+                <div class="flex-grow">
+                    <div class="flex items-center gap-3 mb-2">
+                        <h3 class="text-xl font-bold text-white">4. O Furo Empírico (O Teste Final E2E)</h3>
+                        <span class="text-xs font-bold uppercase tracking-wider text-emerald-400 bg-emerald-400/10 px-2 py-1 rounded border border-emerald-500/20">Finalização</span>
+                    </div>
+                    <p class="text-slate-400 mb-3">A Orquestra toda nunca tocou junto. O diagnóstico confirmou que a matemática está perfeita, mas precisamos comprovar "vendo".</p>
+                     <div class="bg-slate-900/50 rounded-lg p-3 border border-slate-700/50 flex items-center gap-3 text-sm">
+                        <i class="fa-solid fa-wrench text-slate-500"></i>
+                        <span class="text-slate-300"><strong>A Solução:</strong> Um disparo real saindo do Banco, rodando no Worker, aplicando humanização, enviando pra API, pipocando no celular, e validando Relatório final.</span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="mt-16 text-center">
+             <div class="inline-flex items-center gap-2 text-slate-400 text-sm">
+                 <span>Arquivo gerado como "Raio-X de Contextualização" para o Admin da PRN Vigilante.</span>
+             </div>
+        </div>
+    </div>
+</body>
+</html>

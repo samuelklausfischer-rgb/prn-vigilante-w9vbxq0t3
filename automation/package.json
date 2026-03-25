@@ -1,0 +1,18 @@
+{
+  "name": "prn-vigilante-automation",
+  "version": "1.0.0",
+  "description": "Motor de automação WhatsApp (Worker)",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "bun run src/index.ts",
+    "diag": "bun run src/index.ts --diag",
+    "build:exe": "bun build --compile src/index.ts --outfile automation-worker.exe",
+    "build:exe:check": "bun run build-exe.ts",
+    "start:exe": "./automation-worker.exe"
+  },
+  "dependencies": {
+    "dotenv": "^16.5.0",
+    "@supabase/supabase-js": "^2.99.0"
+  }
+}

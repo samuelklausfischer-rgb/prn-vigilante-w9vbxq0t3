@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contexto de Automação - PRN-Vigilante</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #e2e8f0;
+            line-height: 1.6;
+            padding: 20px;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+        h1 {
+            color: #4ade80;
+            font-size: 28px;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        .status-section {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .status-title {
+            color: #4ade80;
+            font-size: 14px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 15px;
+        }
+        .status-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            margin-bottom: 10px;
+        }
+        .status-icon {
+            font-size: 32px;
+            width: 50px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+        .status-icon.done {
+            color: #4ade80;
+        }
+        .status-icon.waiting {
+            color: #f59e0b;
+        }
+        .status-text {
+            flex: 1;
+        }
+        .status-label {
+            font-weight: 600;
+            color: #e2e8f0;
+            margin-bottom: 5px;
+        }
+        .status-desc {
+            font-size: 14px;
+            color: #94a3b8;
+        }
+        .divider {
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            margin: 30px 0;
+        }
+        .next-steps {
+            background: rgba(74, 222, 128, 0.1);
+            border: 1px solid rgba(74, 222, 128, 0.3);
+            border-radius: 12px;
+            padding: 25px;
+            margin: 30px 0;
+        }
+        .step {
+            display: flex;
+            align-items: flex-start;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .step:last-child {
+            margin-bottom: 0;
+        }
+        .step-number {
+            background: #4ade80;
+            color: #1a1a2e;
+            font-weight: 700;
+            font-size: 16px;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .step-content {
+            flex: 1;
+        }
+        .step-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #4ade80;
+            margin-bottom: 8px;
+        }
+        .step-desc {
+            font-size: 15px;
+            color: #94a3b8;
+            line-height: 1.5;
+        }
+        .highlight {
+            background: rgba(74, 222, 128, 0.1);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: monospace;
+            color: #4ade80;
+        }
+        .warning {
+            background: rgba(245, 158, 11, 0.1);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            border-radius: 8px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .warning-title {
+            color: #f59e0b;
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        .back-btn {
+            display: inline-block;
+            background: #4ade80;
+            color: #1a1a2e;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            text-decoration: none;
+            margin-top: 20px;
+        }
+        .back-btn:hover {
+            background: #3bd666;
+            transform: translateY(-2px);
+        }
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            font-size: 14px;
+            color: #94a3b8;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎯 Contexto de Automação - PRN-Vigilante</h1>
+        
+        <div class="status-section">
+            <div class="status-title">Status Atual</div>
+            <div class="status-grid">
+                <div class="status-item">
+                    <div class="status-icon done">✓</div>
+                    <div class="status-text">
+                        <div class="status-label">Frontend (Cards e Popup)</div>
+                        <div class="status-desc">Reformulação visual completa. Cards limpos e profissionais. Build passando.</div>
+                    </div>
+                </div>
+                <div class="status-item">
+                    <div class="status-icon waiting">⏳</div>
+                    <div class="status-text">
+                        <div class="status-label">Automação</div>
+                        <div class="status-desc">15 operações SQL planejadas. Aguardando execução no banco de dados.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="warning">
+            <div class="warning-title">⚠️ Importante: Migrations não funcionam via Edge Function</div>
+            <p style="margin: 0; color: #e2e8f0; font-size: 15px; line-height: 1.6;">
+                O Supabase <strong>NÃO PERMITE</strong> executar DDL (CREATE TABLE, ALTER TABLE, etc.) via Edge Functions.
+            </p>
+            <p style="margin: 10px 0; color: #e2e8f0; font-size: 15px; line-height: 1.6;">
+                As migrations precisam ser executadas <strong>manualmente</strong> pelo Supabase Dashboard:
+            </p>
+            <ul style="margin: 0 0 20px; color: #e2e8f0; font-size: 15px; line-height: 1.8;">
+                <li style="margin-bottom: 10px;">Acessar <span class="highlight">https://app.supabase.com/project/.../sql</span></li>
+                <li style="margin-bottom: 10px;">Clicar em <span class="highlight">"New Query"</span></li>
+                <li style="margin-bottom: 10px;">Colar o SQL</li>
+                <li style="margin-bottom: 10px;">Executar as migrations nesta ordem:
+                    <ol style="margin: 10px 0 0 20px;">
+                        <li><strong>1.</strong> Criar 4 novas tabelas (message_logs, worker_heartbeats, patient_consent, message_blocks)</li>
+                        <li><strong>2.</strong> Adicionar 4 campos a patients_queue (locked_by, locked_at, attempt_count, last_message_at)</li>
+                        <li><strong>3.</strong> Adicionar 2 campos a whatsapp_instances (last_message_at, messages_sent_count)</li>
+                        <li><strong>4.</strong> Criar 6 índices para performance</li>
+                        <li><strong>5.</strong> Criar 2 funções SQL (claim_next_message, release_expired_locks)</li>
+                        <li><strong>6.</strong> Criar 2 views (dashboard_realtime_metrics, expired_locks)</li>
+                    </ol>
+                </li>
+                <li style="margin-bottom: 10px;">Validar que as tabelas/índices/funções foram criadas corretamente antes de continuar</li>
+                <li style="margin-bottom: 0px;">Se der erro, anotar e criar plano de rollback</li>
+            </ul>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="next-steps">
+            <div class="step-title">📋 Como Voltar à Automação</div>
+            
+            <div class="step">
+                <div class="step-number">1</div>
+                <div class="step-content">
+                    <div class="step-title">Fechar o contexto atual</div>
+                    <div class="step-desc">
+                        Encerrar o frontend (cards, popup). Voltar foco para automação.
+                    </div>
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="step-number">2</div>
+                <div class="step-content">
+                    <div class="step-title">Executar Migrations SQL</div>
+                    <div class="step-desc">
+                        Executar as 15 operações SQL listadas acima no Supabase Dashboard manualmente.
+                        <br><br>
+                        <strong>OPÇÃO RECOMENDADA:</strong> Executar uma por vez e validar cada uma antes de continuar.
+                    </div>
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="step-number">3</div>
+                <div class="step-content">
+                    <div class="step-title">Implementar Drivers e Serviços</div>
+                    <div class="step-desc">
+                        Criar estrutura de pastas em <span class="highlight">/automation/src/</span> e implementar:
+                        <ul style="margin: 10px 0; color: #94a3b8; font-size: 14px; line-height: 1.6;">
+                            <li>Supabase Driver (claim_next_message, release_expired_locks)</li>
+                            <li>Evolution Driver (sendMessage, getSafeDelay)</li>
+                            <li>Queue Service (claim, updateStatus, markAsDelivered)</li>
+                            <li>Instance Service (selectInstance, updateMetrics)</li>
+                            <li>Worker Engine (motor principal de automação)</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="step-number">4</div>
+                <div class="step-content">
+                    <div class="step-title">Implementar Features Avançadas</div>
+                    <div class="step-desc">
+                        Resiliência (Retry, Circuit Breaker)<br>
+                        Humanização (Delays 3-6-12 minutos, Spinning 7-10s, Split de mensagens)<br>
+                        Métricas e Logs (Dashboard em tempo real, alertas, tracing)
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="warning">
+            <div class="warning-title">📝 Recomendações Antes de Começar</div>
+            <ul style="margin: 0; color: #e2e8f0; font-size: 15px; line-height: 1.8;">
+                <li style="margin-bottom: 12px;">Fazer <strong>backup do banco de dados</strong> antes de executar migrations</li>
+                <li style="margin-bottom: 12px;">Testar migrations em <strong>ambiente de desenvolvimento</strong> antes da produção</li>
+                <li style="margin-bottom: 12px;">Manter <strong>plano de rollback</strong> documentado (COMMIT/ROLLBACK)</li>
+                <li style="margin-bottom: 12px;">Validar que as funções SQL estão criadas corretamente antes de usar no código</li>
+                <li style="margin-bottom: 0px;">Ter as credenciais da <strong>Evolution API</strong> configuradas para o Evolution Driver</li>
+            </ul>
+        </div>
+
+        <div class="footer">
+            <a href="#" class="back-btn" onclick="history.back()">← Voltar ao Dashboard</a>
+            <p style="margin-top: 20px;">PRN-Vigilante - Sistema de Automação WhatsApp</p>
+        </div>
+    </div>
+</body>
+</html>

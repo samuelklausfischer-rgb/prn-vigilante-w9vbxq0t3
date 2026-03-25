@@ -1,0 +1,12 @@
+diff --git a/automation/src/diagnostic.ts b/automation/src/diagnostic.ts
+index 1234567..abcdef8 100644
+--- a/automation/src/diagnostic.ts
++++ b/automation/src/diagnostic.ts
+@@ -21,7 +21,7 @@ export async function runDiagnostics() {
+    const status = await getConnectionStatus('instance-1')
+    console.log(`Status da instância: ${status}`)
+  } catch (error) {
+-    console.log(`Telefone: ${telefone}`) // VULNERABILITY
++    console.log(`Telefone: ${maskPhone(telefone)}`) // SEC-001 FIXED
+  }
+ }
