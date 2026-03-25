@@ -47,6 +47,8 @@ function categorizePatients(patients: PatientQueue[]) {
     historico: [],
   }
 
+  if (!patients) return result
+
   patients.forEach((patient) => {
     const notes = (patient.notes || '').toLowerCase()
     const isConcluido = notes.includes('concluido_manual') || patient.status === 'completed'
@@ -73,7 +75,7 @@ function categorizePatients(patients: PatientQueue[]) {
 }
 
 function filterPatients(patients: PatientQueue[], search: string, filterDate: string) {
-  let filtered = patients
+  let filtered = patients || []
 
   // 1. Filtro por data de agendamento (data_exame)
   if (filterDate) {
@@ -115,7 +117,7 @@ export default function SegundaChamada() {
   const [conversationData, setConversationData] = useState<ConversationData | null>(null)
   const [conversationLoading, setConversationLoading] = useState(false)
 
-  const categorized = useMemo(() => categorizePatients(items), [items])
+  const categorized = useMemo(() => categorizePatients(items || []), [items])
 
   const filteredByTab = useMemo(() => {
     return {
@@ -129,7 +131,7 @@ export default function SegundaChamada() {
     }
   }, [categorized, search, filterDate])
 
-  const currentItems = filteredByTab[activeTab]
+  const currentItems = filteredByTab[activeTab] || []
 
   const resetSelection = () => setSelectedIds([])
 
@@ -222,7 +224,7 @@ export default function SegundaChamada() {
 
   const handleCompleteSelected = async () => {
     await runBulkAction(async () => {
-      for (const patient of items.filter((item) => selectedIds.includes(item.id))) {
+      for (const patient of (items || []).filter((item) => selectedIds.includes(item.id))) {
         const ok = await updateQueueItemsBulk([patient.id], {
           notes: appendCompletedNote(patient.notes),
           needs_second_call: false,
@@ -344,7 +346,7 @@ export default function SegundaChamada() {
         <div className="flex h-72 items-center justify-center rounded-3xl border border-white/10 bg-card/40">
           <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
         </div>
-      ) : items.length === 0 ? (
+      ) : (items || []).length === 0 ? (
         <Card className="border-white/10 bg-card/55">
           <CardContent className="flex flex-col items-center justify-center py-16 text-center">
             <AlertCircle className="mb-4 h-12 w-12 text-muted-foreground" />
@@ -368,7 +370,7 @@ export default function SegundaChamada() {
               {tabOrder.map((tab) => (
                 <TabsTrigger key={tab.key} value={tab.key} className="rounded-xl px-3 py-2">
                   {tab.label}
-                  <TabCounter count={filteredByTab[tab.key].length} tone={tab.tone} />
+                  <TabCounter count={(filteredByTab[tab.key] || []).length} tone={tab.tone} />
                 </TabsTrigger>
               ))}
             </TabsList>
@@ -386,7 +388,7 @@ export default function SegundaChamada() {
                       )}
                     </div>
                     <div className="text-xs text-muted-foreground">
-                      {filteredByTab[tab.key].length} registro(s) visiveis nesta aba.
+                      {(filteredByTab[tab.key] || []).length} registro(s) visiveis nesta aba.
                     </div>
                   </div>
 
@@ -411,7 +413,7 @@ export default function SegundaChamada() {
                   </div>
                 </div>
 
-                {filteredByTab[tab.key].length === 0 ? (
+                {(filteredByTab[tab.key] || []).length === 0 ? (
                   <Card className="border-white/10 bg-card/45">
                     <CardContent className="py-10 text-center text-sm text-muted-foreground">
                       Nenhum paciente encontrado nesta aba com os filtros atuais.
@@ -419,7 +421,7 @@ export default function SegundaChamada() {
                   </Card>
                 ) : (
                   <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-                    {filteredByTab[tab.key].map((patient) => (
+                    {(filteredByTab[tab.key] || []).map((patient) => (
                       <PatientCardWithActions
                         key={patient.id}
                         patient={patient}
