@@ -2,13 +2,34 @@ import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
 
 import { corsHeaders } from '../_shared/cors.ts'
 
-type QualificationClass = 'confirmado_positivo' | 'quer_remarcar' | 'nao_pode_comparecer' | 'cancelado' | 'duvida' | 'ambigua' | 'sem_resposta_util'
+type QualificationClass =
+  | 'confirmado_positivo'
+  | 'quer_remarcar'
+  | 'nao_pode_comparecer'
+  | 'cancelado'
+  | 'duvida'
+  | 'ambigua'
+  | 'sem_resposta_util'
 
-type QualificationAction = 'close_as_confirmed' | 'move_to_pending' | 'flag_vacancy' | 'manual_review' | 'ignore'
+type QualificationAction =
+  | 'close_as_confirmed'
+  | 'move_to_pending'
+  | 'flag_vacancy'
+  | 'manual_review'
+  | 'ignore'
 
 type ManualPriority = 'low' | 'medium' | 'high' | 'urgent'
 
-type JourneyStatus = 'queued' | 'contacting' | 'delivered_waiting_reply' | 'followup_due' | 'followup_sent' | 'confirmed' | 'pending_manual' | 'cancelled' | 'archived'
+type JourneyStatus =
+  | 'queued'
+  | 'contacting'
+  | 'delivered_waiting_reply'
+  | 'followup_due'
+  | 'followup_sent'
+  | 'confirmed'
+  | 'pending_manual'
+  | 'cancelled'
+  | 'archived'
 
 type LLMResponse = {
   classification: QualificationClass
@@ -42,24 +63,28 @@ type ClassificationResponse = {
   error?: string
 }
 
-const SYSTEM_MESSAGE = 'Voce e um classificador operacional de respostas de pacientes no WhatsApp sobre confirmacao de exame. Retorne apenas JSON valido. Sem markdown. Sem texto extra.'
+const SYSTEM_MESSAGE =
+  'Voce e um classificador operacional de respostas de pacientes no WhatsApp sobre confirmacao de exame. Retorne apenas JSON valido. Sem markdown. Sem texto extra.'
 
 function determineManualPriority(classification: QualificationClass): ManualPriority {
   switch (classification) {
     case 'cancelado':
       return 'urgent'
     case 'nao_pode_comparecer':
-      return 'high';
+      return 'high'
     case 'quer_remarcar':
     case 'duvida':
     case 'ambigua':
-      return 'medium';
+      return 'medium'
     default:
       return 'low'
   }
 }
 
-function determineVacancyReason(classification: QualificationClass, message: string): string | undefined {
+function determineVacancyReason(
+  classification: QualificationClass,
+  message: string,
+): string | undefined {
   switch (classification) {
     case 'quer_remarcar':
       return 'Paciente quer outro horario'
@@ -75,16 +100,16 @@ function determineVacancyReason(classification: QualificationClass, message: str
 function determineRecommendedAction(classification: QualificationClass): QualificationAction {
   switch (classification) {
     case 'confirmado_positivo':
-      return 'close_as_confirmed';
+      return 'close_as_confirmed'
     case 'quer_remarcar':
     case 'nao_pode_comparecer':
     case 'cancelado':
-      return 'flag_vacancy';
+      return 'flag_vacancy'
     case 'duvida':
     case 'ambigua':
-      return 'manual_review';
+      return 'manual_review'
     case 'sem_resposta_util':
-      return 'ignore';
+      return 'ignore'
     default:
       return 'manual_review'
   }
@@ -127,7 +152,11 @@ function getPrompt(messageBody: string): string {
   ].join('\n')
 }
 
-function resolveGLMBaseUrl(rawUrl: string | undefined): { baseUrl: string; model: string; provider: 'bigmodel' | 'aimlapi' } {
+function resolveGLMBaseUrl(rawUrl: string | undefined): {
+  baseUrl: string
+  model: string
+  provider: 'bigmodel' | 'aimlapi'
+} {
   const defaultBigModelUrl = 'https://open.bigmodel.cn/api/paas/v4'
   const defaultModel = 'glm-4-flash'
 
@@ -137,11 +166,19 @@ function resolveGLMBaseUrl(rawUrl: string | undefined): { baseUrl: string; model
 
   const normalized = rawUrl.toLowerCase().trim()
   if (normalized.includes('aimlapi.com')) {
-    return { baseUrl: 'https://api.aimlapi.com/v1', model: 'zhipu/glm-4-flash', provider: 'aimlapi' }
+    return {
+      baseUrl: 'https://api.aimlapi.com/v1',
+      model: 'zhipu/glm-4-flash',
+      provider: 'aimlapi',
+    }
   }
 
   if (normalized.includes('bigmodel.cn') || normalized.includes('open.bigmodel')) {
-    return { baseUrl: 'https://open.bigmodel.cn/api/paas/v4', model: defaultModel, provider: 'bigmodel' }
+    return {
+      baseUrl: 'https://open.bigmodel.cn/api/paas/v4',
+      model: defaultModel,
+      provider: 'bigmodel',
+    }
   }
 
   return { baseUrl: defaultBigModelUrl, model: defaultModel, provider: 'bigmodel' }
@@ -204,7 +241,9 @@ async function callOpenAI(
   })
     .catch((e) => {
       if (e?.name === 'AbortError') {
-        throw new Error(`LLM timeout apos ${Math.round(timeoutMs / 1000)}s${opts?.attemptLabel ? ` (${opts.attemptLabel})` : ''}.`)
+        throw new Error(
+          `LLM timeout apos ${Math.round(timeoutMs / 1000)}s${opts?.attemptLabel ? ` (${opts.attemptLabel})` : ''}.`,
+        )
       }
       throw e
     })
@@ -239,7 +278,7 @@ async function callLLMWithRetry(prompt: string): Promise<LLMResponse> {
       /não contém JSON/i.test(msg) ||
       /json/i.test(msg) ||
       /502|503|504|timeout/i.test(msg)
-    
+
     if (!shouldRetry) throw e
 
     const shorterPrompt = [
@@ -247,7 +286,7 @@ async function callLLMWithRetry(prompt: string): Promise<LLMResponse> {
       '',
       prompt,
     ].join('\n')
-    
+
     const content = await callOpenAI(shorterPrompt, {
       maxTokens: 800,
       timeoutMs: 75_000,
@@ -273,14 +312,15 @@ function safeJsonParse(text: string): LLMResponse {
   const slice = cleaned.slice(start, end + 1)
   try {
     const parsed = JSON.parse(slice) as LLMResponse
-    
+
     if (!parsed.classification) throw new Error('Campo classification ausente')
     if (typeof parsed.confidence !== 'number') throw new Error('Campo confidence invalido')
     if (!parsed.summary) throw new Error('Campo summary ausente')
     if (!parsed.recommended_action) throw new Error('Campo recommended_action ausente')
     if (typeof parsed.vacancy_signal !== 'boolean') throw new Error('Campo vacancy_signal invalido')
-    if (typeof parsed.needs_manual_review !== 'boolean') throw new Error('Campo needs_manual_review invalido')
-    
+    if (typeof parsed.needs_manual_review !== 'boolean')
+      throw new Error('Campo needs_manual_review invalido')
+
     return parsed
   } catch (error: any) {
     throw new Error(`JSON invalido do LLM: ${error?.message || 'falha no parse'}`)
@@ -312,7 +352,11 @@ async function restInsert(table: string, row: Record<string, unknown>): Promise<
   }
 }
 
-async function restPatch(table: string, match: Record<string, string>, patch: Record<string, unknown>): Promise<void> {
+async function restPatch(
+  table: string,
+  match: Record<string, string>,
+  patch: Record<string, unknown>,
+): Promise<void> {
   const { supabaseUrl, serviceKey } = getSupabase()
   const qs = new URLSearchParams()
   for (const [k, v] of Object.entries(match)) qs.set(k, `eq.${v}`)
@@ -366,15 +410,20 @@ function getBearerToken(req: Request): string | null {
   return m?.[1]?.trim() || null
 }
 
-async function requireAuth(req: Request): Promise<{ ok: true; user: unknown } | { ok: false; res: Response }> {
+async function requireAuth(
+  req: Request,
+): Promise<{ ok: true; user: unknown } | { ok: false; res: Response }> {
   const token = getBearerToken(req)
   if (!token) {
     return {
       ok: false,
-      res: new Response(JSON.stringify({ success: false, error: 'Missing Authorization Bearer token' }), {
-        status: 401,
-        headers: { 'Content-Type': 'application/json', ...corsHeaders },
-      }),
+      res: new Response(
+        JSON.stringify({ success: false, error: 'Missing Authorization Bearer token' }),
+        {
+          status: 401,
+          headers: { 'Content-Type': 'application/json', ...corsHeaders },
+        },
+      ),
     }
   }
 
@@ -383,10 +432,13 @@ async function requireAuth(req: Request): Promise<{ ok: true; user: unknown } | 
   if (!supabaseUrl || !supabaseAnonKey) {
     return {
       ok: false,
-      res: new Response(JSON.stringify({ success: false, error: 'Missing SUPABASE_URL/SUPABASE_ANON_KEY' }), {
-        status: 500,
-        headers: { 'Content-Type': 'application/json', ...corsHeaders },
-      }),
+      res: new Response(
+        JSON.stringify({ success: false, error: 'Missing SUPABASE_URL/SUPABASE_ANON_KEY' }),
+        {
+          status: 500,
+          headers: { 'Content-Type': 'application/json', ...corsHeaders },
+        },
+      ),
     }
   }
 
@@ -465,12 +517,15 @@ Deno.serve(async (req: Request) => {
     const auth = await requireAuth(req)
     if (!auth.ok) return auth.res
 
-    const body = await req.json().catch(() => ({})) as ClassificationRequest
+    const body = (await req.json().catch(() => ({}))) as ClassificationRequest
     const { message_id, journey_id, message_body } = body
 
     if (!message_id || !journey_id || !message_body) {
       return new Response(
-        JSON.stringify({ success: false, error: 'message_id, journey_id e message_body sao obrigatorios' }),
+        JSON.stringify({
+          success: false,
+          error: 'message_id, journey_id e message_body sao obrigatorios',
+        }),
         {
           headers: { 'Content-Type': 'application/json', ...corsHeaders },
           status: 400,
@@ -536,7 +591,10 @@ Deno.serve(async (req: Request) => {
     console.error(`[classify-message] Error: ${msg}`, error)
 
     const status =
-      /timeout/i.test(msg) || /LLM HTTP|Resposta do LLM|conteudo vazio|conteúdo vazio|JSON invalido|JSON invalido|nao contem JSON|não contém JSON/i.test(msg)
+      /timeout/i.test(msg) ||
+      /LLM HTTP|Resposta do LLM|conteudo vazio|conteúdo vazio|JSON invalido|JSON invalido|nao contem JSON|não contém JSON/i.test(
+        msg,
+      )
         ? 502
         : 500
 

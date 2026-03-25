@@ -1,17 +1,11 @@
 // AVOID UPDATING THIS FILE DIRECTLY. It is automatically generated.
-export type Json =
-  | string
-  | number
-  | boolean
-  | null
-  | { [key: string]: Json | undefined }
-  | Json[]
+export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[]
 
 export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "14.1"
+    PostgrestVersion: '14.1'
   }
   public: {
     Tables: {
@@ -89,7 +83,7 @@ export type Database = {
           journey_id: string
           message_id: string | null
           payload: Json | null
-          source: Database["public"]["Enums"]["event_source"]
+          source: Database['public']['Enums']['event_source']
         }
         Insert: {
           event_at?: string
@@ -98,7 +92,7 @@ export type Database = {
           journey_id: string
           message_id?: string | null
           payload?: Json | null
-          source: Database["public"]["Enums"]["event_source"]
+          source: Database['public']['Enums']['event_source']
         }
         Update: {
           event_at?: string
@@ -107,36 +101,36 @@ export type Database = {
           journey_id?: string
           message_id?: string | null
           payload?: Json | null
-          source?: Database["public"]["Enums"]["event_source"]
+          source?: Database['public']['Enums']['event_source']
         }
         Relationships: [
           {
-            foreignKeyName: "journey_events_journey_id_fkey"
-            columns: ["journey_id"]
+            foreignKeyName: 'journey_events_journey_id_fkey'
+            columns: ['journey_id']
             isOneToOne: false
-            referencedRelation: "patient_journeys"
-            referencedColumns: ["id"]
+            referencedRelation: 'patient_journeys'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "journey_events_journey_id_fkey"
-            columns: ["journey_id"]
+            foreignKeyName: 'journey_events_journey_id_fkey'
+            columns: ['journey_id']
             isOneToOne: false
-            referencedRelation: "strategic_followup_overview"
-            referencedColumns: ["journey_id"]
+            referencedRelation: 'strategic_followup_overview'
+            referencedColumns: ['journey_id']
           },
           {
-            foreignKeyName: "journey_events_journey_id_fkey"
-            columns: ["journey_id"]
+            foreignKeyName: 'journey_events_journey_id_fkey'
+            columns: ['journey_id']
             isOneToOne: false
-            referencedRelation: "vacancy_candidates_overview"
-            referencedColumns: ["journey_id"]
+            referencedRelation: 'vacancy_candidates_overview'
+            referencedColumns: ['journey_id']
           },
           {
-            foreignKeyName: "journey_events_message_id_fkey"
-            columns: ["message_id"]
+            foreignKeyName: 'journey_events_message_id_fkey'
+            columns: ['message_id']
             isOneToOne: false
-            referencedRelation: "journey_messages"
-            referencedColumns: ["id"]
+            referencedRelation: 'journey_messages'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -145,13 +139,13 @@ export type Database = {
           accepted_at: string | null
           created_at: string
           delivered_at: string | null
-          direction: Database["public"]["Enums"]["message_direction"]
+          direction: Database['public']['Enums']['message_direction']
           failed_at: string | null
           id: string
           instance_id: string | null
           journey_id: string
           message_body: string | null
-          message_kind: Database["public"]["Enums"]["message_kind"]
+          message_kind: Database['public']['Enums']['message_kind']
           parent_message_id: string | null
           phone_number: string
           provider_chat_id: string | null
@@ -160,20 +154,20 @@ export type Database = {
           queue_message_id: string | null
           read_at: string | null
           replied_at: string | null
-          status: Database["public"]["Enums"]["message_status"]
+          status: Database['public']['Enums']['message_status']
           updated_at: string
         }
         Insert: {
           accepted_at?: string | null
           created_at?: string
           delivered_at?: string | null
-          direction: Database["public"]["Enums"]["message_direction"]
+          direction: Database['public']['Enums']['message_direction']
           failed_at?: string | null
           id?: string
           instance_id?: string | null
           journey_id: string
           message_body?: string | null
-          message_kind?: Database["public"]["Enums"]["message_kind"]
+          message_kind?: Database['public']['Enums']['message_kind']
           parent_message_id?: string | null
           phone_number: string
           provider_chat_id?: string | null
@@ -182,20 +176,20 @@ export type Database = {
           queue_message_id?: string | null
           read_at?: string | null
           replied_at?: string | null
-          status?: Database["public"]["Enums"]["message_status"]
+          status?: Database['public']['Enums']['message_status']
           updated_at?: string
         }
         Update: {
           accepted_at?: string | null
           created_at?: string
           delivered_at?: string | null
-          direction?: Database["public"]["Enums"]["message_direction"]
+          direction?: Database['public']['Enums']['message_direction']
           failed_at?: string | null
           id?: string
           instance_id?: string | null
           journey_id?: string
           message_body?: string | null
-          message_kind?: Database["public"]["Enums"]["message_kind"]
+          message_kind?: Database['public']['Enums']['message_kind']
           parent_message_id?: string | null
           phone_number?: string
           provider_chat_id?: string | null
@@ -204,58 +198,58 @@ export type Database = {
           queue_message_id?: string | null
           read_at?: string | null
           replied_at?: string | null
-          status?: Database["public"]["Enums"]["message_status"]
+          status?: Database['public']['Enums']['message_status']
           updated_at?: string
         }
         Relationships: [
           {
-            foreignKeyName: "journey_messages_instance_id_fkey"
-            columns: ["instance_id"]
+            foreignKeyName: 'journey_messages_instance_id_fkey'
+            columns: ['instance_id']
             isOneToOne: false
-            referencedRelation: "whatsapp_instances"
-            referencedColumns: ["id"]
+            referencedRelation: 'whatsapp_instances'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "journey_messages_journey_id_fkey"
-            columns: ["journey_id"]
+            foreignKeyName: 'journey_messages_journey_id_fkey'
+            columns: ['journey_id']
             isOneToOne: false
-            referencedRelation: "patient_journeys"
-            referencedColumns: ["id"]
+            referencedRelation: 'patient_journeys'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "journey_messages_journey_id_fkey"
-            columns: ["journey_id"]
+            foreignKeyName: 'journey_messages_journey_id_fkey'
+            columns: ['journey_id']
             isOneToOne: false
-            referencedRelation: "strategic_followup_overview"
-            referencedColumns: ["journey_id"]
+            referencedRelation: 'strategic_followup_overview'
+            referencedColumns: ['journey_id']
           },
           {
-            foreignKeyName: "journey_messages_journey_id_fkey"
-            columns: ["journey_id"]
+            foreignKeyName: 'journey_messages_journey_id_fkey'
+            columns: ['journey_id']
             isOneToOne: false
-            referencedRelation: "vacancy_candidates_overview"
-            referencedColumns: ["journey_id"]
+            referencedRelation: 'vacancy_candidates_overview'
+            referencedColumns: ['journey_id']
           },
           {
-            foreignKeyName: "journey_messages_parent_message_id_fkey"
-            columns: ["parent_message_id"]
+            foreignKeyName: 'journey_messages_parent_message_id_fkey'
+            columns: ['parent_message_id']
             isOneToOne: false
-            referencedRelation: "journey_messages"
-            referencedColumns: ["id"]
+            referencedRelation: 'journey_messages'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "journey_messages_queue_message_id_fkey"
-            columns: ["queue_message_id"]
+            foreignKeyName: 'journey_messages_queue_message_id_fkey'
+            columns: ['queue_message_id']
             isOneToOne: false
-            referencedRelation: "expired_locks"
-            referencedColumns: ["id"]
+            referencedRelation: 'expired_locks'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "journey_messages_queue_message_id_fkey"
-            columns: ["queue_message_id"]
+            foreignKeyName: 'journey_messages_queue_message_id_fkey'
+            columns: ['queue_message_id']
             isOneToOne: false
-            referencedRelation: "patients_queue"
-            referencedColumns: ["id"]
+            referencedRelation: 'patients_queue'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -325,25 +319,25 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "message_events_instance_id_fkey"
-            columns: ["instance_id"]
+            foreignKeyName: 'message_events_instance_id_fkey'
+            columns: ['instance_id']
             isOneToOne: false
-            referencedRelation: "whatsapp_instances"
-            referencedColumns: ["id"]
+            referencedRelation: 'whatsapp_instances'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "message_events_message_id_fkey"
-            columns: ["message_id"]
+            foreignKeyName: 'message_events_message_id_fkey'
+            columns: ['message_id']
             isOneToOne: false
-            referencedRelation: "expired_locks"
-            referencedColumns: ["id"]
+            referencedRelation: 'expired_locks'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "message_events_message_id_fkey"
-            columns: ["message_id"]
+            foreignKeyName: 'message_events_message_id_fkey'
+            columns: ['message_id']
             isOneToOne: false
-            referencedRelation: "patients_queue"
-            referencedColumns: ["id"]
+            referencedRelation: 'patients_queue'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -386,31 +380,31 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "message_logs_instance_id_fkey"
-            columns: ["instance_id"]
+            foreignKeyName: 'message_logs_instance_id_fkey'
+            columns: ['instance_id']
             isOneToOne: false
-            referencedRelation: "whatsapp_instances"
-            referencedColumns: ["id"]
+            referencedRelation: 'whatsapp_instances'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "message_logs_message_id_fkey"
-            columns: ["message_id"]
+            foreignKeyName: 'message_logs_message_id_fkey'
+            columns: ['message_id']
             isOneToOne: false
-            referencedRelation: "expired_locks"
-            referencedColumns: ["id"]
+            referencedRelation: 'expired_locks'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "message_logs_message_id_fkey"
-            columns: ["message_id"]
+            foreignKeyName: 'message_logs_message_id_fkey'
+            columns: ['message_id']
             isOneToOne: false
-            referencedRelation: "patients_queue"
-            referencedColumns: ["id"]
+            referencedRelation: 'patients_queue'
+            referencedColumns: ['id']
           },
         ]
       }
       message_qualifications: {
         Row: {
-          classification: Database["public"]["Enums"]["classification"]
+          classification: Database['public']['Enums']['classification']
           confidence: number
           created_at: string
           id: string
@@ -419,13 +413,13 @@ export type Database = {
           model_name: string | null
           needs_manual_review: boolean
           raw_output: Json | null
-          recommended_action: Database["public"]["Enums"]["recommended_action"]
+          recommended_action: Database['public']['Enums']['recommended_action']
           summary: string | null
           vacancy_reason: string | null
           vacancy_signal: boolean
         }
         Insert: {
-          classification: Database["public"]["Enums"]["classification"]
+          classification: Database['public']['Enums']['classification']
           confidence: number
           created_at?: string
           id?: string
@@ -434,13 +428,13 @@ export type Database = {
           model_name?: string | null
           needs_manual_review?: boolean
           raw_output?: Json | null
-          recommended_action: Database["public"]["Enums"]["recommended_action"]
+          recommended_action: Database['public']['Enums']['recommended_action']
           summary?: string | null
           vacancy_reason?: string | null
           vacancy_signal?: boolean
         }
         Update: {
-          classification?: Database["public"]["Enums"]["classification"]
+          classification?: Database['public']['Enums']['classification']
           confidence?: number
           created_at?: string
           id?: string
@@ -449,39 +443,39 @@ export type Database = {
           model_name?: string | null
           needs_manual_review?: boolean
           raw_output?: Json | null
-          recommended_action?: Database["public"]["Enums"]["recommended_action"]
+          recommended_action?: Database['public']['Enums']['recommended_action']
           summary?: string | null
           vacancy_reason?: string | null
           vacancy_signal?: boolean
         }
         Relationships: [
           {
-            foreignKeyName: "message_qualifications_journey_id_fkey"
-            columns: ["journey_id"]
+            foreignKeyName: 'message_qualifications_journey_id_fkey'
+            columns: ['journey_id']
             isOneToOne: false
-            referencedRelation: "patient_journeys"
-            referencedColumns: ["id"]
+            referencedRelation: 'patient_journeys'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "message_qualifications_journey_id_fkey"
-            columns: ["journey_id"]
+            foreignKeyName: 'message_qualifications_journey_id_fkey'
+            columns: ['journey_id']
             isOneToOne: false
-            referencedRelation: "strategic_followup_overview"
-            referencedColumns: ["journey_id"]
+            referencedRelation: 'strategic_followup_overview'
+            referencedColumns: ['journey_id']
           },
           {
-            foreignKeyName: "message_qualifications_journey_id_fkey"
-            columns: ["journey_id"]
+            foreignKeyName: 'message_qualifications_journey_id_fkey'
+            columns: ['journey_id']
             isOneToOne: false
-            referencedRelation: "vacancy_candidates_overview"
-            referencedColumns: ["journey_id"]
+            referencedRelation: 'vacancy_candidates_overview'
+            referencedColumns: ['journey_id']
           },
           {
-            foreignKeyName: "message_qualifications_message_id_fkey"
-            columns: ["message_id"]
+            foreignKeyName: 'message_qualifications_message_id_fkey'
+            columns: ['message_id']
             isOneToOne: false
-            referencedRelation: "journey_messages"
-            referencedColumns: ["id"]
+            referencedRelation: 'journey_messages'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -530,11 +524,11 @@ export type Database = {
           horario_final: string | null
           horario_inicio: string | null
           id: string
-          journey_status: Database["public"]["Enums"]["journey_status"]
+          journey_status: Database['public']['Enums']['journey_status']
           last_event_at: string | null
           last_message_id: string | null
           manual_note: string | null
-          manual_priority: Database["public"]["Enums"]["manual_priority"] | null
+          manual_priority: Database['public']['Enums']['manual_priority'] | null
           needs_manual_action: boolean
           origin_queue_id: string | null
           patient_name: string
@@ -553,13 +547,11 @@ export type Database = {
           horario_final?: string | null
           horario_inicio?: string | null
           id?: string
-          journey_status?: Database["public"]["Enums"]["journey_status"]
+          journey_status?: Database['public']['Enums']['journey_status']
           last_event_at?: string | null
           last_message_id?: string | null
           manual_note?: string | null
-          manual_priority?:
-            | Database["public"]["Enums"]["manual_priority"]
-            | null
+          manual_priority?: Database['public']['Enums']['manual_priority'] | null
           needs_manual_action?: boolean
           origin_queue_id?: string | null
           patient_name: string
@@ -578,13 +570,11 @@ export type Database = {
           horario_final?: string | null
           horario_inicio?: string | null
           id?: string
-          journey_status?: Database["public"]["Enums"]["journey_status"]
+          journey_status?: Database['public']['Enums']['journey_status']
           last_event_at?: string | null
           last_message_id?: string | null
           manual_note?: string | null
-          manual_priority?:
-            | Database["public"]["Enums"]["manual_priority"]
-            | null
+          manual_priority?: Database['public']['Enums']['manual_priority'] | null
           needs_manual_action?: boolean
           origin_queue_id?: string | null
           patient_name?: string
@@ -597,18 +587,18 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "patient_journeys_origin_queue_id_fkey"
-            columns: ["origin_queue_id"]
+            foreignKeyName: 'patient_journeys_origin_queue_id_fkey'
+            columns: ['origin_queue_id']
             isOneToOne: false
-            referencedRelation: "expired_locks"
-            referencedColumns: ["id"]
+            referencedRelation: 'expired_locks'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "patient_journeys_origin_queue_id_fkey"
-            columns: ["origin_queue_id"]
+            foreignKeyName: 'patient_journeys_origin_queue_id_fkey'
+            columns: ['origin_queue_id']
             isOneToOne: false
-            referencedRelation: "patients_queue"
-            referencedColumns: ["id"]
+            referencedRelation: 'patients_queue'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -665,7 +655,7 @@ export type Database = {
           second_call_reason: string | null
           send_accepted_at: string | null
           send_after: string
-          status: Database["public"]["Enums"]["queue_status"]
+          status: Database['public']['Enums']['queue_status']
           time_proce: string | null
           updated_at: string
           whatsapp_checked_at: string | null
@@ -724,7 +714,7 @@ export type Database = {
           second_call_reason?: string | null
           send_accepted_at?: string | null
           send_after?: string
-          status?: Database["public"]["Enums"]["queue_status"]
+          status?: Database['public']['Enums']['queue_status']
           time_proce?: string | null
           updated_at?: string
           whatsapp_checked_at?: string | null
@@ -783,7 +773,7 @@ export type Database = {
           second_call_reason?: string | null
           send_accepted_at?: string | null
           send_after?: string
-          status?: Database["public"]["Enums"]["queue_status"]
+          status?: Database['public']['Enums']['queue_status']
           time_proce?: string | null
           updated_at?: string
           whatsapp_checked_at?: string | null
@@ -792,39 +782,39 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "patients_queue_journey_id_fkey"
-            columns: ["journey_id"]
+            foreignKeyName: 'patients_queue_journey_id_fkey'
+            columns: ['journey_id']
             isOneToOne: false
-            referencedRelation: "patient_journeys"
-            referencedColumns: ["id"]
+            referencedRelation: 'patient_journeys'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "patients_queue_journey_id_fkey"
-            columns: ["journey_id"]
+            foreignKeyName: 'patients_queue_journey_id_fkey'
+            columns: ['journey_id']
             isOneToOne: false
-            referencedRelation: "strategic_followup_overview"
-            referencedColumns: ["journey_id"]
+            referencedRelation: 'strategic_followup_overview'
+            referencedColumns: ['journey_id']
           },
           {
-            foreignKeyName: "patients_queue_journey_id_fkey"
-            columns: ["journey_id"]
+            foreignKeyName: 'patients_queue_journey_id_fkey'
+            columns: ['journey_id']
             isOneToOne: false
-            referencedRelation: "vacancy_candidates_overview"
-            referencedColumns: ["journey_id"]
+            referencedRelation: 'vacancy_candidates_overview'
+            referencedColumns: ['journey_id']
           },
           {
-            foreignKeyName: "patients_queue_origin_queue_id_fkey"
-            columns: ["origin_queue_id"]
+            foreignKeyName: 'patients_queue_origin_queue_id_fkey'
+            columns: ['origin_queue_id']
             isOneToOne: false
-            referencedRelation: "expired_locks"
-            referencedColumns: ["id"]
+            referencedRelation: 'expired_locks'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "patients_queue_origin_queue_id_fkey"
-            columns: ["origin_queue_id"]
+            foreignKeyName: 'patients_queue_origin_queue_id_fkey'
+            columns: ['origin_queue_id']
             isOneToOne: false
-            referencedRelation: "patients_queue"
-            referencedColumns: ["id"]
+            referencedRelation: 'patients_queue'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -988,7 +978,7 @@ export type Database = {
           payload: Json
           processed_at: string | null
           processing_error: string | null
-          processing_status: Database["public"]["Enums"]["processing_status"]
+          processing_status: Database['public']['Enums']['processing_status']
           provider_event_id: string | null
           provider_message_id: string | null
           provider_name: string
@@ -1003,7 +993,7 @@ export type Database = {
           payload: Json
           processed_at?: string | null
           processing_error?: string | null
-          processing_status?: Database["public"]["Enums"]["processing_status"]
+          processing_status?: Database['public']['Enums']['processing_status']
           provider_event_id?: string | null
           provider_message_id?: string | null
           provider_name: string
@@ -1018,7 +1008,7 @@ export type Database = {
           payload?: Json
           processed_at?: string | null
           processing_error?: string | null
-          processing_status?: Database["public"]["Enums"]["processing_status"]
+          processing_status?: Database['public']['Enums']['processing_status']
           provider_event_id?: string | null
           provider_message_id?: string | null
           provider_name?: string
@@ -1162,10 +1152,10 @@ export type Database = {
           event_at: string | null
           event_type: string | null
           journey_id: string | null
-          message_kind: Database["public"]["Enums"]["message_kind"] | null
-          message_status: Database["public"]["Enums"]["message_status"] | null
+          message_kind: Database['public']['Enums']['message_kind'] | null
+          message_status: Database['public']['Enums']['message_status'] | null
           raw_excerpt: string | null
-          source: Database["public"]["Enums"]["event_source"] | null
+          source: Database['public']['Enums']['event_source'] | null
           summary: string | null
         }
         Relationships: []
@@ -1189,18 +1179,14 @@ export type Database = {
           horario_final: string | null
           horario_inicio: string | null
           journey_id: string | null
-          journey_status: Database["public"]["Enums"]["journey_status"] | null
+          journey_status: Database['public']['Enums']['journey_status'] | null
           last_event_at: string | null
           last_event_type: string | null
-          last_message_kind: Database["public"]["Enums"]["message_kind"] | null
-          last_message_status:
-            | Database["public"]["Enums"]["message_status"]
-            | null
-          latest_classification:
-            | Database["public"]["Enums"]["classification"]
-            | null
+          last_message_kind: Database['public']['Enums']['message_kind'] | null
+          last_message_status: Database['public']['Enums']['message_status'] | null
+          latest_classification: Database['public']['Enums']['classification'] | null
           latest_summary: string | null
-          manual_priority: Database["public"]["Enums"]["manual_priority"] | null
+          manual_priority: Database['public']['Enums']['manual_priority'] | null
           minutes_since_last_touch: number | null
           needs_manual_action: boolean | null
           patient_name: string | null
@@ -1216,16 +1202,14 @@ export type Database = {
           horario_final?: string | null
           horario_inicio?: string | null
           journey_id?: string | null
-          journey_status?: Database["public"]["Enums"]["journey_status"] | null
+          journey_status?: Database['public']['Enums']['journey_status'] | null
           last_event_at?: string | null
           last_event_type?: never
           last_message_kind?: never
           last_message_status?: never
           latest_classification?: never
           latest_summary?: never
-          manual_priority?:
-            | Database["public"]["Enums"]["manual_priority"]
-            | null
+          manual_priority?: Database['public']['Enums']['manual_priority'] | null
           minutes_since_last_touch?: never
           needs_manual_action?: boolean | null
           patient_name?: string | null
@@ -1241,16 +1225,14 @@ export type Database = {
           horario_final?: string | null
           horario_inicio?: string | null
           journey_id?: string | null
-          journey_status?: Database["public"]["Enums"]["journey_status"] | null
+          journey_status?: Database['public']['Enums']['journey_status'] | null
           last_event_at?: string | null
           last_event_type?: never
           last_message_kind?: never
           last_message_status?: never
           latest_classification?: never
           latest_summary?: never
-          manual_priority?:
-            | Database["public"]["Enums"]["manual_priority"]
-            | null
+          manual_priority?: Database['public']['Enums']['manual_priority'] | null
           minutes_since_last_touch?: never
           needs_manual_action?: boolean | null
           patient_name?: string | null
@@ -1265,11 +1247,9 @@ export type Database = {
           horario_final: string | null
           horario_inicio: string | null
           journey_id: string | null
-          latest_classification:
-            | Database["public"]["Enums"]["classification"]
-            | null
+          latest_classification: Database['public']['Enums']['classification'] | null
           latest_patient_message: string | null
-          manual_priority: Database["public"]["Enums"]["manual_priority"] | null
+          manual_priority: Database['public']['Enums']['manual_priority'] | null
           needs_manual_action: boolean | null
           patient_name: string | null
           priority_score: number | null
@@ -1283,9 +1263,7 @@ export type Database = {
           journey_id?: string | null
           latest_classification?: never
           latest_patient_message?: never
-          manual_priority?:
-            | Database["public"]["Enums"]["manual_priority"]
-            | null
+          manual_priority?: Database['public']['Enums']['manual_priority'] | null
           needs_manual_action?: boolean | null
           patient_name?: string | null
           priority_score?: never
@@ -1299,9 +1277,7 @@ export type Database = {
           journey_id?: string | null
           latest_classification?: never
           latest_patient_message?: never
-          manual_priority?:
-            | Database["public"]["Enums"]["manual_priority"]
-            | null
+          manual_priority?: Database['public']['Enums']['manual_priority'] | null
           needs_manual_action?: boolean | null
           patient_name?: string | null
           priority_score?: never
@@ -1535,53 +1511,44 @@ export type Database = {
     }
     Enums: {
       classification:
-        | "confirmado_positivo"
-        | "quer_remarcar"
-        | "nao_pode_comparecer"
-        | "cancelado"
-        | "duvida"
-        | "ambigua"
-        | "sem_resposta_util"
-      event_source: "worker" | "webhook" | "polling" | "ai" | "manual"
+        | 'confirmado_positivo'
+        | 'quer_remarcar'
+        | 'nao_pode_comparecer'
+        | 'cancelado'
+        | 'duvida'
+        | 'ambigua'
+        | 'sem_resposta_util'
+      event_source: 'worker' | 'webhook' | 'polling' | 'ai' | 'manual'
       journey_status:
-        | "queued"
-        | "contacting"
-        | "delivered_waiting_reply"
-        | "followup_due"
-        | "followup_sent"
-        | "confirmed"
-        | "pending_manual"
-        | "cancelled"
-        | "archived"
-      manual_priority: "low" | "medium" | "high" | "urgent"
-      message_direction: "outbound" | "inbound"
-      message_kind:
-        | "original"
-        | "retry_phone2"
-        | "followup_confirm"
-        | "patient_reply"
+        | 'queued'
+        | 'contacting'
+        | 'delivered_waiting_reply'
+        | 'followup_due'
+        | 'followup_sent'
+        | 'confirmed'
+        | 'pending_manual'
+        | 'cancelled'
+        | 'archived'
+      manual_priority: 'low' | 'medium' | 'high' | 'urgent'
+      message_direction: 'outbound' | 'inbound'
+      message_kind: 'original' | 'retry_phone2' | 'followup_confirm' | 'patient_reply'
       message_status:
-        | "queued"
-        | "sending"
-        | "accepted"
-        | "delivered"
-        | "read"
-        | "replied"
-        | "failed"
-        | "cancelled"
-      processing_status:
-        | "pending"
-        | "processing"
-        | "processed"
-        | "failed"
-        | "ignored"
-      queue_status: "queued" | "sending" | "delivered" | "failed" | "cancelled"
+        | 'queued'
+        | 'sending'
+        | 'accepted'
+        | 'delivered'
+        | 'read'
+        | 'replied'
+        | 'failed'
+        | 'cancelled'
+      processing_status: 'pending' | 'processing' | 'processed' | 'failed' | 'ignored'
+      queue_status: 'queued' | 'sending' | 'delivered' | 'failed' | 'cancelled'
       recommended_action:
-        | "close_as_confirmed"
-        | "move_to_pending"
-        | "flag_vacancy"
-        | "manual_review"
-        | "ignore"
+        | 'close_as_confirmed'
+        | 'move_to_pending'
+        | 'flag_vacancy'
+        | 'manual_review'
+        | 'ignore'
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1589,33 +1556,31 @@ export type Database = {
   }
 }
 
-type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
+type DatabaseWithoutInternals = Omit<Database, '__InternalSupabase'>
 
-type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, 'public'>]
 
 export type Tables<
   DefaultSchemaTableNameOrOptions extends
-    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
+    | keyof (DefaultSchema['Tables'] & DefaultSchema['Views'])
     | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Views'])
     : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
-  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'] &
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Views'])[TableName] extends {
       Row: infer R
     }
     ? R
     : never
-  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
-        DefaultSchema["Views"])
-    ? (DefaultSchema["Tables"] &
-        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
+  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema['Tables'] & DefaultSchema['Views'])
+    ? (DefaultSchema['Tables'] & DefaultSchema['Views'])[DefaultSchemaTableNameOrOptions] extends {
         Row: infer R
       }
       ? R
@@ -1624,23 +1589,23 @@ export type Tables<
 
 export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
-    | keyof DefaultSchema["Tables"]
+    | keyof DefaultSchema['Tables']
     | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables']
     : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
-  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'][TableName] extends {
       Insert: infer I
     }
     ? I
     : never
-  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
-    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema['Tables']
+    ? DefaultSchema['Tables'][DefaultSchemaTableNameOrOptions] extends {
         Insert: infer I
       }
       ? I
@@ -1649,23 +1614,23 @@ export type TablesInsert<
 
 export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
-    | keyof DefaultSchema["Tables"]
+    | keyof DefaultSchema['Tables']
     | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables']
     : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
-  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'][TableName] extends {
       Update: infer U
     }
     ? U
     : never
-  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
-    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema['Tables']
+    ? DefaultSchema['Tables'][DefaultSchemaTableNameOrOptions] extends {
         Update: infer U
       }
       ? U
@@ -1674,99 +1639,87 @@ export type TablesUpdate<
 
 export type Enums<
   DefaultSchemaEnumNameOrOptions extends
-    | keyof DefaultSchema["Enums"]
+    | keyof DefaultSchema['Enums']
     | { schema: keyof DatabaseWithoutInternals },
   EnumName extends DefaultSchemaEnumNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions['schema']]['Enums']
     : never = never,
 > = DefaultSchemaEnumNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
-  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
-  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
-    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
+  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions['schema']]['Enums'][EnumName]
+  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema['Enums']
+    ? DefaultSchema['Enums'][DefaultSchemaEnumNameOrOptions]
     : never
 
 export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
-    | keyof DefaultSchema["CompositeTypes"]
+    | keyof DefaultSchema['CompositeTypes']
     | { schema: keyof DatabaseWithoutInternals },
   CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions['schema']]['CompositeTypes']
     : never = never,
 > = PublicCompositeTypeNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
-  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
-  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
-    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions['schema']]['CompositeTypes'][CompositeTypeName]
+  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema['CompositeTypes']
+    ? DefaultSchema['CompositeTypes'][PublicCompositeTypeNameOrOptions]
     : never
 
 export const Constants = {
   public: {
     Enums: {
       classification: [
-        "confirmado_positivo",
-        "quer_remarcar",
-        "nao_pode_comparecer",
-        "cancelado",
-        "duvida",
-        "ambigua",
-        "sem_resposta_util",
+        'confirmado_positivo',
+        'quer_remarcar',
+        'nao_pode_comparecer',
+        'cancelado',
+        'duvida',
+        'ambigua',
+        'sem_resposta_util',
       ],
-      event_source: ["worker", "webhook", "polling", "ai", "manual"],
+      event_source: ['worker', 'webhook', 'polling', 'ai', 'manual'],
       journey_status: [
-        "queued",
-        "contacting",
-        "delivered_waiting_reply",
-        "followup_due",
-        "followup_sent",
-        "confirmed",
-        "pending_manual",
-        "cancelled",
-        "archived",
+        'queued',
+        'contacting',
+        'delivered_waiting_reply',
+        'followup_due',
+        'followup_sent',
+        'confirmed',
+        'pending_manual',
+        'cancelled',
+        'archived',
       ],
-      manual_priority: ["low", "medium", "high", "urgent"],
-      message_direction: ["outbound", "inbound"],
-      message_kind: [
-        "original",
-        "retry_phone2",
-        "followup_confirm",
-        "patient_reply",
-      ],
+      manual_priority: ['low', 'medium', 'high', 'urgent'],
+      message_direction: ['outbound', 'inbound'],
+      message_kind: ['original', 'retry_phone2', 'followup_confirm', 'patient_reply'],
       message_status: [
-        "queued",
-        "sending",
-        "accepted",
-        "delivered",
-        "read",
-        "replied",
-        "failed",
-        "cancelled",
+        'queued',
+        'sending',
+        'accepted',
+        'delivered',
+        'read',
+        'replied',
+        'failed',
+        'cancelled',
       ],
-      processing_status: [
-        "pending",
-        "processing",
-        "processed",
-        "failed",
-        "ignored",
-      ],
-      queue_status: ["queued", "sending", "delivered", "failed", "cancelled"],
+      processing_status: ['pending', 'processing', 'processed', 'failed', 'ignored'],
+      queue_status: ['queued', 'sending', 'delivered', 'failed', 'cancelled'],
       recommended_action: [
-        "close_as_confirmed",
-        "move_to_pending",
-        "flag_vacancy",
-        "manual_review",
-        "ignore",
+        'close_as_confirmed',
+        'move_to_pending',
+        'flag_vacancy',
+        'manual_review',
+        'ignore',
       ],
     },
   },
 } as const
-
 
 // ====== DATABASE EXTENDED CONTEXT (auto-generated) ======
 // This section contains actual PostgreSQL column types, constraints, RLS policies,
@@ -2255,12 +2208,12 @@ export const Constants = {
 //         OR lease_expires_at IS NULL
 //         OR lease_expires_at < NOW()
 //       );
-//   
+//
 //     GET DIAGNOSTICS v_updated = ROW_COUNT;
 //     RETURN v_updated > 0;
 //   END;
 //   $function$
-//   
+//
 // FUNCTION archive_by_data_exame(date, date, text, text)
 //   CREATE OR REPLACE FUNCTION public.archive_by_data_exame(data_inicio date, data_fim date, archive_reason text DEFAULT 'manual_range'::text, archived_by text DEFAULT 'dashboard'::text)
 //    RETURNS TABLE(archived_count integer, blocked_count integer, success boolean, message text)
@@ -2276,18 +2229,18 @@ export const Constants = {
 //       RETURN QUERY SELECT 0, 0, false, 'Informe data inicial e final';
 //       RETURN;
 //     END IF;
-//   
+//
 //     IF data_inicio > data_fim THEN
 //       RETURN QUERY SELECT 0, 0, false, 'Data inicial maior que data final';
 //       RETURN;
 //     END IF;
-//   
+//
 //     SELECT COUNT(*) FILTER (WHERE status = 'sending' OR locked_by IS NOT NULL)
 //     INTO v_blocked
 //     FROM public.patients_queue
 //     WHERE NULLIF(data_exame, '') IS NOT NULL
 //       AND data_exame::date BETWEEN data_inicio AND data_fim;
-//   
+//
 //     WITH candidates AS (
 //       SELECT *
 //       FROM public.patients_queue
@@ -2390,7 +2343,7 @@ export const Constants = {
 //       RETURNING pq.id
 //     )
 //     SELECT COUNT(*)::int INTO v_archived FROM deleted;
-//   
+//
 //     RETURN QUERY
 //     SELECT
 //       COALESCE(v_archived, 0),
@@ -2403,7 +2356,7 @@ export const Constants = {
 //       END;
 //   END;
 //   $function$
-//   
+//
 // FUNCTION archive_selected_patients(uuid[], text, text)
 //   CREATE OR REPLACE FUNCTION public.archive_selected_patients(patient_ids uuid[], archive_reason text DEFAULT 'manual_selection'::text, archived_by text DEFAULT 'dashboard'::text)
 //    RETURNS TABLE(archived_count integer, blocked_count integer, success boolean, message text)
@@ -2419,12 +2372,12 @@ export const Constants = {
 //       RETURN QUERY SELECT 0, 0, false, 'Nenhum paciente selecionado';
 //       RETURN;
 //     END IF;
-//   
+//
 //     SELECT COUNT(*) FILTER (WHERE status = 'sending' OR locked_by IS NOT NULL)
 //     INTO v_blocked
 //     FROM public.patients_queue
 //     WHERE id = ANY(patient_ids);
-//   
+//
 //     WITH candidates AS (
 //       SELECT *
 //       FROM public.patients_queue
@@ -2462,7 +2415,7 @@ export const Constants = {
 //       RETURNING pq.id
 //     )
 //     SELECT COUNT(*)::int INTO v_archived FROM deleted;
-//   
+//
 //     RETURN QUERY
 //     SELECT
 //       COALESCE(v_archived, 0),
@@ -2475,7 +2428,7 @@ export const Constants = {
 //       END;
 //   END;
 //   $function$
-//   
+//
 // FUNCTION claim_next_message(text, integer)
 //   CREATE OR REPLACE FUNCTION public.claim_next_message(p_worker_id text, p_max_attempts integer DEFAULT 3)
 //    RETURNS TABLE(id uuid, patient_name text, phone_number text, message_body text, instance_id uuid, instance_name text, attempt_count integer, journey_id uuid, provider_message_id text, provider_chat_id text, locked_instance_id text, phone_attempt_index integer, phone_2 text, phone_3 text, last_phone_used text)
@@ -2493,11 +2446,11 @@ export const Constants = {
 //     ORDER BY wi.rotation_index ASC NULLS FIRST
 //     FOR UPDATE OF wi SKIP LOCKED
 //     LIMIT 1;
-//   
+//
 //     IF v_instance_id IS NULL THEN
 //       RETURN;
 //     END IF;
-//   
+//
 //     RETURN QUERY
 //     WITH next_msg AS (
 //       SELECT pq.id
@@ -2537,7 +2490,7 @@ export const Constants = {
 //       public.patients_queue.last_phone_used;
 //   END;
 //   $function$
-//   
+//
 // FUNCTION cleanup_stale_heartbeats(integer)
 //   CREATE OR REPLACE FUNCTION public.cleanup_stale_heartbeats(p_stale_after_minutes integer DEFAULT 10)
 //    RETURNS TABLE(worker_id text, current_job_id uuid)
@@ -2550,7 +2503,7 @@ export const Constants = {
 //     RETURNING wh.worker_id, wh.current_job_id;
 //   END;
 //   $function$
-//   
+//
 // FUNCTION enqueue_patient(text, text, text, text, boolean, timestamp with time zone, text, integer, text, uuid, text, text, text, text, text, text, text, text, text, text, integer, text, boolean, boolean)
 //   CREATE OR REPLACE FUNCTION public.enqueue_patient(p_patient_name text, p_phone_number text, p_message_body text, p_status text, p_is_approved boolean, p_send_after timestamp with time zone, p_notes text, p_attempt_count integer, p_dedupe_kind text, p_origin_queue_id uuid, p_canonical_phone text, p_dedupe_hash text, p_data_exame text, p_horario_inicio text, p_procedimentos text, p_phone_2 text, p_phone_3 text, p_data_nascimento text, p_horario_final text, p_time_proce text, p_phone_attempt_index integer, p_last_phone_used text, p_phone_2_whatsapp_valid boolean, p_phone_3_whatsapp_valid boolean)
 //    RETURNS TABLE(id uuid, status text, error_message text)
@@ -2569,7 +2522,7 @@ export const Constants = {
 //     ELSE
 //       v_canonical_phone := p_canonical_phone;
 //     END IF;
-//   
+//
 //     IF p_dedupe_hash IS NULL AND p_dedupe_kind = 'original' THEN
 //       v_dedupe_hash := MD5(
 //         v_canonical_phone || '|' ||
@@ -2580,7 +2533,7 @@ export const Constants = {
 //     ELSE
 //       v_dedupe_hash := p_dedupe_hash;
 //     END IF;
-//   
+//
 //     IF p_dedupe_kind = 'original' THEN
 //       IF EXISTS (
 //         SELECT 1
@@ -2596,7 +2549,7 @@ export const Constants = {
 //         RETURN;
 //       END IF;
 //     END IF;
-//   
+//
 //     IF p_dedupe_kind IN ('retry_phone2', 'followup_confirm', 'retry_phone3') AND p_origin_queue_id IS NOT NULL THEN
 //       IF EXISTS (
 //         SELECT 1
@@ -2608,7 +2561,7 @@ export const Constants = {
 //         RETURN;
 //       END IF;
 //     END IF;
-//   
+//
 //     IF EXISTS (
 //       SELECT 1
 //       FROM public.patients_queue pq
@@ -2619,7 +2572,7 @@ export const Constants = {
 //       RETURN QUERY SELECT NULL::UUID, 'duplicate_recent'::TEXT, 'Mensagem muito recente para o mesmo telefone'::TEXT;
 //       RETURN;
 //     END IF;
-//   
+//
 //     INSERT INTO public.patients_queue (
 //       patient_name,
 //       phone_number,
@@ -2680,11 +2633,11 @@ export const Constants = {
 //       NOW(),
 //       NOW()
 //     ) RETURNING patients_queue.id INTO v_new_id;
-//   
+//
 //     RETURN QUERY SELECT v_new_id, 'success'::TEXT, NULL::TEXT;
 //   END;
 //   $function$
-//   
+//
 // FUNCTION enqueue_patient(text, text, text, text, boolean, timestamp without time zone, text, integer, text, uuid, text, text, text, text, text, text, text, text, text, text, text, integer, text, boolean, boolean)
 //   CREATE OR REPLACE FUNCTION public.enqueue_patient(p_patient_name text, p_phone_number text, p_message_body text, p_status text, p_is_approved boolean, p_send_after timestamp without time zone, p_notes text, p_attempt_count integer DEFAULT 0, p_dedupe_kind text DEFAULT 'original'::text, p_origin_queue_id uuid DEFAULT NULL::uuid, p_canonical_phone text DEFAULT NULL::text, p_data_nascimento text DEFAULT NULL::text, p_data_exame text DEFAULT NULL::text, p_procedimentos text DEFAULT NULL::text, p_horario_inicio text DEFAULT NULL::text, p_horario_final text DEFAULT NULL::text, p_time_proce text DEFAULT NULL::text, p_phone_2 text DEFAULT NULL::text, p_phone_3 text DEFAULT NULL::text, p_dedupe_hash text DEFAULT NULL::text, p_locked_instance_id text DEFAULT NULL::text, p_phone_attempt_index integer DEFAULT 0, p_last_phone_used text DEFAULT NULL::text, p_phone_2_whatsapp_valid boolean DEFAULT NULL::boolean, p_phone_3_whatsapp_valid boolean DEFAULT NULL::boolean)
 //    RETURNS TABLE(id uuid, status text, error_message text)
@@ -2704,7 +2657,7 @@ export const Constants = {
 //     ELSE
 //       v_canonical_phone := p_canonical_phone;
 //     END IF;
-//   
+//
 //     IF p_dedupe_hash IS NULL AND p_dedupe_kind = 'original' THEN
 //       v_dedupe_hash := MD5(
 //         v_canonical_phone || '|' ||
@@ -2715,7 +2668,7 @@ export const Constants = {
 //     ELSE
 //       v_dedupe_hash := p_dedupe_hash;
 //     END IF;
-//   
+//
 //     IF p_dedupe_kind = 'original' THEN
 //       IF EXISTS (
 //         SELECT 1
@@ -2731,7 +2684,7 @@ export const Constants = {
 //         RETURN;
 //       END IF;
 //     END IF;
-//   
+//
 //     IF p_dedupe_kind IN ('retry_phone2', 'retry_phone3', 'followup_confirm') AND p_origin_queue_id IS NOT NULL THEN
 //       IF EXISTS (
 //         SELECT 1
@@ -2743,7 +2696,7 @@ export const Constants = {
 //         RETURN;
 //       END IF;
 //     END IF;
-//   
+//
 //     IF EXISTS (
 //       SELECT 1
 //       FROM public.patients_queue pq
@@ -2754,7 +2707,7 @@ export const Constants = {
 //       RETURN QUERY SELECT NULL::UUID, 'duplicate_recent'::TEXT, 'Mensagem muito recente para o mesmo telefone'::TEXT;
 //       RETURN;
 //     END IF;
-//   
+//
 //     INSERT INTO public.patients_queue (
 //       patient_name,
 //       phone_number,
@@ -2817,11 +2770,11 @@ export const Constants = {
 //       NOW(),
 //       NOW()
 //     ) RETURNING patients_queue.id INTO v_new_id;
-//   
+//
 //     RETURN QUERY SELECT v_new_id, 'success'::TEXT, NULL::TEXT;
 //   END;
 //   $function$
-//   
+//
 // FUNCTION enqueue_patient(text, text, text, text, boolean, timestamp with time zone, text, integer, text, uuid, text, text, text, text, text, text, text, text, text, text)
 //   CREATE OR REPLACE FUNCTION public.enqueue_patient(p_patient_name text, p_phone_number text, p_message_body text, p_status text DEFAULT 'queued'::text, p_is_approved boolean DEFAULT true, p_send_after timestamp with time zone DEFAULT now(), p_notes text DEFAULT NULL::text, p_attempt_count integer DEFAULT 0, p_dedupe_kind text DEFAULT 'original'::text, p_origin_queue_id uuid DEFAULT NULL::uuid, p_canonical_phone text DEFAULT NULL::text, p_dedupe_hash text DEFAULT NULL::text, p_data_exame text DEFAULT NULL::text, p_horario_inicio text DEFAULT NULL::text, p_procedimentos text DEFAULT NULL::text, p_phone_2 text DEFAULT NULL::text, p_phone_3 text DEFAULT NULL::text, p_data_nascimento text DEFAULT NULL::text, p_horario_final text DEFAULT NULL::text, p_time_proce text DEFAULT NULL::text)
 //    RETURNS TABLE(id uuid, status text, error_message text)
@@ -2840,7 +2793,7 @@ export const Constants = {
 //     ELSE
 //       v_canonical_phone := p_canonical_phone;
 //     END IF;
-//   
+//
 //     IF p_dedupe_hash IS NULL AND p_dedupe_kind = 'original' THEN
 //       v_dedupe_hash := MD5(
 //         v_canonical_phone || '|' ||
@@ -2851,7 +2804,7 @@ export const Constants = {
 //     ELSE
 //       v_dedupe_hash := p_dedupe_hash;
 //     END IF;
-//   
+//
 //     IF p_dedupe_kind = 'original' THEN
 //       IF EXISTS (
 //         SELECT 1
@@ -2867,7 +2820,7 @@ export const Constants = {
 //         RETURN;
 //       END IF;
 //     END IF;
-//   
+//
 //     IF p_dedupe_kind IN ('retry_phone2', 'followup_confirm') AND p_origin_queue_id IS NOT NULL THEN
 //       IF EXISTS (
 //         SELECT 1
@@ -2879,7 +2832,7 @@ export const Constants = {
 //         RETURN;
 //       END IF;
 //     END IF;
-//   
+//
 //     IF EXISTS (
 //       SELECT 1
 //       FROM public.patients_queue pq
@@ -2890,7 +2843,7 @@ export const Constants = {
 //       RETURN QUERY SELECT NULL::UUID, 'duplicate_recent'::TEXT, 'Mensagem muito recente para o mesmo telefone'::TEXT;
 //       RETURN;
 //     END IF;
-//   
+//
 //     INSERT INTO public.patients_queue (
 //       patient_name,
 //       phone_number,
@@ -2943,11 +2896,11 @@ export const Constants = {
 //       NOW(),
 //       NOW()
 //     ) RETURNING patients_queue.id INTO v_new_id;
-//   
+//
 //     RETURN QUERY SELECT v_new_id, 'success'::TEXT, NULL::TEXT;
 //   END;
 //   $function$
-//   
+//
 // FUNCTION log_patient_status_change()
 //   CREATE OR REPLACE FUNCTION public.log_patient_status_change()
 //    RETURNS trigger
@@ -2977,11 +2930,11 @@ export const Constants = {
 //         )
 //       );
 //     END IF;
-//   
+//
 //     RETURN NEW;
 //   END;
 //   $function$
-//   
+//
 // FUNCTION normalize_phone_for_journey(text)
 //   CREATE OR REPLACE FUNCTION public.normalize_phone_for_journey(raw_phone text)
 //    RETURNS text
@@ -2996,7 +2949,7 @@ export const Constants = {
 //     );
 //   END;
 //   $function$
-//   
+//
 // FUNCTION preview_archive_by_data_exame(date, date)
 //   CREATE OR REPLACE FUNCTION public.preview_archive_by_data_exame(data_inicio date, data_fim date)
 //    RETURNS TABLE(total_to_archive integer, blocked_sending integer, status_breakdown jsonb, data_exame_range jsonb, message text)
@@ -3013,12 +2966,12 @@ export const Constants = {
 //       RETURN QUERY SELECT 0, 0, '{}'::jsonb, '{}'::jsonb, 'Informe data inicial e final';
 //       RETURN;
 //     END IF;
-//   
+//
 //     IF data_inicio > data_fim THEN
 //       RETURN QUERY SELECT 0, 0, '{}'::jsonb, '{}'::jsonb, 'Data inicial maior que data final';
 //       RETURN;
 //     END IF;
-//   
+//
 //     SELECT
 //       COUNT(*),
 //       COUNT(*) FILTER (WHERE status = 'sending' OR locked_by IS NOT NULL)
@@ -3026,7 +2979,7 @@ export const Constants = {
 //     FROM public.patients_queue
 //     WHERE NULLIF(data_exame, '') IS NOT NULL
 //       AND data_exame::date BETWEEN data_inicio AND data_fim;
-//   
+//
 //     SELECT COALESCE(jsonb_object_agg(status, total), '{}'::jsonb)
 //     INTO v_breakdown
 //     FROM (
@@ -3036,7 +2989,7 @@ export const Constants = {
 //         AND data_exame::date BETWEEN data_inicio AND data_fim
 //       GROUP BY status
 //     ) grouped;
-//   
+//
 //     RETURN QUERY
 //     SELECT
 //       COALESCE(v_total, 0),
@@ -3049,7 +3002,7 @@ export const Constants = {
 //       END;
 //   END;
 //   $function$
-//   
+//
 // FUNCTION release_expired_locks(integer)
 //   CREATE OR REPLACE FUNCTION public.release_expired_locks(p_lock_timeout_minutes integer DEFAULT 5)
 //    RETURNS TABLE(released_id uuid, was_failed boolean)
@@ -3081,7 +3034,7 @@ export const Constants = {
 //       CASE WHEN expired.attempt_count >= 2 THEN true ELSE false END as was_failed;
 //   END;
 //   $function$
-//   
+//
 // FUNCTION release_worker_lease(text)
 //   CREATE OR REPLACE FUNCTION public.release_worker_lease(p_worker_id text)
 //    RETURNS boolean
@@ -3096,12 +3049,12 @@ export const Constants = {
 //         updated_at = NOW()
 //     WHERE id = 1
 //       AND active_worker_id = p_worker_id;
-//   
+//
 //     GET DIAGNOSTICS v_updated = ROW_COUNT;
 //     RETURN v_updated > 0;
 //   END;
 //   $function$
-//   
+//
 // FUNCTION rls_auto_enable()
 //   CREATE OR REPLACE FUNCTION public.rls_auto_enable()
 //    RETURNS event_trigger
@@ -3132,7 +3085,7 @@ export const Constants = {
 //     END LOOP;
 //   END;
 //   $function$
-//   
+//
 // FUNCTION set_timestamp_updated_at()
 //   CREATE OR REPLACE FUNCTION public.set_timestamp_updated_at()
 //    RETURNS trigger
@@ -3143,7 +3096,7 @@ export const Constants = {
 //     RETURN NEW;
 //   END;
 //   $function$
-//   
+//
 // FUNCTION update_analytics_daily_from_event()
 //   CREATE OR REPLACE FUNCTION public.update_analytics_daily_from_event()
 //    RETURNS trigger
@@ -3153,11 +3106,11 @@ export const Constants = {
 //     v_data DATE;
 //   BEGIN
 //     v_data := (NEW.event_at AT TIME ZONE 'America/Cuiaba')::date;
-//   
+//
 //     INSERT INTO public.analytics_daily (data)
 //     VALUES (v_data)
 //     ON CONFLICT (data) DO NOTHING;
-//   
+//
 //     UPDATE public.analytics_daily
 //     SET
 //       total_enviadas = total_enviadas + CASE WHEN NEW.event_type = 'status_sending' THEN 1 ELSE 0 END,
@@ -3166,11 +3119,11 @@ export const Constants = {
 //       cancelada = cancelada + CASE WHEN NEW.event_type = 'status_cancelled' THEN 1 ELSE 0 END,
 //       updated_at = NOW()
 //     WHERE data = v_data;
-//   
+//
 //     RETURN NEW;
 //   END;
 //   $function$
-//   
+//
 // FUNCTION update_analytics_daily_procedures(date)
 //   CREATE OR REPLACE FUNCTION public.update_analytics_daily_procedures(target_date date DEFAULT CURRENT_DATE)
 //    RETURNS void
@@ -3201,7 +3154,7 @@ export const Constants = {
 //       WHERE (updated_at AT TIME ZONE 'America/Cuiaba')::date = target_date
 //       GROUP BY 1
 //     ) grouped;
-//   
+//
 //     INSERT INTO public.analytics_daily (data, por_procedimento)
 //     VALUES (target_date, COALESCE(v_payload, '{}'::jsonb))
 //     ON CONFLICT (data) DO UPDATE SET
@@ -3209,7 +3162,7 @@ export const Constants = {
 //       updated_at = NOW();
 //   END;
 //   $function$
-//   
+//
 
 // --- TRIGGERS ---
 // Table: analytics_daily
@@ -3308,4 +3261,3 @@ export const Constants = {
 //   CREATE UNIQUE INDEX whatsapp_instances_slot_id_key ON public.whatsapp_instances USING btree (slot_id)
 // Table: worker_heartbeats
 //   CREATE INDEX idx_worker_heartbeats_last_heartbeat ON public.worker_heartbeats USING btree (last_heartbeat)
-

@@ -9,6 +9,12 @@ import Archive from './pages/Archive'
 import WhatsAppSettings from './pages/WhatsAppSettings'
 import NotFound from './pages/NotFound'
 import Layout from './components/Layout'
+import Analytics from './pages/Analytics'
+import ArchiveByDate from './pages/ArchiveByDate'
+import CRM from './pages/CRM'
+import EnviarLista from './pages/EnviarLista'
+import Estrategico from './pages/Estrategico'
+import SegundaChamada from './pages/SegundaChamada'
 import { useEffect } from 'react'
 
 // Generic Base64 SVG Logo to replace the external CORS-blocked image
@@ -109,7 +115,13 @@ const AppRoutes = () => (
       }
     >
       <Route path="/" element={<Index />} />
+      <Route path="/segunda-chamada" element={<SegundaChamada />} />
+      <Route path="/enviar-lista" element={<EnviarLista />} />
+      <Route path="/crm" element={<CRM />} />
+      <Route path="/estrategico" element={<Estrategico />} />
+      <Route path="/analytics" element={<Analytics />} />
       <Route path="/arquivo" element={<Archive />} />
+      <Route path="/arquivo-data" element={<ArchiveByDate />} />
       <Route path="/whatsapp" element={<WhatsAppSettings />} />
     </Route>
     <Route path="*" element={<NotFound />} />

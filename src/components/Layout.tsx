@@ -10,7 +10,20 @@ import {
   SidebarTrigger,
 } from '@/components/ui/sidebar'
 import { Button } from '@/components/ui/button'
-import { ShieldCheck, ListTodo, Archive, PowerOff, LogOut, Smartphone } from 'lucide-react'
+import {
+  ShieldCheck,
+  ListTodo,
+  Archive,
+  PowerOff,
+  LogOut,
+  Smartphone,
+  PhoneCall,
+  FileText,
+  LayoutDashboard,
+  Calendar,
+  BarChart3,
+  CalendarDays,
+} from 'lucide-react'
 import { useAuth } from '@/hooks/use-auth'
 import { useAppData } from '@/hooks/use-app-data'
 import { useToast } from '@/hooks/use-toast'
@@ -33,7 +46,13 @@ function AppSidebar() {
 
   const menuItems = [
     { title: 'Fila de Envios', url: '/', icon: ListTodo },
+    { title: 'Segunda Chamada', url: '/segunda-chamada', icon: PhoneCall },
+    { title: 'Enviar Lista', url: '/enviar-lista', icon: FileText },
+    { title: 'CRM Kanban', url: '/crm', icon: LayoutDashboard },
+    { title: 'Agenda de Exames', url: '/estrategico', icon: Calendar },
+    { title: 'Analytics', url: '/analytics', icon: BarChart3 },
     { title: 'Arquivo Morto', url: '/arquivo', icon: Archive },
+    { title: 'Arquivar por Data', url: '/arquivo-data', icon: CalendarDays },
     { title: 'WhatsApp', url: '/whatsapp', icon: Smartphone },
   ]
 
@@ -116,12 +135,32 @@ function TopBar() {
     }
   }
 
-  const pageTitle =
-    location.pathname === '/'
-      ? 'Monitoramento em Tempo Real'
-      : location.pathname === '/arquivo'
-        ? 'Auditoria de Arquivo'
-        : 'Gerenciamento WhatsApp'
+  const getPageTitle = (pathname: string) => {
+    switch (pathname) {
+      case '/':
+        return 'Monitoramento em Tempo Real'
+      case '/segunda-chamada':
+        return 'Segunda Chamada'
+      case '/enviar-lista':
+        return 'Enviar Lista'
+      case '/crm':
+        return 'CRM Kanban'
+      case '/estrategico':
+        return 'Agenda de Exames'
+      case '/analytics':
+        return 'Painel de Desempenho'
+      case '/arquivo':
+        return 'Auditoria de Arquivo'
+      case '/arquivo-data':
+        return 'Arquivamento por Data'
+      case '/whatsapp':
+        return 'Gerenciamento WhatsApp'
+      default:
+        return 'PRN Vigilante'
+    }
+  }
+
+  const pageTitle = getPageTitle(location.pathname)
 
   return (
     <header className="h-16 flex items-center justify-between px-4 lg:px-8 border-b border-white/5 bg-background/50 backdrop-blur-lg sticky top-0 z-40">
