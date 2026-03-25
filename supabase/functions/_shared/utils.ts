@@ -1,7 +1,7 @@
-export const logInfo = (message: string, data?: any) => {
-  console.log(JSON.stringify({ level: 'INFO', message, data }))
+export const formatPhone = (phone: string): string => {
+  return phone.replace(/\D/g, '')
 }
 
-export const logError = (message: string, error?: any) => {
-  console.error(JSON.stringify({ level: 'ERROR', message, error: error?.message || error }))
+export const sleep = (ms: number): Promise<void> => {
+  return new Promise((resolve) => setTimeout(resolve, ms))
 }

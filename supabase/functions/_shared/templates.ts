@@ -1,4 +1,4 @@
-export const getMessageTemplate = (templateName: string, variables: Record<string, string>) => {
-  // A simple template engine for webhook responses or messages
-  return `Template [${templateName}] rendered with variables: ${JSON.stringify(variables)}`
+export const templates = {
+  welcome: 'Olá! Bem-vindo à PRN Diagnósticos.',
+  reminder: 'Lembrete: Você tem um exame agendado.',
 }
