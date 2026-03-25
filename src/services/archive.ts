@@ -1,69 +1,63 @@
 import { supabase } from '@/lib/supabase/client'
-import { Database } from '@/lib/supabase/types'
-import { MOCK_PATIENTS } from './data'
+import { DateRange } from 'react-day-picker'
 
-export type PatientQueue = Database['public']['Tables']['patients_queue']['Row']
+export interface PatientQueue {
+  id: string
+  patient_name: string
+  phone_number: string
+  message_body: string
+  status: string
+  is_approved: boolean
+  send_after: string
+  updated_at: string
+  notes?: string
+}
 
 export interface ArchiveFilters {
   search?: string
-  dateRange?: { from?: Date; to?: Date }
+  dateRange?: DateRange
   status?: string
   isApproved?: boolean | null
 }
 
-export async function fetchArchive(filters: ArchiveFilters): Promise<PatientQueue[]> {
+export const fetchArchive = async (filters: ArchiveFilters): Promise<PatientQueue[]> => {
   try {
-    let query = supabase.from('patients_queue').select('*')
+    // Assuming 'messages' or 'patient_queue' is the table name.
+    // Modify as per actual Supabase schema. We'll use 'messages' as default.
+    let query = supabase.from('messages').select('*').order('updated_at', { ascending: false })
 
     if (filters.status && filters.status !== 'all') {
       query = query.eq('status', filters.status)
     }
 
-    if (filters.isApproved !== null && filters.isApproved !== undefined) {
+    if (filters.isApproved !== undefined && filters.isApproved !== null) {
       query = query.eq('is_approved', filters.isApproved)
     }
 
-    if (filters.dateRange?.from) {
-      query = query.gte('send_after', filters.dateRange.from.toISOString())
-    }
-    if (filters.dateRange?.to) {
-      const toDate = new Date(filters.dateRange.to)
-      toDate.setHours(23, 59, 59, 999)
-      query = query.lte('send_after', toDate.toISOString())
-    }
-
     if (filters.search) {
-      const searchLower = `%${filters.search.toLowerCase()}%`
       query = query.or(
-        `patient_name.ilike.${searchLower},phone_number.ilike.${searchLower},message_body.ilike.${searchLower}`,
+        `patient_name.ilike.%${filters.search}%,phone_number.ilike.%${filters.search}%,message_body.ilike.%${filters.search}%`,
       )
     }
 
-    query = query.order('send_after', { ascending: false }).limit(200)
+    if (filters.dateRange?.from) {
+      query = query.gte('updated_at', filters.dateRange.from.toISOString())
+    }
+
+    if (filters.dateRange?.to) {
+      query = query.lte('updated_at', filters.dateRange.to.toISOString())
+    }
 
     const { data, error } = await query
 
-    if (error) throw error
-    return data as PatientQueue[]
-  } catch (e) {
-    console.warn('Using mock data for archive due to error:', e)
-    // Fallback logic for mock data matching filters
-    let filtered = MOCK_PATIENTS
-    if (filters.status && filters.status !== 'all') {
-      filtered = filtered.filter((p) => p.status === filters.status)
+    if (error) {
+      console.error('Supabase query error:', error)
+      return []
     }
-    if (filters.isApproved !== null && filters.isApproved !== undefined) {
-      filtered = filtered.filter((p) => p.is_approved === filters.isApproved)
-    }
-    if (filters.search) {
-      const s = filters.search.toLowerCase()
-      filtered = filtered.filter(
-        (p) =>
-          p.patient_name.toLowerCase().includes(s) ||
-          p.phone_number.toLowerCase().includes(s) ||
-          p.message_body.toLowerCase().includes(s),
-      )
-    }
-    return filtered
+
+    return (data as PatientQueue[]) || []
+  } catch (error) {
+    console.error('Error in fetchArchive:', error)
+    return []
   }
 }
