@@ -1,38 +1,57 @@
-# 🤖 Automation Engine — PRN-Vigilante
+# Automation Engine - PRN-Vigilante
 
-Motor de automação responsável pelo envio inteligente de mensagens via WhatsApp.
+Worker responsavel por processar a fila do Supabase e enviar mensagens pela Evolution API.
 
-## 📁 Estrutura
+## Requisitos
 
-```
-automation/
-├── .env                    # Credenciais (Supabase + Evolution API)
-├── README.md               # Este arquivo
-├── src/
-│   ├── index.ts            # Ponto de entrada principal
-│   ├── core/               # Lógica central (Engine, Fila, Anti-Ban)
-│   ├── services/           # Drivers de conexão
-│   │   ├── supabase.ts     # Cliente Supabase
-│   │   └── evolution.ts    # Cliente Evolution API
-│   ├── types/              # Definições TypeScript
-│   │   └── index.ts        # Interfaces e tipos
-│   └── utils/              # Utilitários
-│       └── helpers.ts      # Sleep, delays, formatadores
-└── docs/                   # Documentação técnica interna
-```
+- Bun 1.2+
+- Variaveis de ambiente configuradas
 
-## 🚀 Como Rodar
+## Variaveis obrigatorias
+
+- `SUPABASE_URL`
+- `SUPABASE_SERVICE_ROLE_KEY`
+- `EVOLUTION_API_URL`
+- `EVOLUTION_API_KEY`
+
+Use `automation/.env.example` como base.
+
+## Execucao local
 
 ```bash
 cd automation
-bun run src/index.ts
+bun install
+bun run start
 ```
 
-## 📌 Status
+Modo diagnostico:
 
-- [x] Estrutura de pastas criada
-- [x] Drivers de conexão (Supabase + Evolution) prontos
-- [x] Tipos e utilitários definidos
-- [ ] Lógica de envio (aguardando definição do fluxo)
-- [ ] Anti-Ban Engine
-- [ ] Testes
+```bash
+bun run diag
+```
+
+Healthcheck sem efeito colateral:
+
+```bash
+bun run healthcheck
+```
+
+## Execucao com Docker
+
+Build da imagem:
+
+```bash
+docker build -t prn-automation-worker ./automation
+```
+
+Execucao do container:
+
+```bash
+docker run --rm --env-file ./automation/.env prn-automation-worker
+```
+
+## Deploy recomendado
+
+- Publicar imagem no GHCR.
+- Rodar no EasyPanel como worker (1 replica).
+- Manter restart policy e monitoramento de logs ativos.
