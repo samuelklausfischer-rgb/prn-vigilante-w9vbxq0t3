@@ -10,6 +10,11 @@ export interface SelectedInstance {
   isAffinityMatch: boolean
 }
 
+export interface InstanceResolution {
+  selected: SelectedInstance | null
+  reason?: 'affinity_offline' | 'instance_offline' | 'instance_missing' | 'instance_unavailable' | 'evolution_unreachable'
+}
+
 /**
  * Validador de instância com AFINIDADE ESTRITA.
  *
@@ -26,7 +31,7 @@ export class InstanceSelector {
   private statusCache = new Map<string, { status: string; cachedAt: number }>()
   private readonly cacheTtlMs = 30_000 // 30 segundos
 
-  async resolveFromClaim(claim: ClaimedMessage): Promise<SelectedInstance | null> {
+  async resolveFromClaim(claim: ClaimedMessage): Promise<InstanceResolution> {
     // ──────────────────────────────────────
     // CASO 1: Mensagem tem instância vinculada (AFINIDADE)
     // ──────────────────────────────────────
@@ -39,10 +44,19 @@ export class InstanceSelector {
           lockedInstanceId: claim.locked_instance_id,
         })
         // NÃO trocar — a instância pode ter sido deletada. Exigir intervenção manual.
-        return null
+        return { selected: null, reason: 'instance_missing' }
       }
 
-      const status = await this.getCachedConnectionStatus(affinityInstance.instance_name)
+      let status: string
+      try {
+        status = await this.getCachedConnectionStatus(affinityInstance.instance_name)
+      } catch (error) {
+        console.warn(`[${timestamp()}] ⚠️ Falha ao consultar status da instância vinculada`, {
+          messageId: claim.id,
+          instanceName: affinityInstance.instance_name,
+        })
+        return { selected: null, reason: 'evolution_unreachable' }
+      }
       const normalized = String(status).toLowerCase()
 
       if (!['open', 'connected'].includes(normalized)) {
@@ -53,7 +67,7 @@ export class InstanceSelector {
           instanceStatus: normalized,
         })
         // Retorna null — a mensagem volta para a fila e aguarda
-        return null
+        return { selected: null, reason: 'affinity_offline' }
       }
 
       console.log(`[${timestamp()}] 🔗 Afinidade respeitada: ${affinityInstance.instance_name} continua dona do número`, {
@@ -62,9 +76,11 @@ export class InstanceSelector {
       })
 
       return {
+        selected: {
         id: claim.locked_instance_id,
         instanceName: affinityInstance.instance_name,
         isAffinityMatch: true,
+        },
       }
     }
 
@@ -74,15 +90,24 @@ export class InstanceSelector {
     const instance = await getInstanceById(claim.instance_id)
     if (!instance?.instance_name) {
       console.log(`[${timestamp()}] ⚠️ Instância ${claim.instance_id} não encontrada no banco.`)
-      return null
+      return { selected: null, reason: 'instance_missing' }
     }
 
-    const status = await this.getCachedConnectionStatus(instance.instance_name)
+    let status: string
+    try {
+      status = await this.getCachedConnectionStatus(instance.instance_name)
+    } catch (error) {
+      console.warn(`[${timestamp()}] ⚠️ Falha ao consultar status da instância`, {
+        messageId: claim.id,
+        instanceName: instance.instance_name,
+      })
+      return { selected: null, reason: 'evolution_unreachable' }
+    }
     const normalized = String(status).toLowerCase()
 
     if (!['open', 'connected'].includes(normalized)) {
       console.log(`[${timestamp()}] ⚠️ Instância ${instance.instance_name} offline (status: ${normalized}).`)
-      return null
+      return { selected: null, reason: 'instance_offline' }
     }
 
     console.log(`[${timestamp()}] 🆕 Novo vínculo: ${instance.instance_name} será dona deste número`, {
@@ -91,9 +116,11 @@ export class InstanceSelector {
     })
 
     return {
-      id: claim.instance_id,
-      instanceName: claim.instance_name,
-      isAffinityMatch: false,
+      selected: {
+        id: claim.instance_id,
+        instanceName: claim.instance_name,
+        isAffinityMatch: false,
+      },
     }
   }
 

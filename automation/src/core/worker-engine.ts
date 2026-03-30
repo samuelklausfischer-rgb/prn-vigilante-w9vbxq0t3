@@ -33,6 +33,9 @@ export class WorkerEngine {
   private heartbeatTimer?: ReturnType<typeof setInterval>
   private followupTimer?: ReturnType<typeof setInterval>
   private processed = 0
+  private accepted = 0
+  private delivered = 0
+  private finalized = 0
   private failed = 0
   private skipped = 0
   private currentJobId: string | null = null
@@ -76,7 +79,9 @@ export class WorkerEngine {
 
         console.log(`[${timestamp()}] 🔄 Novo ciclo do worker`, {
           workerId: this.workerId,
-          processed: this.processed,
+          accepted: this.accepted,
+          delivered: this.delivered,
+          finalized: this.finalized,
           failed: this.failed,
           skipped: this.skipped,
           currentJobId: this.currentJobId,
@@ -143,14 +148,20 @@ export class WorkerEngine {
         const result = await this.queueManager.processClaimedMessage(claimed, this.workerId, this.dryRun)
 
         if (result.status === 'delivered') {
-          this.processed += 1
-          console.log(`[${timestamp()}] ✅ Entregue: ${claimed.id} (total: ${this.processed})`)
+          this.delivered += 1
+          this.finalized += 1
+          console.log(`[${timestamp()}] ✅ Entregue: ${claimed.id} (entregues: ${this.delivered}, finalizados: ${this.finalized})`)
         } else if (result.status === 'failed') {
+          this.finalized += 1
           this.failed += 1
-          console.log(`[${timestamp()}] ❌ Falhou: ${claimed.id} (${result.reason || 'sem motivo'})`)
+          console.log(`[${timestamp()}] ❌ Falhou: ${claimed.id} (${result.reason || 'sem motivo'}) (finalizados: ${this.finalized})`)
+        } else if (result.status === 'deferred') {
+          console.log(`[${timestamp()}] ⏸️ Adiada por infra: ${claimed.id} (${result.reason || 'infra'})`)
+          await sleep(2000)
         } else if (result.status === 'skipped') {
+          this.finalized += 1
           this.skipped += 1
-          console.log(`[${timestamp()}] ⏭️ Ignorada: ${claimed.id} (${result.reason || 'sem motivo'})`)
+          console.log(`[${timestamp()}] ⏭️ Ignorada: ${claimed.id} (${result.reason || 'sem motivo'}) (finalizados: ${this.finalized})`)
         }
 
         this.currentJobId = null
@@ -182,7 +193,7 @@ export class WorkerEngine {
     await removeHeartbeat(this.workerId)
     await releaseWorkerLease(this.workerId)
     console.log(`[${timestamp()}] 🛑 Worker finalizado: ${this.workerId}`)
-    console.log(`[${timestamp()}] 📊 Resumo: ${this.processed} entregues | ${this.failed} falhas | ${this.skipped} ignoradas`)
+    console.log(`[${timestamp()}] 📊 Resumo: aceites=${this.accepted} entregues=${this.delivered} finalizados=${this.finalized} falhas=${this.failed} ignoradas=${this.skipped}`)
   }
 
   private startHeartbeatLoop() {

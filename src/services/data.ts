@@ -82,6 +82,24 @@ export async function fetchQueue(statusIn: QueueStatus[]): Promise<PatientQueue[
   }
 }
 
+export async function fetchNextDispatchTime(): Promise<string | null> {
+  try {
+    const { data, error } = await supabase
+      .from('patients_queue')
+      .select('send_after')
+      .eq('status', 'queued')
+      .order('send_after', { ascending: true })
+      .limit(1)
+
+    if (error || !data?.length) return null
+    const row = data[0] as { send_after: string }
+    return row.send_after
+  } catch (e) {
+    console.error('Error fetching next dispatch time', e)
+    return null
+  }
+}
+
 export async function fetchConfig(): Promise<SystemConfig> {
   try {
     const { data, error } = await supabase.from('system_config').select('*').eq('id', 1).single()

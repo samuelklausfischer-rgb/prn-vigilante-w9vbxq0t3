@@ -1,4 +1,4 @@
-import { Calendar, Clock, FileText, MessageSquare, Phone, RotateCcw, Stethoscope } from 'lucide-react'
+import { Calendar, Clock, MessageSquare, Phone, RotateCcw, Stethoscope } from 'lucide-react'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -33,9 +33,15 @@ function getStatusLabel(patient: PatientQueue) {
 function getReasonLabel(reason?: string | null) {
   switch (reason) {
     case 'landline_only': return 'Telefone Fixo'
+    case 'landline_detected': return 'Sem WhatsApp no telefone atual'
+    case 'send_failed_no_whatsapp': return 'Sem WhatsApp apos tentativa'
     case 'not_received_retry_phone2': return 'Sem recebimento (P2)'
     case 'delivered_no_reply_followup': return 'Sem resposta (Follow-up)'
-    case 'failed': return 'Erro de envio'
+    case 'failed': return 'Falha tecnica'
+    case 'provider_send_failed': return 'Erro real de envio'
+    case 'number_blocked': return 'Numero bloqueado'
+    case 'instance_unavailable': return 'Instancia indisponivel'
+    case 'affinity_instance_offline': return 'Instancia vinculada offline'
     case 'phone_ladder_exhausted': return 'Todos os telefones sem WhatsApp'
     case 'not_received_retry_phone3': return 'Sem recebimento (P3)'
     default: return reason || 'Análise manual'
@@ -147,7 +153,7 @@ export function PatientCardWithActions({ patient, selected, onToggleSelect, onRe
         <div className="flex items-center justify-between gap-2 border-t border-white/5 pt-2">
           <Badge variant="outline" className="border-orange-500/30 bg-orange-500/10 text-orange-200">
             <RotateCcw className="mr-1 h-3 w-3" />
-            Tentativas: {Number(patient.attempt_count || 0)}
+            Tentativas internas: {Number(patient.attempt_count || 0)}
           </Badge>
 
           <div className="flex gap-2">

@@ -19,14 +19,13 @@ export default function WhatsAppSettings() {
   const { toast } = useToast()
 
   /**
-   * Carrega instâncias direto da Evolution API (fonte da verdade).
-   * Não depende mais de "slots fixos" no banco — carrega o que existir.
+   * Carrega instâncias usando a Edge Function evolution-proxy
+   * e usa o Supabase como cache local para renderização.
    */
   const loadData = async () => {
     try {
       setError(null)
 
-      // Chama a Evolution API diretamente para pegar os dados reais
       const syncResult = await evolutionApi.syncWithWebhook()
 
       if (!syncResult.success) {
@@ -34,16 +33,15 @@ export default function WhatsAppSettings() {
         console.warn('Evolution sync failed, loading from cache:', syncResult.message)
       }
 
-      // Carrega do banco (que agora está sincronizado ou é o cache)
       const data = await evolutionApi.getInstances()
 
-      // Filtra apenas instâncias reais (que têm nome) — nada de slots vazios fantasma
       const realInstances = data.filter((i) => i.instanceName !== null)
       setInstances(realInstances)
 
       return realInstances
-    } catch (e: any) {
-      setError('Falha ao carregar as instâncias. Verifique se o Docker está ativo.')
+    } catch (error: any) {
+      console.error('Erro ao carregar instâncias:', error)
+      setError('Falha ao carregar as instâncias. Verifique a integração com a Evolution API.')
       return null
     }
   }
@@ -65,7 +63,8 @@ export default function WhatsAppSettings() {
             variant: 'destructive',
           })
       }
-    } catch (e: any) {
+    } catch (error: any) {
+      console.error('Erro ao sincronizar instâncias:', error)
       if (!silent)
         toast({
           description: 'Erro de conexão com a Evolution API.',
@@ -123,6 +122,7 @@ export default function WhatsAppSettings() {
 
   // Instância "fantasma" usada apenas para abrir o modal de criação
   const emptyInstance: WhatsAppInstance = {
+    id: `temp-slot-${nextSlotId}`,
     slotId: nextSlotId,
     instanceName: null,
     status: 'empty',

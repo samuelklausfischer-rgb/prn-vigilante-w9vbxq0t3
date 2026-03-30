@@ -1,6 +1,11 @@
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
 
-import { corsHeaders } from '../_shared/cors.ts'
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+  'Access-Control-Allow-Headers':
+    'authorization, x-client-info, x-supabase-client-platform, apikey, content-type, x-webhook-secret',
+}
 
 type EventType =
   | 'send_accepted'
@@ -26,7 +31,8 @@ function getHeader(req: Request, name: string): string | null {
 function requireWebhookSecret(req: Request): string | null {
   const expected = Deno.env.get('EVOLUTION_WEBHOOK_SECRET')
   if (!expected) return null
-  const provided = getHeader(req, 'x-webhook-secret')
+  const url = new URL(req.url)
+  const provided = getHeader(req, 'x-webhook-secret') || url.searchParams.get('secret')
   if (!provided || provided !== expected) return 'invalid_secret'
   return null
 }
@@ -74,13 +80,30 @@ function extractToPhone(payload: any): string | null {
       payload?.phone_number ||
       payload?.data?.to ||
       payload?.data?.phone ||
-      payload?.data?.phone_number,
+      payload?.data?.phone_number ||
+      payload?.data?.key?.remoteJid ||
+      payload?.data?.key?.remoteJidAlt ||
+      payload?.data?.key?.participant,
   )
 }
 
 function detectEventType(payload: any): EventType | null {
   const t = String(payload?.event || payload?.type || payload?.status || payload?.data?.event || '').toLowerCase()
   if (!t) return null
+
+  if (t.includes('messages.update')) {
+    const status = String(payload?.data?.status || '').toLowerCase()
+    if (status.includes('delivery_ack') || status.includes('delivered')) return 'delivered'
+    if (status.includes('read') || status.includes('read_ack') || status.includes('seen')) return 'read'
+    if (status.includes('server_ack') || status.includes('sent')) return 'send_accepted'
+  }
+
+  if (t.includes('messages.upsert')) {
+    const fromMe = payload?.data?.key?.fromMe
+    if (fromMe === false || fromMe === 'false') return 'replied'
+  }
+
+  if (t.includes('send.message') || (t.includes('send') && t.includes('message'))) return 'send_accepted'
   if (t.includes('delivered')) return 'delivered'
   if (t.includes('read') || t.includes('seen')) return 'read'
   if (t.includes('received') || t.includes('incoming') || (t.includes('message') && t.includes('in'))) return 'replied'
@@ -95,6 +118,8 @@ function extractInstanceId(payload: any): string | null {
 function extractProviderMessageId(payload: any): string | null {
   return (
     payload?.key?.id ||
+    payload?.data?.key?.id ||
+    payload?.data?.keyId ||
     payload?.key?.remoteJid ||
     payload?.messageId ||
     payload?.message?.id ||
@@ -103,6 +128,10 @@ function extractProviderMessageId(payload: any): string | null {
     payload?.id ||
     null
   )
+}
+
+function extractProviderChatId(payload: any): string | null {
+  return payload?.data?.key?.remoteJid || payload?.data?.key?.remoteJidAlt || payload?.key?.remoteJid || null
 }
 
 function extractPatientMessageBody(payload: any): string | null {
@@ -267,31 +296,67 @@ async function resolveJourneyMessage(
     const phonesToTry = [toPhone, v8]
     
     for (const p of phonesToTry) {
-      const queueMessage =
-        (await restSelectOne(
-          'patients_queue',
-          'id,journey_id,send_accepted_at',
-          [['phone_number', `eq.${p}`], ['send_accepted_at', 'not.is.null']],
-          'send_accepted_at.desc',
-        )) ||
-        (await restSelectOne(
-          'patients_queue',
-          'id,journey_id,send_accepted_at',
-          [['phone_2', `eq.${p}`], ['send_accepted_at', 'not.is.null']],
-          'send_accepted_at.desc',
-        )) ||
-        (await restSelectOne(
-          'patients_queue',
-          'id,journey_id,send_accepted_at',
-          [['phone_3', `eq.${p}`], ['send_accepted_at', 'not.is.null']],
-          'send_accepted_at.desc',
-        ))
+        const queueMessage =
+          (await restSelectOne(
+            'patients_queue',
+            'id,journey_id,accepted_at',
+            [['phone_number', `eq.${p}`], ['accepted_at', 'not.is.null']],
+            'accepted_at.desc',
+          )) ||
+          (await restSelectOne(
+            'patients_queue',
+            'id,journey_id,accepted_at',
+            [['phone_2', `eq.${p}`], ['accepted_at', 'not.is.null']],
+            'accepted_at.desc',
+          )) ||
+          (await restSelectOne(
+            'patients_queue',
+            'id,journey_id,accepted_at',
+            [['phone_3', `eq.${p}`], ['accepted_at', 'not.is.null']],
+            'accepted_at.desc',
+          )) ||
+          (await restSelectOne(
+            'patients_queue',
+            'id,journey_id,accepted_at',
+            [['phone_number', `eq.${p}`], ['status', 'in.(queued,sending,delivered)']],
+            'created_at.desc',
+          )) ||
+          (await restSelectOne(
+            'patients_queue',
+            'id,journey_id,accepted_at',
+            [['phone_2', `eq.${p}`], ['status', 'in.(queued,sending,delivered)']],
+            'created_at.desc',
+          )) ||
+          (await restSelectOne(
+            'patients_queue',
+            'id,journey_id,accepted_at',
+            [['phone_3', `eq.${p}`], ['status', 'in.(queued,sending,delivered)']],
+            'created_at.desc',
+          ))
 
       if (queueMessage) {
         return {
           messageId: queueMessage.id,
           journeyId: queueMessage.journey_id,
         }
+      }
+    }
+  }
+
+  if (toPhone) {
+    const v8 = toPhone.length === 13 ? toPhone.substring(0, 4) + toPhone.substring(5) : toPhone
+    const phonesToTry = [toPhone, v8]
+
+    for (const p of phonesToTry) {
+      const journey = await restSelectOne(
+        'patient_journeys',
+        'id',
+        [['canonical_phone', `eq.${p}`]],
+        'created_at.desc',
+      )
+
+      if (journey?.id) {
+        return { messageId: null, journeyId: journey.id }
       }
     }
   }
@@ -352,21 +417,39 @@ async function resolveMessageId(messageId: string | null, toPhone: string | null
     const row =
       (await restSelectOne(
         'patients_queue',
-        'id,send_accepted_at',
-        [['phone_number', `eq.${p}`], ['send_accepted_at', 'not.is.null']],
-        'send_accepted_at.desc',
+        'id,accepted_at',
+        [['phone_number', `eq.${p}`], ['accepted_at', 'not.is.null']],
+        'accepted_at.desc',
       )) ||
       (await restSelectOne(
         'patients_queue',
-        'id,send_accepted_at',
-        [['phone_2', `eq.${p}`], ['send_accepted_at', 'not.is.null']],
-        'send_accepted_at.desc',
+        'id,accepted_at',
+        [['phone_2', `eq.${p}`], ['accepted_at', 'not.is.null']],
+        'accepted_at.desc',
       )) ||
       (await restSelectOne(
         'patients_queue',
-        'id,send_accepted_at',
-        [['phone_3', `eq.${p}`], ['send_accepted_at', 'not.is.null']],
-        'send_accepted_at.desc',
+        'id,accepted_at',
+        [['phone_3', `eq.${p}`], ['accepted_at', 'not.is.null']],
+        'accepted_at.desc',
+      )) ||
+      (await restSelectOne(
+        'patients_queue',
+        'id,accepted_at',
+        [['phone_number', `eq.${p}`], ['status', 'in.(queued,sending,delivered)']],
+        'created_at.desc',
+      )) ||
+      (await restSelectOne(
+        'patients_queue',
+        'id,accepted_at',
+        [['phone_2', `eq.${p}`], ['status', 'in.(queued,sending,delivered)']],
+        'created_at.desc',
+      )) ||
+      (await restSelectOne(
+        'patients_queue',
+        'id,accepted_at',
+        [['phone_3', `eq.${p}`], ['status', 'in.(queued,sending,delivered)']],
+        'created_at.desc',
       ))
 
     if (row) return String(row.id)
@@ -375,13 +458,25 @@ async function resolveMessageId(messageId: string | null, toPhone: string | null
   return null
 }
 
+async function resolveMessageIdByProvider(providerMessageId: string | null): Promise<string | null> {
+  if (!providerMessageId) return null
+  const row = await restSelectOne(
+    'patients_queue',
+    'id',
+    [['provider_message_id', `eq.${providerMessageId}`]],
+  )
+  return row?.id ? String(row.id) : null
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
 
   if (req.method !== 'POST') return json(405, { success: false, error: 'Method not allowed' })
 
-  const secretErr = requireWebhookSecret(req)
-  if (secretErr) return json(401, { success: false, error: 'Unauthorized' })
+  const secretError = requireWebhookSecret(req)
+  if (secretError) {
+    return json(401, { success: false, error: secretError })
+  }
 
   try {
     const payload = await req.json().catch(() => ({}))
@@ -404,12 +499,16 @@ Deno.serve(async (req: Request) => {
 
     const providerMessageId = extractProviderMessageId(payload)
     const toPhone = extractToPhone(payload)
+    const providerChatId = extractProviderChatId(payload)
     const instanceId = extractInstanceId(payload)
     const eventAt = new Date().toISOString()
 
     const { messageId: journeyMessageId, journeyId } = await resolveJourneyMessage(providerMessageId, toPhone)
 
-    const resolvedMessageId = await resolveMessageId(extractMessageId(payload), toPhone)
+    let resolvedMessageId = await resolveMessageId(extractMessageId(payload), toPhone)
+    if (!resolvedMessageId) {
+      resolvedMessageId = await resolveMessageIdByProvider(providerMessageId)
+    }
 
     await restInsert('message_events', {
       message_id: resolvedMessageId || journeyMessageId,
@@ -422,53 +521,109 @@ Deno.serve(async (req: Request) => {
 
     if (journeyMessageId && journeyId) {
       await updateMessageLifecycle(journeyMessageId, eventType, eventAt)
+    }
+
+    if (journeyId) {
       await updateJourneyStatus(journeyId, eventType, eventAt)
     }
 
-    if (resolvedMessageId) {
-      if (eventType === 'delivered') {
+    if (eventType === 'delivered') {
+      if (resolvedMessageId) {
         await restPatch('patients_queue', { id: resolvedMessageId }, {
           delivered_at: eventAt,
           last_delivery_status: 'delivered',
+          status: 'delivered',
+          locked_by: null,
+          locked_at: null,
         })
-      } else if (eventType === 'read') {
+      }
+    } else if (eventType === 'read') {
+      if (resolvedMessageId) {
         await restPatch('patients_queue', { id: resolvedMessageId }, { read_at: eventAt })
-      } else if (eventType === 'replied') {
+      }
+    } else if (eventType === 'replied') {
+      if (resolvedMessageId) {
         await restPatch('patients_queue', { id: resolvedMessageId }, { replied_at: eventAt })
-        
-        // AUTO-TRIGGER CLASSIFICATION ON REPLY
-        if (journeyId && resolvedMessageId) {
-          try {
-            const messageBody = extractPatientMessageBody(payload as any)
-            if (messageBody && messageBody.trim().length > 0) {
-              console.log(`[evolution-webhook] Auto-triggering classification for message ${resolvedMessageId}, journey ${journeyId}`)
-              
-              const classifyUrl = `${getSupabase().supabaseUrl}/functions/v1/classify-message`
-              const classifyRes = await fetch(classifyUrl, {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                  Authorization: `Bearer ${Deno.env.get('SUPABASE_ANON_KEY')}`,
-                },
-                body: JSON.stringify({
-                  message_id: resolvedMessageId,
-                  journey_id: journeyId,
-                  message_body: messageBody,
-                }),
+      }
+
+      if (journeyId) {
+        try {
+          const inboundMessage = extractPatientMessageBody(payload as any)
+          const normalizedPhone = toPhone || normalizePhone(providerChatId)
+
+          if (normalizedPhone && providerMessageId) {
+            const existingInbound = await restSelectOne(
+              'journey_messages',
+              'id',
+              [['provider_message_id', `eq.${providerMessageId}`]],
+            )
+
+            if (!existingInbound) {
+              await restInsert('journey_messages', {
+                journey_id: journeyId,
+                direction: 'inbound',
+                message_kind: 'patient_reply',
+                provider_name: 'evolution',
+                provider_message_id: providerMessageId,
+                provider_chat_id: providerChatId,
+                phone_number: normalizedPhone,
+                message_body: inboundMessage,
+                status: 'replied',
+                replied_at: eventAt,
               })
-              
-              if (!classifyRes.ok) {
-                const errorText = await classifyRes.text().catch(() => '')
-                console.error(`[evolution-webhook] Classification failed: ${classifyRes.status} ${errorText}`)
-              } else {
-                console.log(`[evolution-webhook] Classification triggered successfully for message ${resolvedMessageId}`)
-              }
+
+              await restInsert('journey_events', {
+                journey_id: journeyId,
+                message_id: null,
+                event_type: 'patient_reply',
+                event_at: eventAt,
+                source: 'webhook',
+                payload: {
+                  provider_message_id: providerMessageId,
+                  phone_number: normalizedPhone,
+                },
+              })
             }
-          } catch (e: any) {
-            console.error(`[evolution-webhook] Error triggering classification: ${e?.message}`, e)
           }
+        } catch (e: any) {
+          console.error(`[evolution-webhook] Error saving inbound reply: ${e?.message}`, e)
         }
-      } else if (eventType === 'failed') {
+      }
+      
+      // AUTO-TRIGGER CLASSIFICATION ON REPLY
+      if (journeyId && resolvedMessageId) {
+        try {
+          const messageBody = extractPatientMessageBody(payload as any)
+          if (messageBody && messageBody.trim().length > 0) {
+            console.log(`[evolution-webhook] Auto-triggering classification for message ${resolvedMessageId}, journey ${journeyId}`)
+            
+            const classifyUrl = `${getSupabase().supabaseUrl}/functions/v1/classify-message`
+            const classifyRes = await fetch(classifyUrl, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${Deno.env.get('SUPABASE_ANON_KEY')}`,
+              },
+              body: JSON.stringify({
+                message_id: resolvedMessageId,
+                journey_id: journeyId,
+                message_body: messageBody,
+              }),
+            })
+            
+            if (!classifyRes.ok) {
+              const errorText = await classifyRes.text().catch(() => '')
+              console.error(`[evolution-webhook] Classification failed: ${classifyRes.status} ${errorText}`)
+            } else {
+              console.log(`[evolution-webhook] Classification triggered successfully for message ${resolvedMessageId}`)
+            }
+          }
+        } catch (e: any) {
+          console.error(`[evolution-webhook] Error triggering classification: ${e?.message}`, e)
+        }
+      }
+    } else if (eventType === 'failed') {
+      if (resolvedMessageId) {
         await restPatch('patients_queue', { id: resolvedMessageId }, {
           last_delivery_status: 'failed',
           needs_second_call: true,

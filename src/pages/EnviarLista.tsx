@@ -5,7 +5,15 @@ import { Textarea } from '@/components/ui/textarea'
 import { Input } from '@/components/ui/input'
 import { useToast } from '@/hooks/use-toast'
 import { formatDataExameBr, isValidDataExame, normalizeDataExame } from '@/lib/utils/data-exame'
-import { Loader2, Wand2, RefreshCw, CheckCircle2, AlertTriangle, AlertCircle, MessageSquare } from 'lucide-react'
+import {
+  Loader2,
+  Wand2,
+  RefreshCw,
+  CheckCircle2,
+  AlertTriangle,
+  AlertCircle,
+  MessageSquare,
+} from 'lucide-react'
 import { normalizePhone } from '../../packages/shared/index.ts'
 import { WhatsAppInstance } from '@/types'
 import { evolutionApi } from '@/services/evolution'
@@ -108,23 +116,68 @@ export default function EnviarLista() {
   const [result, setResult] = useState<{ agenda_date?: string; patients: PatientAgendaItem[] } | null>(null)
   const [instances, setInstances] = useState<WhatsAppInstance[]>([])
   const [selectedInstanceId, setSelectedInstanceId] = useState<string | null>(null)
+  const [refreshingInstances, setRefreshingInstances] = useState(false)
 
   useEffect(() => {
+    let mounted = true
+
     const loadInstances = async () => {
       try {
         const data = await evolutionApi.getInstances()
         const connected = data.filter((i) => i.status === 'connected')
+        if (!mounted) return
         setInstances(connected)
-        if (connected.length > 0) {
-          // Pré-seleciona a primeira se não houver selecionada
-          setSelectedInstanceId(connected[0].id)
-        }
+        setSelectedInstanceId((current) => {
+          if (current && connected.some((inst) => inst.id === current)) {
+            return current
+          }
+          return connected[0]?.id ?? null
+        })
       } catch (e) {
         console.error('Erro ao carregar instâncias', e)
       }
     }
+
     loadInstances()
+
+    const channel = supabase
+      .channel('wa-instances-send-list')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'whatsapp_instances' },
+        async () => {
+          if (!mounted) return
+          await loadInstances()
+        },
+      )
+      .subscribe()
+
+    return () => {
+      mounted = false
+      supabase.removeChannel(channel)
+    }
   }, [])
+
+  const handleRefreshChannels = async () => {
+    try {
+      setRefreshingInstances(true)
+      await evolutionApi.syncWithWebhook()
+      const data = await evolutionApi.getInstances()
+      const connected = data.filter((i) => i.status === 'connected')
+      setInstances(connected)
+      setSelectedInstanceId((current) => {
+        if (current && connected.some((inst) => inst.id === current)) {
+          return current
+        }
+        return connected[0]?.id ?? null
+      })
+      toast({ description: 'Canais sincronizados.', variant: 'default' })
+    } catch (err: any) {
+      toast({ description: err?.message || 'Falha ao sincronizar canais.', variant: 'destructive' })
+    } finally {
+      setRefreshingInstances(false)
+    }
+  }
 
   const issues = useMemo(() => hasBlockingIssues(result?.patients || []), [result])
 
@@ -220,6 +273,11 @@ export default function EnviarLista() {
         const { data, error } = await (supabase.rpc as any)('enqueue_patient', {
           p_patient_name: p.patient_name,
           p_phone_number: phoneNormalized,
+          p_status: 'queued',
+          p_is_approved: true,
+          p_send_after: new Date().toISOString(),
+          p_notes: 'Aprovado via Enviar Lista',
+          p_attempt_count: 0,
           p_phone_2: phone2Normalized,
           p_phone_3: phone3Normalized,
           p_data_nascimento: p.Data_nascimento,
@@ -230,6 +288,8 @@ export default function EnviarLista() {
           p_data_exame: dataIso,
           p_message_body: p.message_body,
           p_locked_instance_id: selectedInstanceId,
+          p_phone_attempt_index: 1,
+          p_last_phone_used: phoneNormalized,
         })
 
         const rpcResult = Array.isArray(data) ? data[0] : data
@@ -305,23 +365,42 @@ export default function EnviarLista() {
           </div>
 
           <div className="space-y-2">
-            <label className="text-xs font-medium text-slate-200">Canal de WhatsApp (Instância)</label>
+            <div className="flex flex-col md:flex-row md:items-center md:gap-3">
+              <label className="text-xs font-medium text-slate-200">Canal de WhatsApp (Instância)</label>
+              <Button
+                onClick={handleRefreshChannels}
+                disabled={refreshingInstances}
+                variant="outline"
+                className="mt-2 md:mt-0 rounded-xl border-white/20 text-white flex items-center gap-2 text-xs"
+              >
+                {refreshingInstances ? (
+                  <Loader2 className="w-3 h-3 animate-spin" />
+                ) : (
+                  <RefreshCw className="w-3 h-3" />
+                )}
+                {refreshingInstances ? 'Sincronizando...' : 'Atualizar canais'}
+              </Button>
+            </div>
             <Select
               value={selectedInstanceId || undefined}
               onValueChange={(val) => setSelectedInstanceId(val)}
             >
               <SelectTrigger className="bg-black/30 border-white/10 text-white">
-                <SelectValue placeholder={instances.length === 0 ? "Nenhum canal conectado" : "Selecione o canal..."} />
+                <SelectValue placeholder={instances.length === 0 ? 'Nenhum canal conectado' : 'Selecione o canal...'} />
               </SelectTrigger>
               <SelectContent className="bg-[#1a1b1e] border-white/10 text-white">
                 {instances.length === 0 ? (
-                  <SelectItem value="none" disabled>Nenhum canal conectado</SelectItem>
+                  <SelectItem value="none" disabled>
+                    Nenhum canal conectado
+                  </SelectItem>
                 ) : (
                   instances.map((inst: any) => (
                     <SelectItem key={inst.id} value={inst.id}>
                       <div className="flex items-center gap-2">
                         <MessageSquare className="w-4 h-4 text-emerald-400" />
-                        <span>{inst.instanceName} {inst.phoneNumber ? `(${inst.phoneNumber})` : ''}</span>
+                        <span>
+                          {inst.instanceName} {inst.phoneNumber ? `(${inst.phoneNumber})` : ''}
+                        </span>
                       </div>
                     </SelectItem>
                   ))

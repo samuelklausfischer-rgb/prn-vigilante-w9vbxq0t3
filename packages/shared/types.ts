@@ -199,21 +199,21 @@ export interface SystemConfig {
 /** Instância de WhatsApp registrada */
 export interface WhatsAppInstance {
   id: string
-  slot_id: number
-  instance_name?: string | null
-  phone_number?: string | null
+  slotId: number
+  instanceName?: string | null
+  phoneNumber?: string | null
   status: InstanceStatus
-  connected_at?: string | null
-  messages_received?: number | null
-  chats_count?: number | null
-  profile_pic_url?: string | null
-  created_at: string
-  updated_at: string
+  connectedAt?: string | null
+  messagesReceived?: number | null
+  chatsCount?: number | null
+  profilePicUrl?: string | null
+  createdAt?: string
+  updatedAt?: string
 
   // Campos da automação
-  last_message_at?: string | null
-  messages_sent_count?: number | null
-  rotation_index?: number | null
+  lastMessageAt?: string | null
+  messagesSentCount?: number | null
+  rotationIndex?: number | null
 }
 
 /** Log de auditoria de envio */
@@ -389,12 +389,15 @@ export interface StrategicFollowupRow {
   last_message_status?: MessageLifecycleStatus | null
   last_event_type?: string | null
   last_event_at?: string | null
+  last_inbound_at?: string | null
+  last_inbound_message?: string | null
   minutes_since_last_touch?: number | null
   followup_due: boolean
   followup_sent: boolean
   has_reply: boolean
   latest_classification?: QualificationClass | null
   latest_summary?: string | null
+  crm_bucket?: string | null
   needs_manual_action: boolean
   vacancy_signal: boolean
   manual_priority?: ManualPriority | null
@@ -467,6 +470,10 @@ export interface ClaimedMessage {
   phone_2_whatsapp_valid?: boolean | null
   /** Phone 3 foi verificado e tem WhatsApp válido */
   phone_3_whatsapp_valid?: boolean | null
+  /** Resultado do último check proativo de WhatsApp */
+  whatsapp_valid?: boolean | null
+  /** Timestamp do último check proativo de WhatsApp */
+  whatsapp_checked_at?: string | null
   /** Formato validado no WhatsApp: '9_digits' ou '8_digits' */
   whatsapp_validated_format?: '9_digits' | '8_digits' | null
 }
@@ -557,7 +564,12 @@ export interface AntiBanConfig {
 // ============================================
 
 /** Coluna do Kanban */
-export type KanbanColumn = 'aguardando_envio' | 'em_contato' | 'respostas' | 'critico' | 'confirmados'
+export type KanbanColumn =
+  | 'mensagem_recebida'
+  | 'em_andamento'
+  | 'cancelou'
+  | 'concluido'
+  | 'reagendar'
 
 /** Card do Kanban — representa um paciente no board */
 export interface KanbanCard {
@@ -569,6 +581,13 @@ export interface KanbanCard {
   journey_status: JourneyStatus
   latest_classification?: QualificationClass | null
   latest_summary?: string | null
+  last_inbound_message?: string | null
+  last_inbound_at?: string | null
+  crm_bucket?: string | null
+  last_message_kind?: MessageKind | null
+  last_message_status?: MessageLifecycleStatus | null
+  last_event_type?: string | null
+  last_event_at?: string | null
   vacancy_signal: boolean
   phone_ladder_exhausted: boolean
   minutes_since_last_touch: number | null
@@ -579,17 +598,18 @@ export interface KanbanCard {
   instance_name?: string | null
   current_instance_id?: string | null
   current_instance_name?: string | null
-  last_message_kind?: MessageKind | null
-  last_message_status?: MessageLifecycleStatus | null
   manual_priority?: ManualPriority | null
   has_reply: boolean
+  followup_due?: boolean
+  followup_sent?: boolean
+  needs_manual_action?: boolean
 }
 
 /** Dados completos do board Kanban */
 export interface KanbanBoardData {
-  aguardando_envio: KanbanCard[]
-  em_contato: KanbanCard[]
-  respostas: KanbanCard[]
-  critico: KanbanCard[]
-  confirmados: KanbanCard[]
+  mensagem_recebida: KanbanCard[]
+  em_andamento: KanbanCard[]
+  cancelou: KanbanCard[]
+  concluido: KanbanCard[]
+  reagendar: KanbanCard[]
 }

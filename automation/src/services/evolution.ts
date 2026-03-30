@@ -351,39 +351,90 @@ export async function fetchMessageHistory(
   phoneNumber: string,
   limit = 10
 ): Promise<any[]> {
+  const cleanNumber = sanitizeBrazilianNumber(phoneNumber)
+  const encodedInstance = encodeURIComponent(instanceName)
+  const encodedNumber = encodeURIComponent(cleanNumber)
+  const remoteJid = `${cleanNumber}@s.whatsapp.net`
+  const override = process.env.EVOLUTION_HISTORY_ENDPOINTS
+  const endpoints = override
+    ? override.split(',').map((e) => ({ path: e.trim(), method: 'GET' as const, body: undefined }))
+    : [
+        {
+          path: `/chat/findMessages/${encodedInstance}`,
+          method: 'POST' as const,
+          body: {
+            where: {
+              key: {
+                remoteJid,
+              },
+            },
+          },
+        },
+        {
+          path: `/message/history/${encodedInstance}`,
+          method: 'GET' as const,
+          body: undefined,
+        },
+        {
+          path: `/message/findMessages/${encodedInstance}?number=${encodedNumber}&limit=${limit}`,
+          method: 'GET' as const,
+          body: undefined,
+        },
+        {
+          path: `/message/findMessages/${encodedInstance}?limit=${limit}`,
+          method: 'GET' as const,
+          body: undefined,
+        },
+      ]
+
+  const normalizeMessages = (data: any): any[] => {
+    if (Array.isArray(data)) return data
+    if (Array.isArray(data?.messages)) return data.messages
+    if (Array.isArray(data?.data)) return data.data
+    if (Array.isArray(data?.response)) return data.response
+    return []
+  }
+
   try {
-    const data = await callEvolution(
-      `/message/history/${instanceName}`,
-      { method: 'GET' },
-      5000
-    )
-    
-    if (!Array.isArray(data)) {
-      console.warn(`[${timestamp()}] ⚠️ Histórico não é array`, {
-        instanceName,
-        phone: maskPhone(phoneNumber),
-        dataType: typeof data,
-      })
-      return []
+    for (const endpoint of endpoints) {
+      try {
+        const data = await callEvolution(
+          endpoint.path,
+          {
+            method: endpoint.method,
+            body: endpoint.body ? JSON.stringify(endpoint.body) : undefined,
+          },
+          5000,
+        )
+        const rawMessages = normalizeMessages(data)
+
+        const messages = rawMessages
+          .filter((msg: any) => {
+            const remoteNumber = msg.key?.remoteJid?.split('@')[0] || msg?.jid || ''
+            return sanitizeBrazilianNumber(remoteNumber) === cleanNumber
+          })
+          .slice(0, limit)
+
+          console.log(`[${timestamp()}] 📋 Histórico obtido`, {
+            instanceName,
+            phone: maskPhone(phoneNumber),
+            endpoint: endpoint.path,
+            totalMessages: rawMessages.length,
+            filteredMessages: messages.length,
+            statuses: messages.map((m) => m.status),
+          })
+
+          return messages
+      } catch (error: any) {
+        const status = error?.status
+        if (status === 404 || status === 405 || status === 401 || status === 403) {
+          console.warn(`[${timestamp()}] ⚠️ Endpoint ${endpoint} não disponível, tentando próximo...`)
+          continue
+        }
+        throw error
+      }
     }
-    
-    const cleanNumber = sanitizeBrazilianNumber(phoneNumber)
-    const messages = data
-      .filter((msg: any) => {
-        const remoteNumber = msg.key?.remoteJid?.split('@')[0] || ''
-        return sanitizeBrazilianNumber(remoteNumber) === cleanNumber
-      })
-      .slice(0, limit)
-    
-    console.log(`[${timestamp()}] 📋 Histórico obtido`, {
-      instanceName,
-      phone: maskPhone(phoneNumber),
-      totalMessages: data.length,
-      filteredMessages: messages.length,
-      statuses: messages.map((m) => m.status),
-    })
-    
-    return messages
+    return []
   } catch (error) {
     console.error(`[${timestamp()}] ❌ Falha ao buscar histórico`, {
       instanceName,
@@ -457,15 +508,42 @@ export async function syncDeliveryStatus(
       if (status === 'delivered' || status === 'success') {
         const deliveredAt = new Date(foundMessage?.timestamp || Date.now()).toISOString()
         
+        // Fechamento completo do ciclo: status, locks e message_logs
+        const durationMs = foundMessage?.timestamp 
+          ? Date.now() - new Date(foundMessage.timestamp).getTime()
+          : undefined
+        
+        // 1. Atualizar status e liberar lock
         await supabase
           .from('patients_queue')
           .update({ 
             delivered_at: deliveredAt,
-            last_delivery_status: 'delivered'
+            last_delivery_status: 'delivered',
+            status: 'delivered',
+            locked_by: null,
+            locked_at: null,
+            updated_at: new Date().toISOString()
           })
           .eq('id', patientId)
         
-        console.log(`[${now}] ✅ Sync: delivered_at atualizado via polling`, {
+        // 2. Registrar em message_logs
+        await supabase
+          .from('message_logs')
+          .insert({
+            message_id: patientId,
+            instance_id: null,
+            sent_at: foundMessage?.timestamp 
+              ? new Date(foundMessage.timestamp).toISOString() 
+              : new Date().toISOString(),
+            status: 'delivered',
+            error_message: null,
+            retry_count: attemptNum - 1,
+            phone_masked: maskPhone(phoneNumber),
+            patient_hash: 'polling-sync',
+            duration_ms: durationMs,
+          })
+        
+        console.log(`[${now}] ✅ Sync: mensagem finalizada via polling`, {
           patientId,
           phone: maskPhone(phoneNumber),
           deliveredAt,

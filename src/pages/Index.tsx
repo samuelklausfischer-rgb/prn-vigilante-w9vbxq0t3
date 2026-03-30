@@ -8,7 +8,10 @@ import { DispatchControl } from '@/components/DispatchControl'
 import { AddPatientModal } from '@/components/AddPatientModal'
 import { PatientQueue } from '@/types'
 import { useToast } from '@/hooks/use-toast'
+import { fetchNextDispatchTime } from '@/services/data'
 import { Send, Clock, Layers, Loader2, Activity, UserPlus, RefreshCw } from 'lucide-react'
+import { format, isSameDay } from 'date-fns'
+import { ptBR } from 'date-fns/locale'
 import { Button } from '@/components/ui/button'
 import {
   AlertDialog,
@@ -28,9 +31,27 @@ export default function Index() {
   const [editingItem, setEditingItem] = useState<PatientQueue | null>(null)
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
   const [cancelId, setCancelId] = useState<string | null>(null)
+  const [nextDispatchOverride, setNextDispatchOverride] = useState<{ label: string; trend: string } | null>(null)
 
   const pendingCount = items.filter((i) => i.status === 'queued').length
   const sendingCount = items.filter((i) => i.status === 'sending').length
+
+  const computeNextDispatch = (sendAfter: string | null) => {
+    if (!sendAfter) return { label: 'Sem fila', trend: 'Nenhum agendamento' }
+    const next = new Date(sendAfter)
+    if (Number.isNaN(next.getTime())) return { label: 'Sem fila', trend: 'Nenhum agendamento' }
+
+    const now = new Date()
+    if (next.getTime() <= now.getTime()) return { label: 'Agora', trend: 'Pronto para disparar' }
+
+    const label = isSameDay(next, now)
+      ? format(next, 'HH:mm', { locale: ptBR })
+      : format(next, 'dd/MM HH:mm', { locale: ptBR })
+
+    return { label, trend: 'Agendado' }
+  }
+
+  const nextDispatch = nextDispatchOverride ?? { label: 'Clique em Atualizar', trend: 'Atualize o painel' }
 
   const handleToggleApprove = async (id: string, current: boolean) => {
     const success = await updateQueueItem(id, { is_approved: !current })
@@ -68,6 +89,12 @@ export default function Index() {
     setCancelId(null)
   }
 
+  const handleRefresh = async () => {
+    await refetch()
+    const next = await fetchNextDispatchTime()
+    setNextDispatchOverride(computeNextDispatch(next))
+  }
+
   if (loading && items.length === 0) {
     return (
       <div className="flex h-64 items-center justify-center text-muted-foreground">
@@ -81,7 +108,7 @@ export default function Index() {
       {/* ── Centro de Controle (Start/Pause) ── */}
       <DispatchControl config={config} onToggle={toggleSystemPause} />
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <StatCard
           title="Volume em Espera"
           value={pendingCount.toString()}
@@ -89,6 +116,13 @@ export default function Index() {
           trend={pendingCount > 10 ? 'Alto tráfego' : 'Estável'}
           trendUp={false}
           alert={pendingCount > 50}
+        />
+        <StatCard
+          title="Próximo Disparo"
+          value={nextDispatch.label}
+          icon={<Send className="w-6 h-6" />}
+          trend={nextDispatch.trend}
+          trendUp={true}
         />
         <StatCard
           title="Execução Ativa"
@@ -118,7 +152,7 @@ export default function Index() {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => refetch()}
+            onClick={handleRefresh}
             disabled={loading}
             className="hidden sm:flex items-center gap-2 text-[10px] font-mono text-blue-400 bg-blue-400/10 px-4 py-2 rounded-full border border-blue-400/20 uppercase tracking-widest hover:bg-blue-400/20 transition-all shadow-[0_0_15px_rgba(59,130,246,0.15)]"
           >

@@ -1,29 +1,36 @@
 import { supabase } from '@/lib/supabase/client'
 import { WhatsAppInstance } from '@/types'
 
-// Lê as credenciais da Evolution API do .env (VITE_ é exposto pelo Vite ao navegador)
-const EVOLUTION_API_URL = import.meta.env.VITE_EVOLUTION_API_URL || 'http://localhost:8080'
-const EVOLUTION_API_KEY = import.meta.env.VITE_EVOLUTION_API_KEY || ''
+type EvolutionProxyAction =
+  | 'fetchInstances'
+  | 'fetchChats'
+  | 'connectInstance'
+  | 'connectionState'
+  | 'createInstance'
+  | 'logoutInstance'
+  | 'deleteInstance'
 
-/**
- * Helper para chamar a Evolution API diretamente do navegador.
- * Como o Docker roda na mesma máquina, o browser acessa localhost:8080 sem problemas.
- */
-async function callEvolution(path: string, options: RequestInit = {}) {
-  const url = `${EVOLUTION_API_URL}${path}`
-  const res = await fetch(url, {
-    ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      apikey: EVOLUTION_API_KEY,
-      ...options.headers,
-    },
+type EvolutionProxyResponse<T = unknown> = {
+  success: boolean
+  data?: T
+  error?: string
+}
+
+async function callEvolutionProxy<T = unknown>(action: EvolutionProxyAction, payload: Record<string, unknown> = {}): Promise<T> {
+  const { data, error } = await supabase.functions.invoke<EvolutionProxyResponse<T>>('evolution-proxy', {
+    body: { action, ...payload },
   })
-  if (!res.ok) {
-    const errorBody = await res.text().catch(() => '')
-    throw new Error(`Evolution API [${res.status}]: ${errorBody}`)
+
+  if (error) {
+    const message = String(error.message || 'Falha ao chamar Edge Function evolution-proxy')
+    throw new Error(message)
   }
-  return res.json()
+
+  if (!data?.success) {
+    throw new Error(data?.error || 'Falha ao executar operação na Evolution API')
+  }
+
+  return data.data as T
 }
 
 export const evolutionApi = {
@@ -55,17 +62,13 @@ export const evolutionApi = {
   },
 
   /**
-   * Sincroniza as instâncias REAIS direto da Evolution API (Docker local)
-   * e salva no Supabase para manter o banco como "cache" atualizado.
-   * ANTES: isso passava por uma Edge Function + Cloudflare Tunnel (ponte quebrada).
-   * AGORA: o navegador chama localhost:8080 diretamente. ZERO pontes.
+   * Sincroniza as instâncias reais usando a Edge Function evolution-proxy
+   * e mantém o Supabase como cache local para o dashboard/worker.
    */
   async syncWithWebhook(): Promise<{ success: boolean; message?: string }> {
     try {
-      // 1. Chama a Evolution API diretamente do navegador
-      const rawData = await callEvolution('/instance/fetchInstances')
+      const rawData = await callEvolutionProxy<any>('fetchInstances')
 
-      // A Evolution pode retornar um array direto ou um objeto com .data
       let instances = Array.isArray(rawData)
         ? rawData
         : rawData?.data || rawData?.instances || [rawData]
@@ -75,7 +78,6 @@ export const evolutionApi = {
         return { success: true, message: 'Nenhuma instância encontrada na Evolution API.' }
       }
 
-      // 2. Lê os slots existentes no banco
       const { data: existingSlots } = await supabase
         .from('whatsapp_instances')
         .select('slot_id, instance_name')
@@ -95,7 +97,6 @@ export const evolutionApi = {
         return nextAvailableSlot
       }
 
-      // 3. Mapeia os dados e busca métricas extras para instâncias conectadas
       const toUpsert = await Promise.all(
         instances.map(async (rawInst: any) => {
           const inst = rawInst.instance || rawInst
@@ -138,16 +139,13 @@ export const evolutionApi = {
             }
           }
 
-          // Busca métricas se estiver conectado
           let chats_count = 0
           let messages_received = 0
           if (status === 'connected') {
             try {
-              // Busca chats (conversa ativas)
-              const chats = await callEvolution(`/chat/fetchChats/${instanceName}`)
+              const chats = await callEvolutionProxy<any[]>('fetchChats', { instanceName })
               chats_count = Array.isArray(chats) ? chats.length : 0
-              
-              // Tenta pegar contagem do objeto da instância se a Evolution v2 expuser
+
               messages_received = inst._count?.messages ?? inst.count?.messages ?? 0
             } catch (e) {
               console.warn(`Erro ao buscar métricas para ${instanceName}:`, e)
@@ -168,20 +166,20 @@ export const evolutionApi = {
           }
         }),
       )
-      
+
       const cleanUpsert = toUpsert.filter(Boolean) as any[]
 
-      // 4. Hard Sync: Remove do banco instâncias que NÃO existem na Evolution
-      const namesInEvolution = cleanUpsert.map(u => u.instance_name);
-      
-      const { error: deleteError } = await supabase
-        .from('whatsapp_instances')
-        .delete()
-        .not('instance_name', 'in', `(${namesInEvolution.map(n => `"${n}"`).join(',')})`);
+      const namesInEvolution = cleanUpsert.map((u) => u.instance_name)
 
-      if (deleteError) console.warn('Erro ao limpar instâncias órfãs:', deleteError);
+      if (namesInEvolution.length > 0) {
+        const { error: deleteError } = await supabase
+          .from('whatsapp_instances')
+          .delete()
+          .not('instance_name', 'in', `(${namesInEvolution.map((n) => `"${n}"`).join(',')})`)
 
-      // 5. Upsert das instâncias atuais com métricas
+        if (deleteError) console.warn('Erro ao limpar instâncias órfãs:', deleteError)
+      }
+
       if (cleanUpsert.length > 0) {
         const { error } = await (supabase
           .from('whatsapp_instances') as any)
@@ -195,14 +193,11 @@ export const evolutionApi = {
       console.warn('Sync error:', err)
       return {
         success: false,
-        message: err.message || 'Erro ao sincronizar instâncias. Verifique se o Docker está ativo.',
+        message: err.message || 'Erro ao sincronizar instâncias com a Evolution.',
       }
     }
   },
 
-  /**
-   * Gera QR Code real para uma instância chamando a Evolution API diretamente.
-   */
   async getQrCode(slotId: number): Promise<string> {
     const { data } = (await supabase
       .from('whatsapp_instances')
@@ -212,36 +207,28 @@ export const evolutionApi = {
 
     const instanceName = data?.instance_name
     if (!instanceName) {
-      return `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=error-no-instance-${slotId}`
+      throw new Error(`Instância não encontrada para o slot ${slotId}`)
     }
 
-    try {
-      const result = await callEvolution(`/instance/connect/${instanceName}`)
-      if (result?.base64) return result.base64
-      if (result?.code) {
-        return `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(result.code)}`
-      }
-    } catch (e) {
-      console.warn('Falha ao pegar QR direto da Evolution:', e)
+    const result = await callEvolutionProxy<any>('connectInstance', { instanceName })
+    if (result?.base64) return result.base64
+    if (result?.code) {
+      return `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(result.code)}`
     }
 
-    return `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=evolution-auth-${instanceName}-${Date.now()}`
+    throw new Error('QR Code não disponível para esta instância')
   },
 
-  /**
-   * Consulta o status real de uma instância específica na Evolution API.
-   */
   async getInstanceStatus(instanceName: string): Promise<string> {
     try {
-      const data = await callEvolution(`/instance/connectionState/${instanceName}`)
+      const data = await callEvolutionProxy<any>('connectionState', { instanceName })
       return data?.instance?.state || data?.state || 'disconnected'
-    } catch (e) {
+    } catch (_error) {
       return 'disconnected'
     }
   },
 
   async disconnect(slotId: number): Promise<boolean> {
-    // Busca o nome da instância
     const { data } = (await supabase
       .from('whatsapp_instances')
       .select('instance_name')
@@ -250,13 +237,12 @@ export const evolutionApi = {
 
     if (data?.instance_name) {
       try {
-        await callEvolution(`/instance/logout/${data.instance_name}`, { method: 'DELETE' })
+        await callEvolutionProxy('logoutInstance', { instanceName: data.instance_name })
       } catch (e) {
         console.warn('Falha ao desconectar na Evolution:', e)
       }
     }
 
-    // Atualiza o banco independentemente
     const { error } = await (supabase
       .from('whatsapp_instances') as any)
       .update({ status: 'disconnected', connected_at: null } as any)
@@ -274,7 +260,7 @@ export const evolutionApi = {
 
     if (data?.instance_name) {
       try {
-        await callEvolution(`/instance/delete/${data.instance_name}`, { method: 'DELETE' })
+        await callEvolutionProxy('deleteInstance', { instanceName: data.instance_name })
       } catch (e) {
         console.warn('Falha ao deletar na Evolution:', e)
       }
@@ -290,22 +276,12 @@ export const evolutionApi = {
     phoneNumber: string,
   ): Promise<{ success: boolean; error?: string }> {
     try {
-      // 1. Cria a instância na Evolution API diretamente
-      const responseData = await callEvolution('/instance/create', {
-        method: 'POST',
-        body: JSON.stringify({
-          instanceName: name,
-          qrcode: true,
-          integration: 'WHATSAPP-BAILEYS',
-        }),
-      })
+      const responseData = await callEvolutionProxy<any>('createInstance', { instanceName: name })
 
-      // 2. Mapeia o status
       const apiStatus = responseData?.instance?.status || responseData?.status || 'disconnected'
       let mappedStatus = 'disconnected'
       if (['open', 'connected', 'CONNECTED'].includes(apiStatus)) mappedStatus = 'connected'
 
-      // 3. Salva no Supabase
       const { error: dbError } = await (supabase.from('whatsapp_instances') as any).upsert(
         {
           slot_id: slotId,

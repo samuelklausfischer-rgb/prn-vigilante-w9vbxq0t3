@@ -13,44 +13,39 @@ export async function fetchKanbanData(): Promise<KanbanBoardData> {
   } catch (e) {
     console.error('Error fetching kanban data:', e)
     return {
-      aguardando_envio: [],
-      em_contato: [],
-      respostas: [],
-      critico: [],
-      confirmados: [],
+      mensagem_recebida: [],
+      em_andamento: [],
+      cancelou: [],
+      concluido: [],
+      reagendar: [],
     }
   }
 }
 
 function categorizeRowsToKanban(rows: any[]): KanbanBoardData {
   const result: KanbanBoardData = {
-    aguardando_envio: [],
-    em_contato: [],
-    respostas: [],
-    critico: [],
-    confirmados: [],
+    mensagem_recebida: [],
+    em_andamento: [],
+    cancelou: [],
+    concluido: [],
+    reagendar: [],
   }
 
   for (const row of rows) {
     const card = rowToKanbanCard(row)
 
-    // REGRAS DE ATRIBUIÇÃO DE COLUNA
-    if (row.journey_status === 'queued') {
-      result.aguardando_envio.push(card)
-    } else if (row.journey_status === 'contacting' || row.journey_status === 'followup_sent') {
-      result.em_contato.push(card)
-    } else if (row.has_reply === true && row.journey_status !== 'confirmed') {
-      result.respostas.push(card)
-    } else if (row.phone_ladder_exhausted === true || row.journey_status === 'pending_manual') {
-      result.critico.push(card)
-    } else if (row.journey_status === 'confirmed') {
-      result.confirmados.push(card)
-    } else if (row.journey_status === 'delivered_waiting_reply') {
-      // Enviado mas sem resposta ainda - coloca em "Em Contato"
-      result.em_contato.push(card)
+    const bucket = String(row.crm_bucket || '').toLowerCase()
+
+    if (bucket === 'mensagem_recebida') {
+      result.mensagem_recebida.push(card)
+    } else if (bucket === 'cancelou') {
+      result.cancelou.push(card)
+    } else if (bucket === 'concluido') {
+      result.concluido.push(card)
+    } else if (bucket === 'reagendar') {
+      result.reagendar.push(card)
     } else {
-      // Fallback - vai para "Em Contato" por padrão
-      result.em_contato.push(card)
+      result.em_andamento.push(card)
     }
   }
 
@@ -62,6 +57,7 @@ function rowToKanbanCard(row: any): KanbanCard {
     journey_id: row.journey_id,
     patient_name: row.patient_name,
     canonical_phone: row.canonical_phone,
+    phone_attempt_index: row.current_phone_index ?? row.phone_attempt_index ?? 1,
     data_exame: row.data_exame,
     procedimentos: row.procedimentos,
     horario_inicio: row.horario_inicio,
@@ -77,12 +73,14 @@ function rowToKanbanCard(row: any): KanbanCard {
     has_reply: row.has_reply,
     latest_classification: row.latest_classification,
     latest_summary: row.latest_summary,
+    last_inbound_message: row.last_inbound_message,
+    last_inbound_at: row.last_inbound_at,
+    crm_bucket: row.crm_bucket,
     needs_manual_action: row.needs_manual_action,
     vacancy_signal: row.vacancy_signal,
     manual_priority: row.manual_priority,
     automation_notes: row.automation_notes,
     phone_ladder_exhausted: row.phone_ladder_exhausted,
-    current_phone_index: row.current_phone_index,
     current_instance_id: row.current_instance_id,
     current_instance_name: row.current_instance_name,
   }

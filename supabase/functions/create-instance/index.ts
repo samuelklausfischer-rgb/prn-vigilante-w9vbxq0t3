@@ -1,10 +1,11 @@
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
+import { corsHeaders } from '../_shared/cors.ts'
+import { callEvolution } from '../_shared/evolution-api.ts'
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-  'Access-Control-Allow-Headers':
-    'authorization, x-client-info, x-supabase-client-platform, apikey, content-type',
+type CreateInstanceBody = {
+  instanceName?: string
+  phoneNumber?: string
+  slotId?: number
 }
 
 Deno.serve(async (req: Request) => {
@@ -13,7 +14,7 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
-    const { instanceName, phoneNumber, slotId } = await req.json()
+    const { instanceName, phoneNumber, slotId } = (await req.json().catch(() => ({}))) as CreateInstanceBody
 
     if (!instanceName || !phoneNumber || slotId === undefined) {
       return new Response(
@@ -28,39 +29,14 @@ Deno.serve(async (req: Request) => {
       )
     }
 
-    // New webhook URL per acceptance criteria
-    const webhookUrl =
-      Deno.env.get('WEBHOOK_INSTANCE_CREATE_URL') ||
-      'https://edge-thompson-hoped-expenditure.trycloudflare.com/webhook-test/criarintancia'
-
-    const response = await fetch(webhookUrl, {
+    const data = await callEvolution('/instance/create', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Accept: 'application/json',
-      },
-      // Payload matching the requirements
       body: JSON.stringify({
-        instance_name: instanceName,
-        phone_number: phoneNumber,
-        slot_id: slotId,
+        instanceName,
+        qrcode: true,
+        integration: 'WHATSAPP-BAILEYS',
       }),
-    }).catch((e) => {
-      throw new Error(`Falha de rede ao contatar webhook: ${e.message}`)
     })
-
-    if (!response.ok) {
-      let errorMsg = `Webhook retornou status HTTP ${response.status}`
-      try {
-        const errData = await response.json()
-        errorMsg = errData.message || errData.error || errorMsg
-      } catch (_) {
-        // Fallback to default message if response isn't valid JSON
-      }
-      throw new Error(`Falha na API: ${errorMsg}`)
-    }
-
-    const data = await response.json().catch(() => ({}))
 
     return new Response(JSON.stringify({ success: true, data }), {
       headers: { 'Content-Type': 'application/json', ...corsHeaders },
