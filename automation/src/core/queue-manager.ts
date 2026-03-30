@@ -5,10 +5,12 @@ import {
   markMessageAccepted,
   markMessageDelivered,
   markMessageFailed,
+  deferMessageForInfra,
   refreshMessageLock,
   handlePhoneLadderEscalation,
   updateWhatsAppCheckResult,
   saveLockInstanceAffinity,
+  supabase,
 } from '../services/supabase'
 import {
   sendTextMessage,
@@ -17,14 +19,14 @@ import {
   validatePhoneForWhatsApp,
 } from '../services/evolution'
 import type { ClaimedMessage, SendResult } from '../types'
-import { hashText, maskPhone, timestamp } from '../utils/helpers'
+import { force8Digit, force9Digit, hashText, maskPhone, timestamp } from '../utils/helpers'
 import { InstanceSelector } from './instance-selector'
 import { Humanizer } from './humanizer'
 
 export interface ProcessResult {
   processed: boolean
   messageId?: string
-  status?: 'delivered' | 'failed' | 'skipped'
+  status?: 'delivered' | 'failed' | 'skipped' | 'deferred'
   reason?: string
 }
 
@@ -101,7 +103,8 @@ export class QueueManager {
       // ──────────────────────────────────────
       // 1. Validação de Instância (AFINIDADE ESTRITA)
       // ──────────────────────────────────────
-      const selectedInstance = await this.instanceSelector.resolveFromClaim(message)
+      const resolution = await this.instanceSelector.resolveFromClaim(message)
+      const selectedInstance = resolution.selected
 
       if (!selectedInstance) {
         console.warn(
@@ -115,17 +118,15 @@ export class QueueManager {
         )
         await markMessageFailed(
           message.id,
-          message.locked_instance_id
-            ? 'Instância vinculada offline — aguardando reconexão manual'
-            : 'Instância indisponível ou desconectada',
-          message.attempt_count,
           workerId,
+          deferReason,
         )
+
         return {
           processed: true,
           messageId: message.id,
-          status: 'failed',
-          reason: message.locked_instance_id ? 'affinity_instance_offline' : 'instance_unavailable',
+          status: 'deferred',
+          reason: deferReason,
         }
       }
 
@@ -191,9 +192,13 @@ export class QueueManager {
           // Liberar o lock da mensagem atual (não enviar)
           await markMessageFailed(
             message.id,
-            `Número fixo/sem WhatsApp — ${ladderResult.action === 'escalated' ? 'próximo número enfileirado' : 'escada esgotada → aba Crítico'}`,
+            `Número sem WhatsApp no Tel${message.phone_attempt_index || 1} — ${ladderResult.action === 'escalated' ? 'fallback automático para próximo telefone' : 'escada esgotada → aba Crítico'}`,
             0, // Não contar como tentativa de envio
             workerId,
+            {
+              secondCallReason: ladderResult.action === 'escalated' ? 'landline_detected' : 'phone_ladder_exhausted',
+              needsSecondCall: ladderResult.action !== 'escalated',
+            },
           )
 
           return {
@@ -224,6 +229,10 @@ export class QueueManager {
           'Número bloqueado por opt-out/compliance',
           message.attempt_count,
           workerId,
+          {
+            secondCallReason: 'number_blocked',
+            needsSecondCall: false,
+          },
         )
         return {
           processed: true,
@@ -378,11 +387,59 @@ export class QueueManager {
           errorType: sendResult.errorType,
           error: sendResult.error,
         })
+
+        // Fallback automático da escada de telefones:
+        // Só escala para Tel2/Tel3 quando confirmar que o número atual não tem WhatsApp.
+        const hasWhatsAppAfterFailure = await checkWhatsAppNumber(
+          selectedInstance.instanceName,
+          finalPhoneNumber,
+        )
+
+        if (!hasWhatsAppAfterFailure) {
+          console.warn(`[${timestamp()}] 📵 Falha de envio + número sem WhatsApp confirmado. Acionando escada.`, {
+            messageId: message.id,
+            phone: maskPhone(finalPhoneNumber),
+            phoneAttemptIndex: message.phone_attempt_index || 1,
+          })
+
+          const delayMinutes = Math.floor(Math.random() * 3) + 2
+          const sendAfterDelay = new Date(Date.now() + delayMinutes * 60 * 1000)
+
+          const ladderResult = await handlePhoneLadderEscalation(
+            message,
+            'send_failed_no_whatsapp',
+            `Tel${message.phone_attempt_index || 1}: Erro de envio + sem WhatsApp. Enviando para Tel${(message.phone_attempt_index || 1) + 1} em ${delayMinutes}min`,
+            sendAfterDelay,
+          )
+
+          await markMessageFailed(
+            message.id,
+            `Erro de envio + número sem WhatsApp no Tel${message.phone_attempt_index || 1} — ${ladderResult.action === 'escalated' ? 'fallback automático para próximo telefone' : 'escada esgotada → aba Crítico'}`,
+            0,
+            workerId,
+            {
+              secondCallReason: ladderResult.action === 'escalated' ? 'send_failed_no_whatsapp' : 'phone_ladder_exhausted',
+              needsSecondCall: ladderResult.action !== 'escalated',
+            },
+          )
+
+          return {
+            processed: true,
+            messageId: message.id,
+            status: 'skipped',
+            reason: 'send_failed_no_whatsapp',
+          }
+        }
+
         await markMessageFailed(
           message.id,
           sendResult.error || 'Falha ao enviar mensagem',
           message.attempt_count,
           workerId,
+          {
+            secondCallReason: 'provider_send_failed',
+            needsSecondCall: true,
+          },
         )
 
         return {

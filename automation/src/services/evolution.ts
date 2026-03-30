@@ -361,6 +361,50 @@ export async function fetchMessageHistory(
   phoneNumber: string,
   limit = 10,
 ): Promise<any[]> {
+  const cleanNumber = sanitizeBrazilianNumber(phoneNumber)
+  const encodedInstance = encodeURIComponent(instanceName)
+  const encodedNumber = encodeURIComponent(cleanNumber)
+  const remoteJid = `${cleanNumber}@s.whatsapp.net`
+  const override = process.env.EVOLUTION_HISTORY_ENDPOINTS
+  const endpoints = override
+    ? override.split(',').map((e) => ({ path: e.trim(), method: 'GET' as const, body: undefined }))
+    : [
+        {
+          path: `/chat/findMessages/${encodedInstance}`,
+          method: 'POST' as const,
+          body: {
+            where: {
+              key: {
+                remoteJid,
+              },
+            },
+          },
+        },
+        {
+          path: `/message/history/${encodedInstance}`,
+          method: 'GET' as const,
+          body: undefined,
+        },
+        {
+          path: `/message/findMessages/${encodedInstance}?number=${encodedNumber}&limit=${limit}`,
+          method: 'GET' as const,
+          body: undefined,
+        },
+        {
+          path: `/message/findMessages/${encodedInstance}?limit=${limit}`,
+          method: 'GET' as const,
+          body: undefined,
+        },
+      ]
+
+  const normalizeMessages = (data: any): any[] => {
+    if (Array.isArray(data)) return data
+    if (Array.isArray(data?.messages)) return data.messages
+    if (Array.isArray(data?.data)) return data.data
+    if (Array.isArray(data?.response)) return data.response
+    return []
+  }
+
   try {
     const data = await callEvolution(`/message/history/${instanceName}`, { method: 'GET' }, 5000)
 

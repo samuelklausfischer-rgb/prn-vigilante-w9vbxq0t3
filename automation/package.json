@@ -7,6 +7,7 @@
   "scripts": {
     "start": "bun run src/index.ts",
     "diag": "bun run src/index.ts --diag",
+    "healthcheck": "bun run src/healthcheck.ts",
     "build:exe": "bun build --compile src/index.ts --outfile automation-worker.exe",
     "build:exe:check": "bun run build-exe.ts",
     "start:exe": "./automation-worker.exe"

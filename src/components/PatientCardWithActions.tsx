@@ -174,7 +174,7 @@ export function PatientCardWithActions({
             className="border-orange-500/30 bg-orange-500/10 text-orange-200"
           >
             <RotateCcw className="mr-1 h-3 w-3" />
-            Tentativas: {Number(patient.attempt_count || 0)}
+            Tentativas internas: {Number(patient.attempt_count || 0)}
           </Badge>
 
           <div className="flex gap-2">

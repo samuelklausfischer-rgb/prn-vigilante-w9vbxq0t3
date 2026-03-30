@@ -10,7 +10,7 @@ import type {
   MessageBlock,
 } from '../types'
 import { isLikelyLandlineBR, sanitizeBrazilianNumber } from '../utils/helpers'
-import { normalizePhone } from '../../../packages/shared/validators'
+import { normalizePhone } from '../../shared/validators'
 import { checkWhatsAppNumber } from './evolution'
 
 const supabaseUrl = process.env.SUPABASE_URL
@@ -235,9 +235,15 @@ export async function markMessageFailed(
   errorMessage: string,
   retryCount: number,
   workerId?: string,
+  options?: {
+    secondCallReason?: string | null
+    needsSecondCall?: boolean
+  },
 ): Promise<boolean> {
   try {
     const nowIso = new Date().toISOString()
+    const secondCallReason = options?.secondCallReason ?? 'failed'
+    const needsSecondCall = options?.needsSecondCall ?? true
 
     let updateQuery = supabase
       .from('patients_queue')
@@ -247,8 +253,8 @@ export async function markMessageFailed(
         locked_at: null,
         updated_at: nowIso,
         last_delivery_status: 'failed',
-        needs_second_call: true,
-        second_call_reason: 'failed',
+        needs_second_call: needsSecondCall,
+        second_call_reason: secondCallReason,
       })
       .eq('id', messageId)
       .eq('status', 'sending')
@@ -300,6 +306,92 @@ export async function markMessageFailed(
     return true
   } catch (error) {
     console.error(`❌ Exceção ao marcar mensagem como falha:`, error)
+    return false
+  }
+}
+
+/**
+ * Adia mensagem por falha de infraestrutura (Evolution offline/indisponível).
+ * Mantém status em queued, não consome tentativa e aplica backoff.
+ */
+export async function deferMessageForInfra(
+  messageId: string,
+  workerId: string | undefined,
+  reason: string,
+): Promise<boolean> {
+  try {
+    const nowIso = new Date().toISOString()
+
+    const { data: currentRow, error: selectError } = await supabase
+      .from('patients_queue')
+      .select('attempt_count, back_to_queue_count')
+      .eq('id', messageId)
+      .single()
+
+    if (selectError) {
+      console.error(`❌ Erro ao buscar contadores para defer infra:`, selectError)
+      return false
+    }
+
+    const previousBackToQueue = Number(currentRow?.back_to_queue_count ?? 0)
+    const nextBackToQueue = previousBackToQueue + 1
+
+    let backoffMinutes = 5
+    if (nextBackToQueue === 2) backoffMinutes = 15
+    if (nextBackToQueue >= 3) backoffMinutes = 30
+
+    const sendAfter = new Date(Date.now() + backoffMinutes * 60 * 1000).toISOString()
+    const attemptCount = Math.max(Number(currentRow?.attempt_count ?? 0) - 1, 0)
+
+    let updateQuery = supabase
+      .from('patients_queue')
+      .update({
+        status: 'queued',
+        locked_by: null,
+        locked_at: null,
+        send_after: sendAfter,
+        updated_at: nowIso,
+        back_to_queue_count: nextBackToQueue,
+        attempt_count: attemptCount,
+        last_delivery_status: 'pending',
+      })
+      .eq('id', messageId)
+      .eq('status', 'sending')
+
+    if (workerId) {
+      updateQuery = updateQuery.eq('locked_by', workerId)
+    }
+
+    const { data: updatedRows, error: updateError } = await updateQuery.select('id')
+
+    if (updateError) {
+      console.error(`❌ Erro ao adiar mensagem por infra:`, updateError)
+      return false
+    }
+
+    if (!updatedRows || updatedRows.length === 0) {
+      console.warn(`⚠️ Mensagem ${messageId} não pôde ser adiada porque o lock não pertence mais a este worker.`)
+      return false
+    }
+
+    void supabase.from('message_events').insert({
+      message_id: messageId,
+      instance_id: null,
+      event_type: 'infra_deferred',
+      event_at: nowIso,
+      raw_payload: { reason, backoffMinutes, nextBackToQueue },
+    } as any)
+
+    console.log(`⏸️ Infra indisponível. Mensagem adiada`, {
+      messageId,
+      reason,
+      backoffMinutes,
+      nextBackToQueue,
+    })
+
+    return true
+  } catch (error) {
+    console.error(`❌ Exceção ao adiar mensagem por infra:`, error)
     return false
   }
 }
@@ -631,8 +723,8 @@ export async function runSecondCallRecovery(): Promise<{ processed: number }> {
       'id,patient_name,phone_number,phone_2,phone_3,message_body,send_accepted_at,delivered_at,retry_phone2_sent_at,retry_phone3_sent_at,journey_id,locked_instance_id,phone_attempt_index,Data_nascimento,data_exame,procedimentos,horario_inicio,horario_final,time_proce',
     )
     .is('delivered_at', null)
-    .not('send_accepted_at', 'is', null)
-    .lte('send_accepted_at', cutoff)
+    .not('accepted_at', 'is', null)
+    .lte('accepted_at', cutoff)
     .is('retry_phone2_sent_at', null)
     .not('phone_2', 'is', null)
     .eq('dedupe_kind', 'original')

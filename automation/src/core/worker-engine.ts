@@ -33,6 +33,9 @@ export class WorkerEngine {
   private heartbeatTimer?: ReturnType<typeof setInterval>
   private followupTimer?: ReturnType<typeof setInterval>
   private processed = 0
+  private accepted = 0
+  private delivered = 0
+  private finalized = 0
   private failed = 0
   private skipped = 0
   private currentJobId: string | null = null
@@ -81,7 +84,9 @@ export class WorkerEngine {
 
         console.log(`[${timestamp()}] 🔄 Novo ciclo do worker`, {
           workerId: this.workerId,
-          processed: this.processed,
+          accepted: this.accepted,
+          delivered: this.delivered,
+          finalized: this.finalized,
           failed: this.failed,
           skipped: this.skipped,
           currentJobId: this.currentJobId,
@@ -156,14 +161,17 @@ export class WorkerEngine {
         )
 
         if (result.status === 'delivered') {
-          this.processed += 1
-          console.log(`[${timestamp()}] ✅ Entregue: ${claimed.id} (total: ${this.processed})`)
+          this.delivered += 1
+          this.finalized += 1
+          console.log(`[${timestamp()}] ✅ Entregue: ${claimed.id} (entregues: ${this.delivered}, finalizados: ${this.finalized})`)
         } else if (result.status === 'failed') {
+          this.finalized += 1
           this.failed += 1
           console.log(
             `[${timestamp()}] ❌ Falhou: ${claimed.id} (${result.reason || 'sem motivo'})`,
           )
         } else if (result.status === 'skipped') {
+          this.finalized += 1
           this.skipped += 1
           console.log(
             `[${timestamp()}] ⏭️ Ignorada: ${claimed.id} (${result.reason || 'sem motivo'})`,

@@ -121,23 +121,68 @@ export default function EnviarLista() {
   } | null>(null)
   const [instances, setInstances] = useState<WhatsAppInstance[]>([])
   const [selectedInstanceId, setSelectedInstanceId] = useState<string | null>(null)
+  const [refreshingInstances, setRefreshingInstances] = useState(false)
 
   useEffect(() => {
+    let mounted = true
+
     const loadInstances = async () => {
       try {
         const data = await evolutionApi.getInstances()
         const connected = data.filter((i) => i.status === 'connected')
+        if (!mounted) return
         setInstances(connected)
-        if (connected.length > 0) {
-          // Pré-seleciona a primeira se não houver selecionada
-          setSelectedInstanceId(connected[0].id)
-        }
+        setSelectedInstanceId((current) => {
+          if (current && connected.some((inst) => inst.id === current)) {
+            return current
+          }
+          return connected[0]?.id ?? null
+        })
       } catch (e) {
         console.error('Erro ao carregar instâncias', e)
       }
     }
+
     loadInstances()
+
+    const channel = supabase
+      .channel('wa-instances-send-list')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'whatsapp_instances' },
+        async () => {
+          if (!mounted) return
+          await loadInstances()
+        },
+      )
+      .subscribe()
+
+    return () => {
+      mounted = false
+      supabase.removeChannel(channel)
+    }
   }, [])
+
+  const handleRefreshChannels = async () => {
+    try {
+      setRefreshingInstances(true)
+      await evolutionApi.syncWithWebhook()
+      const data = await evolutionApi.getInstances()
+      const connected = data.filter((i) => i.status === 'connected')
+      setInstances(connected)
+      setSelectedInstanceId((current) => {
+        if (current && connected.some((inst) => inst.id === current)) {
+          return current
+        }
+        return connected[0]?.id ?? null
+      })
+      toast({ description: 'Canais sincronizados.', variant: 'default' })
+    } catch (err: any) {
+      toast({ description: err?.message || 'Falha ao sincronizar canais.', variant: 'destructive' })
+    } finally {
+      setRefreshingInstances(false)
+    }
+  }
 
   const issues = useMemo(() => hasBlockingIssues(result?.patients || []), [result])
 
@@ -253,6 +298,11 @@ export default function EnviarLista() {
         const { data, error } = await (supabase.rpc as any)('enqueue_patient', {
           p_patient_name: p.patient_name,
           p_phone_number: phoneNormalized,
+          p_status: 'queued',
+          p_is_approved: true,
+          p_send_after: new Date().toISOString(),
+          p_notes: 'Aprovado via Enviar Lista',
+          p_attempt_count: 0,
           p_phone_2: phone2Normalized,
           p_phone_3: phone3Normalized,
           p_data_nascimento: p.Data_nascimento,
@@ -263,6 +313,8 @@ export default function EnviarLista() {
           p_data_exame: dataIso,
           p_message_body: p.message_body,
           p_locked_instance_id: selectedInstanceId,
+          p_phone_attempt_index: 1,
+          p_last_phone_used: phoneNormalized,
         })
 
         const rpcResult = Array.isArray(data) ? data[0] : data

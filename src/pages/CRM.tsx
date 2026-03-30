@@ -21,11 +21,11 @@ import { formatDataExameBr } from '@/lib/utils/data-exame'
 import { formatPhoneBR } from '@/lib/utils'
 
 const COLUMN_CONFIG: Record<KanbanColumn, { title: string; color: string; icon: any }> = {
-  aguardando_envio: { title: 'Aguardando Envio', color: 'border-blue-500/30', icon: Clock },
-  em_contato: { title: 'Em Contato', color: 'border-amber-500/30', icon: MessageCircle },
-  respostas: { title: 'Respostas', color: 'border-purple-500/30', icon: MessageCircle },
-  critico: { title: 'Crítico', color: 'border-red-500/30', icon: AlertTriangle },
-  confirmados: { title: 'Confirmados', color: 'border-green-500/30', icon: CheckCircle2 },
+  mensagem_recebida: { title: 'Mensagem recebida', color: 'border-blue-500/30', icon: MessageCircle },
+  em_andamento: { title: 'Em andamento', color: 'border-amber-500/30', icon: Clock },
+  cancelou: { title: 'Cancelou', color: 'border-red-500/30', icon: AlertTriangle },
+  concluido: { title: 'Concluído', color: 'border-green-500/30', icon: CheckCircle2 },
+  reagendar: { title: 'Reagendar', color: 'border-orange-500/30', icon: Calendar },
 }
 
 function getJourneyStatusLabel(status: string) {
@@ -112,6 +112,12 @@ function KanbanCardComponent({ card }: { card: KanbanCard }) {
           <div className="text-xs text-slate-400 line-clamp-2">{card.procedimentos}</div>
         )}
 
+        {card.last_inbound_message && (
+          <div className="text-xs text-slate-300 line-clamp-2">
+            Resposta: {card.last_inbound_message}
+          </div>
+        )}
+
         <div className="flex flex-wrap gap-1">
           {card.phone_ladder_exhausted && (
             <Badge variant="outline" className="text-xs border-red-500/50 text-red-300">
@@ -143,11 +149,11 @@ export default function CRM() {
   const { toast } = useToast()
   const [loading, setLoading] = useState(true)
   const [boardData, setBoardData] = useState({
-    aguardando_envio: [] as KanbanCard[],
-    em_contato: [] as KanbanCard[],
-    respostas: [] as KanbanCard[],
-    critico: [] as KanbanCard[],
-    confirmados: [] as KanbanCard[],
+    mensagem_recebida: [] as KanbanCard[],
+    em_andamento: [] as KanbanCard[],
+    cancelou: [] as KanbanCard[],
+    concluido: [] as KanbanCard[],
+    reagendar: [] as KanbanCard[],
   })
   const [search, setSearch] = useState('')
   const [autoRefresh, setAutoRefresh] = useState(true)
@@ -215,11 +221,11 @@ export default function CRM() {
 
   const totalCounts = useMemo(() => {
     return {
-      aguardando_envio: boardData.aguardando_envio.length,
-      em_contato: boardData.em_contato.length,
-      respostas: boardData.respostas.length,
-      critico: boardData.critico.length,
-      confirmados: boardData.confirmados.length,
+      mensagem_recebida: boardData.mensagem_recebida.length,
+      em_andamento: boardData.em_andamento.length,
+      cancelou: boardData.cancelou.length,
+      concluido: boardData.concluido.length,
+      reagendar: boardData.reagendar.length,
     }
   }, [boardData])
 

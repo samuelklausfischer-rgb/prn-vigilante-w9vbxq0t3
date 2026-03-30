@@ -2,8 +2,18 @@ function cleanPhone(phone: string): string {
   return String(phone || '').replace(/\D/g, '')
 }
 
-export function formatPhoneBR(phone: string): string {
+function toLocalBrPhone(phone: string): string {
   const cleaned = cleanPhone(phone)
+
+  if ((cleaned.length === 12 || cleaned.length === 13) && cleaned.startsWith('55')) {
+    return cleaned.slice(2)
+  }
+
+  return cleaned
+}
+
+export function formatPhoneBR(phone: string): string {
+  const cleaned = toLocalBrPhone(phone)
 
   if (cleaned.length === 11) {
     return `(${cleaned.slice(0, 2)}) ${cleaned.slice(2, 7)}-${cleaned.slice(7)}`
@@ -17,12 +27,12 @@ export function formatPhoneBR(phone: string): string {
 }
 
 export function isValidPhoneBR(phone: string): boolean {
-  const cleaned = cleanPhone(phone)
+  const cleaned = toLocalBrPhone(phone)
   return cleaned.length === 10 || cleaned.length === 11
 }
 
 export function isLandline(phone: string): boolean {
-  const cleaned = cleanPhone(phone)
+  const cleaned = toLocalBrPhone(phone)
 
   if (cleaned.length !== 10) return false
 

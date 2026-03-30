@@ -38,11 +38,11 @@ export async function fetchKanbanData(): Promise<Record<KanbanColumn, KanbanCard
   } catch (e) {
     console.error('Error fetching kanban data:', e)
     return {
-      aguardando_envio: [],
-      em_contato: [],
-      respostas: [],
-      critico: [],
-      confirmados: [],
+      mensagem_recebida: [],
+      em_andamento: [],
+      cancelou: [],
+      concluido: [],
+      reagendar: [],
     }
   }
 }
