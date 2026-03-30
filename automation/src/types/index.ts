@@ -1,20 +1,15 @@
 /**
- * 📦 Automation Types — Re-export from Shared Package
+ * Automation Types
  *
- * Este arquivo agora importa tudo do pacote compartilhado.
- * Qualquer tipo novo deve ser adicionado em packages/shared/types.ts
+ * Re-export from automation-local shared types.
  */
 
 export type {
-  QueueStatus,
-  InstanceStatus,
   MessageLogStatus,
   ConsentStatus,
   BlockReason,
   ConsentSource,
-  PatientQueue,
   SystemConfig,
-  WhatsAppInstance,
   MessageLog,
   WorkerHeartbeat,
   PatientConsent,
@@ -22,10 +17,4 @@ export type {
   ClaimedMessage,
   SendResult,
   ExpiredLock,
-  RealtimeMetrics,
-  ExpiredLockView,
-  WorkerStatusSummary,
-  FailureInsight,
-  RetryPolicy,
-  AntiBanConfig,
-} from '../../../packages/shared/types'
+} from '../../shared/types'

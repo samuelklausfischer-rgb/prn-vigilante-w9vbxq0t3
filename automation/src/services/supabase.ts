@@ -10,7 +10,7 @@ import type {
   MessageBlock,
 } from '../types'
 import { isLikelyLandlineBR, sanitizeBrazilianNumber } from '../utils/helpers'
-import { normalizePhone } from '../../../packages/shared/validators'
+import { normalizePhone } from '../../shared/validators'
 import { checkWhatsAppNumber } from './evolution'
 
 const supabaseUrl = process.env.SUPABASE_URL
