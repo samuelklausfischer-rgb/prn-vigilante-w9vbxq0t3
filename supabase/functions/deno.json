@@ -1,11 +1,6 @@
 {
   "_versions": {
-    "sync-webhook": 13,
-    "create-instance": 11,
-    "functions": 10,
-    "organize-patient-list": 24,
-    "evolution-webhook": 8,
-    "classify-message": 1,
-    "process-classification": 1
+    "sync-webhook": 4,
+    "create-instance": 1
   }
 }

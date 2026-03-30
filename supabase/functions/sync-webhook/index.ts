@@ -1,27 +1,23 @@
-import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
+import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
 import { corsHeaders } from '../_shared/cors.ts'
-import { formatPhone } from '../_shared/utils.ts'
+import { callEvolution } from '../_shared/evolution-api.ts'
 
-serve(async (req) => {
+Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
 
   try {
-    const payload = await req.json()
+    const data = await callEvolution('/instance/fetchInstances')
 
-    if (payload.phone) {
-      payload.phone = formatPhone(payload.phone)
-    }
-
-    return new Response(JSON.stringify({ success: true, message: 'Webhook synced', payload }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    return new Response(JSON.stringify({ success: true, data }), {
+      headers: { 'Content-Type': 'application/json', ...corsHeaders },
       status: 200,
     })
   } catch (error: any) {
-    return new Response(JSON.stringify({ error: error.message }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      status: 400,
+    return new Response(JSON.stringify({ success: false, error: error.message }), {
+      headers: { 'Content-Type': 'application/json', ...corsHeaders },
+      status: 200,
     })
   }
 })
