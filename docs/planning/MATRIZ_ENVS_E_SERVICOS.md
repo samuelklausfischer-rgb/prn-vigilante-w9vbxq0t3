@@ -183,5 +183,5 @@ Quando migrar da VPS atual para outra (ex.: Hostinger), executar nesta ordem:
 Sempre que houver mudanca em URL/chave/infra da Evolution:
 
 1. Atualizar este arquivo.
-2. Atualizar `docs/PLANO_MIGRACAO_VPS_EASYPANEL.md` se houver mudanca arquitetural.
+2. Atualizar `docs/planning/PLANO_MIGRACAO_VPS_EASYPANEL.md` se houver mudanca arquitetural.
 3. Registrar data e motivo da alteracao no PR.

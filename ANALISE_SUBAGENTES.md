@@ -215,7 +215,7 @@ prn-vigilante/
 
 - `TOKEN_OPTIMIZATION_PHASE_1.md` - Detalhes das otimizações implementadas
 - `resumo_contexto.md` - Contexto geral do projeto
-- `docs/MAPA_DO_PROJETO.md` - Arquitetura tri-modular
+- `docs/architecture/MAPA_DO_PROJETO.md` - Arquitetura tri-modular
 - `.agents/workflows/setup-automacao.md` - Exemplo de workflow
 ```
 

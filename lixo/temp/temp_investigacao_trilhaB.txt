@@ -1,0 +1,240 @@
+================================================================================
+RELATÓRIO DE INVESTIGAÇÃO DE DRIFT - TypeScript vs SQL Migrations
+Data: 26/03/2026
+================================================================================
+
+SUMÁRIO EXECUTIVO
+-----------------
+Total de divergências: 4
+- Críticas: 1 (duplicidade/requeue)
+- Altas: 2 (perda de funcionalidade)
+- Médias: 1 (rastreamento)
+
+PRIORIDADE DE CORREÇÃO
+---------------------
+1. enqueue_patient - Deduplicação incompleta para retry_phone3 (CRÍTICA)
+2. enqueue_patient - Parâmetros p_locked_instance_id (ALTA)
+3. enqueue_patient - Parâmetro p_phone_attempt_index (ALTA)
+4. enqueue_patient - Parâmetro p_last_phone_used e campo last_contact_phone (MÉDIA)
+
+================================================================================
+TABELA DE DIVERGÊNCIAS
+================================================================================
+
+DIVERGÊNCIA #1: enqueue_patient - Deduplicação incompleta para retry_phone3
+─────────────────────────────────────────────────────────────────────────
+Severidade: CRÍTICA
+Impacto: Pode causar duplicidade de mensagens
+
+CÓDIGO ESPERADO (TypeScript):
+- automation/src/services/supabase.ts
+  - Linha 724: enqueue_patient(p_dedupe_kind='retry_phone3')
+  - Linha 1045: enqueue_patient(p_dedupe_kind='retry_phone3')
+
+COMPORTAMENTO REAL (SQL):
+- supabase/migrations/20260323000000_instance_affinity_and_phone_ladder.sql
+  Linhas 258-268:
+  ```sql
+  IF p_dedupe_kind IN ('retry_phone2', 'followup_confirm')
+     AND p_origin_queue_id IS NOT NULL THEN
+    IF EXISTS (...)
+  ```
+  
+PROBLEMA: A condição NÃO inclui 'retry_phone3'
+- retry_phone3 com p_origin_queue_id está parcialmente protegido
+- Mas pode haver cenários de duplicatas
+
+IMPACTO:
+- Mensagens duplicadas podem entrar na fila
+- retry_phone3 duplicado pode gerar múltiplos envios
+- Paciente pode receber mensagem de Tel3 várias vezes
+
+EVIDÊNCIAS:
+1. SQL mostra claramente que 'retry_phone3' não está na lista
+2. Código TypeScript cria retry_phone3 em 2 lugares
+3. Não há verificação específica de janela de 2 horas para retry_phone3
+
+RECOMENDAÇÃO: Corrigir PRIMEIRO
+
+─────────────────────────────────────────────────────────────────────────
+DIVERGÊNCIA #2: enqueue_patient - Parâmetro p_locked_instance_id
+─────────────────────────────────────────────────────────────────────────
+Severidade: ALTA
+Impacto: Quebra afinidade de instância
+
+CÓDIGO ESPERADO (TypeScript):
+- Linha 773: p_locked_instance_id: null (retry_phone2)
+- Linha 891: p_locked_instance_id: row.locked_instance_id (followup)
+
+COMPORTAMENTO REAL (SQL):
+
+Versão 20260318_enqueue_patient_rpc.sql:
+❌ NÃO define p_locked_instance_id
+❌ PostgreSQL ignora silenciosamente
+Resultado: Campo NULL
+
+Versão 20260323000000_instance_affinity_and_phone_ladder.sql:
+✅ DEFINE: p_locked_instance_id UUID DEFAULT NULL (linha 209)
+✅ USA no INSERT (linha 304)
+Resultado: Campo populado corretamente
+
+PROBLEMA:
+- Se migration 20260323000000 não foi executada, parâmetro é ignorado
+- locked_instance_id fica NULL
+- Afinidade de instância não funciona
+
+IMPACTO:
+- Follow-ups podem sair de instância diferente
+- Paciente confuso com múltiplos "atendentes"
+- Conversa fragmentada
+
+EVIDÊNCIAS:
+1. Migration 20260323000000 define o parâmetro
+2. Migrations anteriores NÃO definem
+3. claim_next_message verifica locked_instance_id para afinidade
+
+RECOMENDAÇÃO: Corrigir SEGUNDO
+
+─────────────────────────────────────────────────────────────────────────
+DIVERGÊNCIA #3: enqueue_patient - Parâmetro p_phone_attempt_index
+─────────────────────────────────────────────────────────────────────────
+Severidade: ALTA
+Impacto: Quebra rastreamento da escada de telefones
+
+CÓDIGO ESPERADO (TypeScript):
+- Linha 461: p_phone_attempt_index: nextIndex
+- Linha 774: p_phone_attempt_index: 2 (retry_phone2)
+- Linha 892: p_phone_attempt_index: row.phone_attempt_index (followup)
+- Linha 1044: p_phone_attempt_index: 3 (retry_phone3)
+
+COMPORTAMENTO REAL (SQL):
+
+Versão 20260318_enqueue_patient_rpc.sql:
+❌ NÃO define p_phone_attempt_index
+Resultado: Campo NULL
+
+Versão 20260323000000_instance_affinity_and_phone_ladder.sql:
+✅ DEFINE: p_phone_attempt_index SMALLINT DEFAULT 1 (linha 210)
+✅ USA no INSERT (linha 305)
+Resultado: Campo populado corretamente
+
+PROBLEMA:
+- Se migration 20260323000000 não foi executada
+- phone_attempt_index fica NULL (default=1 funciona)
+- Perda de visibilidade da escada
+
+IMPACTO:
+- Difícil saber se paciente está no retry_phone2 ou retry_phone3
+- Dashboard não mostra progresso correto
+
+EVIDÊNCIAS:
+1. Migration 20260323000000 define o parâmetro
+2. Migrations anteriores NÃO definem
+3. Código TypeScript usa intensivamente
+
+RECOMENDAÇÃO: Corrigir SEGUNDO (junto com #2)
+
+─────────────────────────────────────────────────────────────────────────
+DIVERGÊNCIA #4: enqueue_patient - p_last_phone_used e last_contact_phone
+─────────────────────────────────────────────────────────────────────────
+Severidade: MÉDIA
+Impacto: Perda de rastreamento de auditoria
+
+CÓDIGO ESPERADO (TypeScript):
+- Linha 461: p_last_phone_used: nextPhone
+- Linha 724: p_last_phone_used: toPhone3
+- Linha 1045: p_last_phone_used: toPhone3
+- Linha 736: last_contact_phone: toPhone3 (UPDATE)
+- Linha 805: last_contact_phone: toPhone2 (UPDATE)
+- Linha 1067: last_contact_phone: toPhone3 (UPDATE)
+
+COMPORTAMENTO REAL (SQL):
+❌ p_last_phone_used: NÃO existe em NENHUMA versão
+❌ last_phone_used: Campo NÃO existe na tabela
+❌ last_contact_phone: Campo NÃO existe na tabela
+❌ PostgreSQL ignora silenciosamente os parâmetros extras
+❌ UPDATEs falham silenciosamente (campo não existe)
+
+PROBLEMA:
+- Perda completa de rastreamento de "qual telefone foi usado"
+- Dados de auditoria incompletos
+
+IMPACTO:
+- Difícil investigar falhas de escada
+- Não pode ver histórico completo
+
+EVIDÊNCIAS:
+1. grep não encontrou nenhum "last_phone_used" em migrations
+2. grep não encontrou nenhum "last_contact_phone" em migrations
+3. Código TypeScript usa em 3+ lugares
+
+RECOMENDAÇÃO: Corrigir QUARTO
+
+================================================================================
+RECOMENDAÇÕES DE CORREÇÃO
+================================================================================
+
+PRIORIDADE 1: Corrigir deduplicação de retry_phone3 (CRÍTICO)
+────────────────────────────────────────────────────────────
+
+Arquivo: supabase/migrations/20260323000000_instance_affinity_and_phone_ladder.sql
+Linha: 258
+
+CORREÇÃO:
+```sql
+-- ANTES:
+IF p_dedupe_kind IN ('retry_phone2', 'followup_confirm') AND p_origin_queue_id IS NOT NULL THEN
+
+-- DEPOIS:
+IF p_dedupe_kind IN ('retry_phone2', 'retry_phone3', 'followup_confirm') AND p_origin_queue_id IS NOT NULL THEN
+```
+
+PRIORIDADE 2: Verificar migration 20260323000000 (ALTO)
+──────────────────────────────────────────────────────
+
+AÇÃO:
+```sql
+-- Verificar no banco:
+SELECT prosrc FROM pg_proc WHERE proname = 'enqueue_patient';
+
+-- Se não tiver p_locked_instance_id e p_phone_attempt_index:
+-- Executar migration 20260323000000
+```
+
+PRIORIDADE 3: Adicionar campos de rastreamento (MÉDIO)
+────────────────────────────────────────────────────
+
+Criar nova migration:
+```sql
+-- Adicionar campos
+ALTER TABLE public.patients_queue
+  ADD COLUMN IF NOT EXISTS last_phone_used TEXT;
+
+ALTER TABLE public.patients_queue
+  ADD COLUMN IF NOT EXISTS last_contact_phone TEXT;
+
+-- Atualizar enqueue_patient
+-- Adicionar p_last_phone_used TEXT DEFAULT NULL
+-- Usar no INSERT
+```
+
+================================================================================
+MAPEAMENTO DE MIGRATIONS
+================================================================================
+
+Evolução enqueue_patient:
+
+1. 20260318_enqueue_patient_rpc.sql (17 parâmetros)
+   └─ Básico, sem escada, sem afinidade
+
+2. 20260318171000_expand_enqueue_patient_popup_fields.sql (21 parâmetros)
+   └─ Adiciona: phone_2, phone_3, data_nascimento, horario_final, time_proce
+
+3. 20260323000000_instance_affinity_and_phone_ladder.sql (23 parâmetros)
+   └─ Adiciona: locked_instance_id, phone_attempt_index
+   └─ NÃO adiciona: last_phone_used (DRIFT!)
+
+Evolução claim_next_message:
+
+1. 20260313190300_automation_functions.sql
+   └─ Round-r

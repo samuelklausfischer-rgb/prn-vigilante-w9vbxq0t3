@@ -29,10 +29,12 @@ Thumbs.db
 .bun-build
 
 # Project-specific exclusions
-temp_*.ts
+/temp_*
 test_*.js
 debug_*.ts
 nul
+.temp/
+supabase/.temp/
 .obsidian/
 .oxfmtrc.json
 .oxlintrc.json

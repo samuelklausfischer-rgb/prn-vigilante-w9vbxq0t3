@@ -19,7 +19,7 @@ O projeto ja possui:
 - Dashboard funcional em `/src`
 - Schema inicial em `/supabase/migrations`
 - Esqueleto do worker em `/automation/src`
-- Planejamento detalhado em `docs/migrations_contexto.md`
+- Planejamento detalhado em `docs/migrations/migrations_contexto.md`
 
 O projeto ainda nao possui:
 
@@ -48,7 +48,7 @@ Materializar a base transacional da automacao no banco e alinhar os contratos us
 
 ### Itens
 
-- Revisar `docs/migrations_contexto.md` e corrigir inconsistencias antes de executar SQL
+- Revisar `docs/migrations/migrations_contexto.md` e corrigir inconsistencias antes de executar SQL
 - Criar migration unica ou migrations separadas com:
   - ALTER TABLE em `patients_queue`
   - ALTER TABLE em `whatsapp_instances`

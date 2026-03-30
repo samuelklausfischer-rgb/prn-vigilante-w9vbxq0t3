@@ -186,7 +186,7 @@ Permissoes minimas:
 
 ### Risco 2: Divergencia de env entre local e VPS
 
-- Mitigacao: usar `docs/MATRIZ_ENVS_E_SERVICOS.md` como fonte unica.
+- Mitigacao: usar `docs/planning/MATRIZ_ENVS_E_SERVICOS.md` como fonte unica.
 
 ### Risco 3: Healthcheck com efeito colateral
 
@@ -212,7 +212,7 @@ Este plano esta concluido quando:
 
 ## 11. Relacao com os demais documentos
 
-- Arquitetura alvo: `docs/ARQUITETURA_VPS_FINAL.md`
-- Matriz de envs: `docs/MATRIZ_ENVS_E_SERVICOS.md`
-- Cutover: `docs/CHECKLIST_CUTOVER_VPS.md`
-- Plano geral: `docs/PLANO_MIGRACAO_VPS_EASYPANEL.md`
+- Arquitetura alvo: `docs/architecture/ARQUITETURA_VPS_FINAL.md`
+- Matriz de envs: `docs/planning/MATRIZ_ENVS_E_SERVICOS.md`
+- Cutover: `docs/operations/CHECKLIST_CUTOVER_VPS.md`
+- Plano geral: `docs/planning/PLANO_MIGRACAO_VPS_EASYPANEL.md`

@@ -44,7 +44,7 @@
 - ✅ Suporta modo diagnóstico com `--diag` ou `--diagnostic`
 - ✅ Modo worker padrão sem argumentos
 
-#### `docs/dry_run_test_messages.sql`
+#### `docs/migrations/dry_run_test_messages.sql`
 - SQL para zerar contadores
 - SQL para inserir 10 mensagens de teste
 - SQL para verificar estado inicial
@@ -86,7 +86,7 @@ bun run automation/src/index.ts --diag
 No Supabase Dashboard SQL Editor, executar:
 
 ```sql
--- Copiar conteúdo de docs/dry_run_test_messages.sql
+-- Copiar conteúdo de docs/migrations/dry_run_test_messages.sql
 -- Executar
 ```
 

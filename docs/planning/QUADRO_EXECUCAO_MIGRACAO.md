@@ -61,8 +61,8 @@ Organizar a execucao em ordem pratica, com foco no que deve ser feito agora para
 
 ## Referencias
 
-- `docs/PLANO_MIGRACAO_VPS_EASYPANEL.md`
-- `docs/ARQUITETURA_VPS_FINAL.md`
-- `docs/MATRIZ_ENVS_E_SERVICOS.md`
-- `docs/CHECKLIST_CUTOVER_VPS.md`
-- `docs/EASYPANEL_AUTOMATION_SETUP.md`
+- `docs/planning/PLANO_MIGRACAO_VPS_EASYPANEL.md`
+- `docs/architecture/ARQUITETURA_VPS_FINAL.md`
+- `docs/planning/MATRIZ_ENVS_E_SERVICOS.md`
+- `docs/operations/CHECKLIST_CUTOVER_VPS.md`
+- `docs/operations/EASYPANEL_AUTOMATION_SETUP.md`

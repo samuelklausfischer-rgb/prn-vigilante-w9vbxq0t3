@@ -18,7 +18,7 @@
 - ✅ Especialista Humanização - Delays, spinning, split
 
 ### 2. Documentação Visual
-- ✅ HTML criado: `docs/planejamento_automacao.html` (clique duplo para abrir)
+- ✅ HTML criado: `docs/presentations/planejamento_automacao.html` (clique duplo para abrir)
 
 ### 3. Planejamento de Migrações SQL
 - ✅ 2 tabelas existentes precisam de ALTER TABLE
@@ -348,7 +348,7 @@ WHERE locked_by IS NOT NULL
 
 **Opção 1: Executar Migrations como Arquivo SQL**
 ```
-"Execute as 15 operações SQL das migrações planejadas em docs/migrations_contexto.md.
+"Execute as 15 operações SQL das migrações planejadas em docs/migrations/migrations_contexto.md.
 Arquivo para criar: supabase/migrations/20260313_automation_features.sql"
 ```
 
@@ -412,8 +412,8 @@ Valide cada uma após executar"
 
 ## 📁 ARQUIVOS RELACIONADOS
 
-1. `docs/planejamento_automacao.html` - Visual interativo do projeto
-2. `docs/migrations_contexto.md` - Este arquivo (contexto salvo)
+1. `docs/presentations/planejamento_automacao.html` - Visual interativo do projeto
+2. `docs/migrations/migrations_contexto.md` - Este arquivo (contexto salvo)
 3. `docs/resumo_contexto.md` - Contexto original do projeto
 4. `supabase/migrations/` - A SER CRIADO quando executar
 

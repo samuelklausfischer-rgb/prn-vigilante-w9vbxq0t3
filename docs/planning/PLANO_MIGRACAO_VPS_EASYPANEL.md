@@ -420,7 +420,7 @@ O caminho mais profissional nao e simplesmente "subir como esta". O caminho corr
 
 Depois deste plano, os proximos artefatos ideais sao:
 
-1. `docs/MATRIZ_ENVS_E_SERVICOS.md`
+1. `docs/planning/MATRIZ_ENVS_E_SERVICOS.md`
    - modulo
    - variavel
    - finalidade
@@ -428,7 +428,7 @@ Depois deste plano, os proximos artefatos ideais sao:
    - ambiente
    - status: criado
 
-2. `docs/ARQUITETURA_VPS_FINAL.md`
+2. `docs/architecture/ARQUITETURA_VPS_FINAL.md`
    - dominios
    - portas
    - redes
@@ -436,14 +436,14 @@ Depois deste plano, os proximos artefatos ideais sao:
    - responsabilidades
    - status: criado
 
-3. `docs/CHECKLIST_CUTOVER_VPS.md`
+3. `docs/operations/CHECKLIST_CUTOVER_VPS.md`
    - pre-deploy
    - deploy
    - pos-deploy
    - rollback
    - status: criado
 
-4. `docs/PLANO_EXTRAIR_AUTOMACAO_REPO.md`
+4. `docs/planning/PLANO_EXTRAIR_AUTOMACAO_REPO.md`
    - estrutura alvo do novo repositorio
    - shared
    - Docker
@@ -451,7 +451,7 @@ Depois deste plano, os proximos artefatos ideais sao:
    - EasyPanel
    - status: criado
 
-5. `docs/EASYPANEL_AUTOMATION_SETUP.md`
+5. `docs/operations/EASYPANEL_AUTOMATION_SETUP.md`
    - imagem GHCR
    - envs obrigatorias
    - healthcheck
@@ -459,14 +459,14 @@ Depois deste plano, os proximos artefatos ideais sao:
    - rollback rapido
    - status: criado
 
-6. `docs/QUADRO_EXECUCAO_MIGRACAO.md`
+6. `docs/planning/QUADRO_EXECUCAO_MIGRACAO.md`
    - fazer agora
    - fazer depois
    - bloqueadores
    - dependencias
    - status: criado
 
-7. `docs/CHECKLIST_EASYPANEL_CAMPO_A_CAMPO.md`
+7. `docs/operations/CHECKLIST_EASYPANEL_CAMPO_A_CAMPO.md`
    - setup campo a campo no EasyPanel
    - envs obrigatorias
    - healthcheck

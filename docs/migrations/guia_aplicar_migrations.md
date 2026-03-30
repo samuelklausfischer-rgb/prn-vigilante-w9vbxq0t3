@@ -958,7 +958,7 @@ ALTER TABLE patients_queue DROP COLUMN IF EXISTS locked_by;
 Após validar que todas as migrations foram aplicadas com sucesso:
 
 1. Execute o diagnóstico: `bun run automation/src/index.ts --diag`
-2. Insira mensagens de teste (veja `docs/dry_run_test_messages.sql`)
+2. Insira mensagens de teste (veja `docs/migrations/dry_run_test_messages.sql`)
 3. Execute o worker em dry run: `bun run automation/src/index.ts`
 4. Valide round-robin e lógica do worker
 5. Depois de validar, forneça seu número real para teste real

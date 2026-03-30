@@ -295,7 +295,7 @@ import { buildSaraMessage } from '../../../packages/shared/templates/sara-messag
 - ✅ `ANALISE_SUBAGENTES.md` - Análise técnica de como sub-agentes funcionam
 
 ### Complementar
-- `docs/MAPA_DO_PROJETO.md` - Arquitetura tri-modular
+- `docs/architecture/MAPA_DO_PROJETO.md` - Arquitetura tri-modular
 - `.agents/workflows/setup-automacao.md` - Exemplo de workflow
 - `.agents/workflows/use-optimizations.md` - Workflow de verificação de otimizações
 - `.agents/prompts/agent-starter.md` - Template de prompt para lançar sub-agentes

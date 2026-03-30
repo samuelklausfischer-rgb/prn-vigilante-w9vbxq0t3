@@ -22,7 +22,7 @@
 | Arquivo | Propósito | Status |
 |---------|----------|--------|
 | `automation/src/diagnostic.ts` | Funções de diagnóstico do sistema | ✅ |
-| `docs/dry_run_test_messages.sql` | Script SQL para teste | ✅ |
+| `docs/migrations/dry_run_test_messages.sql` | Script SQL para teste | ✅ |
 | `docs/guia_dry_run_validacao.md` | Guia completo de execução | ✅ |
 
 ---
@@ -60,7 +60,7 @@ bun run automation/src/index.ts --diag
 ### Rodar Worker em Dry Run
 ```bash
 # 1. Executar migrations no Supabase (se não aplicadas)
-# 2. Inserir mensagens de teste (docs/dry_run_test_messages.sql)
+# 2. Inserir mensagens de teste (docs/migrations/dry_run_test_messages.sql)
 # 3. Rodar worker
 bun run automation/src/index.ts
 ```

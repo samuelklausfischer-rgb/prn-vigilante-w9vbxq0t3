@@ -1,0 +1,171 @@
+================================================================================
+INVESTIGAÇÃO DA TRILHA A - FLUXO DE PROCESSAMENTO DO WORKER
+================================================================================
+Data: 26/03/2026
+
+================================================================================
+PARTE 1 - FLUXO SEQUENCIAL STEP-BY-STEP
+================================================================================
+
+[FASE 1] Inicializacao do Worker
+- WorkerEngine.start() (linha 47-172)
+- Loop principal while (this.running) comeca
+
+[CICLO PRINCIPAL]
+
+PASSO 5: Claimar proxima mensagem (linha 126) CRITICO
+  - queueManager.claim() -> supabase.claimNextMessage()
+  - RPC SQL: claim_next_message(p_worker_id, p_max_attempts)
+  - UPDATE patients_queue SET status='sending', locked_by=p_worker_id
+
+PASSO 6: Processar mensagem claimada (linha 143) CRITICO
+  - queueManager.processClaimedMessage(message, workerId, dryRun)
+  
+  SUBPASSO 6.10: SUCESSO NO ENVIO (linha 431) CRITICO
+    - markMessageAccepted() (linha 446)
+      - UPDATE patients_queue SET status='sending', accepted_at=NOW()
+      - NAO atualiza delivered_at X
+    
+    - syncDeliveryStatus() ASSINCRONO (linha 472) CRITICO
+      - Inicia polling em background com .catch()
+      - POLLING LOOP (3 tentativas): 60s, 300s, 900s
+      - Se todas falharem: Mensagem permanece status='sending' no banco X
+    
+    - RETORNO DO PROCESSAMENTO (linha 480)
+      - RETURN { processed: true, messageId, status: 'delivered' }
+      - Retorna PREMATURAMENTE X
+
+PASSO 7: INCREMENTAR CONTADORES (linha 145-154) CRITICO
+  - if result.status === 'delivered':
+    - this.processed += 1 (linha 146) <- BUG AQUI! X
+    - Worker considera mensagem "processada" mas banco ainda tem status='sending'
+
+================================================================================
+PARTE 2 - TABELA DE CHAMADAS DE FUNCOES E SQL
+================================================================================
+
+Funcao TS                  | Acao                              | Linha
+---------------------------|-----------------------------------|--------
+queueManager.claim()       | RPC: claim_next_message           | 126
+                           | UPDATE patients_queue SET:         |
+                           |   status='sending'                 |
+                           |   locked_by=p_worker_id            |
+                           |   attempt_count=attempt_count+1    |
+sendTextMessage()          | POST /message/sendText/...         | 354
+markMessageAccepted()      | UPDATE patients_queue SET:         | 446
+                           |   status='sending'                 |
+                           |   accepted_at=NOW()                |
+                           |   NAO atualiza delivered_at X     |
+syncDeliveryStatus()       | ASSINCRONO - inicia em background  | 472
+                           | UPDATE delivered_at=NOW()          |
+                           |   NAO atualiza status X            |
+markMessageDelivered()     | UPDATE patients_queue SET:         | 272
+                           |   status='delivered'               |
+                           |   JAMAIS e chamado no modo normal X|
+this.processed += 1        | INCREMENTA COUNTER EM MEMORIA X    | 146
+registerHeartbeat()        | UPSERT worker_heartbeats           | 236
+                           | messages_processed=processed       |
+
+================================================================================
+PARTE 3 - PONTO EXATO ONDE O BUG PODE ESTAR
+================================================================================
+
+BUG IDENTIFICADO: INCREMENTO PREMATURO DE 'processed'
+
+Localizacao Precisa:
+- Arquivo: automation/src/core/worker-engine.ts
+- Linha: 146
+- Codigo: this.processed += 1
+
+Cronograma Real de Eventos:
+T1: sendTextMessage() -> Evolution API retorna sucesso
+T2: markMessageAccepted() -> status='sending'
+T3: syncDeliveryStatus() inicia polling (assincrono)
+T4: [BUG] this.processed += 1 executado IMEDIATAMENTE X
+T5+: Polling tenta confirmar entrega, mas ja foi "processado"
+
+================================================================================
+4 EVIDENCIAS DO BUG
+================================================================================
+
+Evidencia 1: Discrepancia entre incrementos e atualizacoes SQL
+- Worker incrementa this.processed (linha 146)
+- Mas NAO chama markMessageDelivered()!
+- markMessageDelivered() so e chamado em DRY RUN mode (linha 272)
+- No modo normal, JAMAIS e chamado! X
+
+Evidencia 2: markMessageAccepted() vs markMessageDelivered()
+- markMessageAccepted(): marca status='sending' X
+- markMessageDelivered(): marca status='delivered'
+- markMessageAccepted() NAO atualiza delivered_at
+- markMessageDelivered() NAO e chamado no modo normal X
+
+Evidencia 3: syncDeliveryStatus() e assincrono e pode falhar
+- Iniciado com .catch() -> erros silenciados
+- Tenta 3 vezes: 60s, 300s, 900s
+- Se todas falharem: WARNING e worker continua
+- Mensagem fica com status='sending' para sempre X
+
+Evidencia 4: status='sending' vs last_delivery_status
+- syncDeliveryStatus() atualiza delivered_at e last_delivery_status
+- MAS NAO atualiza status para 'delivered' X
+- Resultado: status permanece 'sending' mesmo apos polling
+
+================================================================================
+IMPACTO DO BUG
+================================================================================
+
+1. Inconsistencia Worker vs Banco:
+   - Worker.processed: X (inclui mensagens ainda nao entregues)
+   - Banco (status='delivered'): Y < X (apenas entregues confirmadas)
+
+2. Dashboard incorreto:
+   - Mostra processed=X mas entregues=Y
+   - Usuario ve X entregues mas apenas Y foram entregues
+
+3. Mensagens travadas:
+   - Se polling falhar, status='sending' para sempre
+   - Worker ja considerou como "processada"
+
+4. Follow-ups incorretos:
+   - runSecondCallRecovery() verifica delivered_at
+   - Se polling falhou, mensagem e "nao recebida"
+   - Pode gerar follow-ups desnecessarios
+
+================================================================================
+SOLUCAO PROPOSTA
+================================================================================
+
+MELHOR SOLUCAO: Implementar webhook listener
+- Quando Evolution envia webhook com status='delivered'
+- Chamar markMessageDelivered() -> status='delivered'
+- Adicionar contador separado 'delivered'
+- Polling como fallback
+
+SOLUCAO IMEDIATA: Documentar 'processed' = 'enviadas pela API'
+- Renomear: this.processed -> this.sent
+- Atualizar dashboard para mostrar metricas separadas
+- Documentar diferenca em AGENTS.md
+
+================================================================================
+CONCLUSAO
+================================================================================
+
+BUG CONFIRMADO: Worker incrementa 'processed' quando Evolution ACEITA,
+mas ANTES de confirmar ENTREGA real.
+
+Localizacao: worker-engine.ts linha 146
+
+Impacto: Contadores refletem envios, nao entregues reais.
+         Mensagens podem ficar status='sending' para sempre.
+
+Proximos passos:
+1. Implementar webhook listener
+2. Chamar markMessageDelivered() no webhook
+3. Adicionar contador 'delivered'
+4. Atualizar dashboard
+5. Documentar diferenca 'processed' vs 'delivered'
+
+================================================================================
+FIM DA INVESTIGACAO - TRILHA A
+================================================================================

@@ -102,7 +102,7 @@ Evolution API (VPS)
 
 ## 5. Variaveis de Ambiente por Servico
 
-Referencia detalhada: `docs/MATRIZ_ENVS_E_SERVICOS.md`.
+Referencia detalhada: `docs/planning/MATRIZ_ENVS_E_SERVICOS.md`.
 
 Resumo minimo:
 
@@ -192,7 +192,7 @@ Passos minimos:
 5. Revalidar webhook para Supabase.
 6. Executar smoke test completo.
 
-Referencia operacional: `docs/CHECKLIST_CUTOVER_VPS.md`.
+Referencia operacional: `docs/operations/CHECKLIST_CUTOVER_VPS.md`.
 
 ---
 
