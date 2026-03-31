@@ -1,5 +1,6 @@
 import {
   claimNextMessage,
+  claimNextMessageForInstance,
   hasValidConsent,
   isNumberBlocked,
   markMessageAccepted,
@@ -51,6 +52,15 @@ export class QueueManager {
 
   async claim(workerId: string, maxAttempts = 3): Promise<ClaimedMessage | null> {
     return claimNextMessage(workerId, maxAttempts)
+  }
+
+  async claimForInstance(
+    workerId: string,
+    instanceId: string,
+    instanceName: string,
+    maxAttempts = 3,
+  ): Promise<ClaimedMessage | null> {
+    return claimNextMessageForInstance(workerId, instanceId, instanceName, maxAttempts)
   }
 
   async processClaimedMessage(

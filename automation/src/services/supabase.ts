@@ -55,6 +55,59 @@ export async function claimNextMessage(
   }
 }
 
+export interface ConnectedInstance {
+  id: string
+  instance_name: string
+}
+
+export async function listConnectedInstances(): Promise<ConnectedInstance[]> {
+  try {
+    const { data, error } = await supabase
+      .from('whatsapp_instances')
+      .select('id, instance_name')
+      .eq('status', 'connected')
+      .order('rotation_index', { ascending: true, nullsFirst: true })
+      .order('last_message_at', { ascending: true, nullsFirst: true })
+
+    if (error) {
+      console.error(`❌ Erro ao listar instâncias conectadas:`, error)
+      return []
+    }
+
+    return (data || []) as ConnectedInstance[]
+  } catch (error) {
+    console.error(`❌ Exceção ao listar instâncias conectadas:`, error)
+    return []
+  }
+}
+
+export async function claimNextMessageForInstance(
+  workerId: string,
+  instanceId: string,
+  instanceName: string,
+  maxAttempts = 3,
+): Promise<ClaimedMessage | null> {
+  try {
+    const { data, error } = await supabase.rpc('claim_next_message_for_instance', {
+      p_worker_id: workerId,
+      p_instance_id: instanceId,
+      p_instance_name: instanceName,
+      p_max_attempts: maxAttempts,
+    })
+
+    if (error) {
+      console.error(`❌ Erro ao claimar mensagem para instância ${instanceName}:`, error)
+      return null
+    }
+
+    const messages = data as ClaimedMessage[] | null
+    return messages && messages.length > 0 ? messages[0] : null
+  } catch (error) {
+    console.error(`❌ Exceção ao claimar mensagem para instância ${instanceName}:`, error)
+    return null
+  }
+}
+
 /**
  * Marca mensagem como aceita pela Evolution API (envio iniciado)
  * Atualiza status para 'sending' e grava accepted_at, provider_message_id e provider_chat_id

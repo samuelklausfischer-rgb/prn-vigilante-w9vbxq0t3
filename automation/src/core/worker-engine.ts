@@ -5,6 +5,7 @@ import {
   acquireWorkerLease,
   cleanupStaleHeartbeats,
   getSystemConfig,
+  listConnectedInstances,
   releaseExpiredLocks,
   removeHeartbeat,
   releaseWorkerLease,
@@ -41,6 +42,7 @@ export class WorkerEngine {
   private currentJobId: string | null = null
   private currentJobStartedAt: string | null = null
   private readonly followupIntervalMs = Number(process.env.WORKER_FOLLOWUP_INTERVAL_MS || 60000)
+  private readonly maxParallelLanes = Number(process.env.WORKER_MAX_PARALLEL_LANES || 12)
 
   constructor() {
     this.humanizer = new Humanizer()
@@ -127,45 +129,44 @@ export class WorkerEngine {
           console.log(`[${timestamp()}] 🔓 ${releasedLocks.length} lock(s) expirado(s) liberado(s).`)
         }
 
-        // ── 5. Claimar próxima mensagem ──
-        const claimed = await this.queueManager.claim(this.workerId, this.maxAttempts)
-        if (!claimed) {
-          console.log(`[${timestamp()}] 📭 Nenhuma mensagem elegivel encontrada`, {
+        // ── 5. Processar lanes por instância (paralelo) ──
+        const connectedInstances = await listConnectedInstances()
+        if (connectedInstances.length === 0) {
+          console.log(`[${timestamp()}] 📵 Nenhuma instância conectada para processamento`)
+          await sleep(this.pollIntervalMs)
+          continue
+        }
+
+        const lanes = connectedInstances.slice(0, this.maxParallelLanes)
+        const laneResults = await Promise.allSettled(
+          lanes.map((instance) => this.processInstanceLane(instance.id, instance.instance_name)),
+        )
+
+        const claimedCount = laneResults.filter(
+          (result) => result.status === 'fulfilled' && result.value,
+        ).length
+
+        const rejectedLanes = laneResults.filter((result) => result.status === 'rejected')
+        if (rejectedLanes.length > 0) {
+          this.failed += rejectedLanes.length
+          console.error(`[${timestamp()}] ❌ Falha em lane(s) de instância`, {
             workerId: this.workerId,
+            failedLanes: rejectedLanes.length,
+            errors: rejectedLanes.map((result) => serializeError((result as PromiseRejectedResult).reason)),
+          })
+        }
+
+        if (claimedCount === 0) {
+          console.log(`[${timestamp()}] 📭 Nenhuma mensagem elegível nas lanes`, {
+            workerId: this.workerId,
+            connectedInstances: connectedInstances.length,
+            activeLanes: lanes.length,
             pollIntervalMs: this.pollIntervalMs,
           })
           await sleep(this.pollIntervalMs)
           continue
         }
 
-        this.currentJobId = claimed.id
-        this.currentJobStartedAt = new Date().toISOString()
-        await this.registerHeartbeat()
-
-        console.log(`[${timestamp()}] 📩 Mensagem claimada: ${claimed.id} → ${claimed.instance_name}`)
-
-        // ── 6. Processar mensagem ──
-        const result = await this.queueManager.processClaimedMessage(claimed, this.workerId, this.dryRun)
-
-        if (result.status === 'delivered') {
-          this.delivered += 1
-          this.finalized += 1
-          console.log(`[${timestamp()}] ✅ Entregue: ${claimed.id} (entregues: ${this.delivered}, finalizados: ${this.finalized})`)
-        } else if (result.status === 'failed') {
-          this.finalized += 1
-          this.failed += 1
-          console.log(`[${timestamp()}] ❌ Falhou: ${claimed.id} (${result.reason || 'sem motivo'}) (finalizados: ${this.finalized})`)
-        } else if (result.status === 'deferred') {
-          console.log(`[${timestamp()}] ⏸️ Adiada por infra: ${claimed.id} (${result.reason || 'infra'})`)
-          await sleep(2000)
-        } else if (result.status === 'skipped') {
-          this.finalized += 1
-          this.skipped += 1
-          console.log(`[${timestamp()}] ⏭️ Ignorada: ${claimed.id} (${result.reason || 'sem motivo'}) (finalizados: ${this.finalized})`)
-        }
-
-        this.currentJobId = null
-        this.currentJobStartedAt = null
         await this.registerHeartbeat()
       } catch (error) {
         this.failed += 1
@@ -284,5 +285,42 @@ export class WorkerEngine {
 
     process.once('SIGINT', stop)
     process.once('SIGTERM', stop)
+  }
+
+  private async processInstanceLane(instanceId: string, instanceName: string): Promise<boolean> {
+    const claimed = await this.queueManager.claimForInstance(
+      this.workerId,
+      instanceId,
+      instanceName,
+      this.maxAttempts,
+    )
+
+    if (!claimed) {
+      return false
+    }
+
+    this.processed += 1
+
+    console.log(`[${timestamp()}] 📩 [${instanceName}] Mensagem claimada: ${claimed.id}`)
+
+    const result = await this.queueManager.processClaimedMessage(claimed, this.workerId, this.dryRun)
+
+    if (result.status === 'delivered') {
+      this.delivered += 1
+      this.finalized += 1
+      console.log(`[${timestamp()}] ✅ [${instanceName}] Entregue: ${claimed.id} (entregues: ${this.delivered}, finalizados: ${this.finalized})`)
+    } else if (result.status === 'failed') {
+      this.finalized += 1
+      this.failed += 1
+      console.log(`[${timestamp()}] ❌ [${instanceName}] Falhou: ${claimed.id} (${result.reason || 'sem motivo'}) (finalizados: ${this.finalized})`)
+    } else if (result.status === 'deferred') {
+      console.log(`[${timestamp()}] ⏸️ [${instanceName}] Adiada por infra: ${claimed.id} (${result.reason || 'infra'})`)
+    } else if (result.status === 'skipped') {
+      this.finalized += 1
+      this.skipped += 1
+      console.log(`[${timestamp()}] ⏭️ [${instanceName}] Ignorada: ${claimed.id} (${result.reason || 'sem motivo'}) (finalizados: ${this.finalized})`)
+    }
+
+    return true
   }
 }
