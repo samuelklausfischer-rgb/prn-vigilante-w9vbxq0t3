@@ -40,6 +40,20 @@
 - EasyPanel apresentou `429 Too Many Requests` no download de archive GitHub.
 - Logs mostraram padrao que aparenta runtime antigo e erro `retry_phone2` recorrente.
 
+### 8) Scaffold MCP operacional local (EasyPanel + Evolution)
+- Criado pacote local `supabase/mcp-ops/` com Node + TypeScript para uso no PC operador.
+- Implementados adapters para EasyPanel (infra) e `evolution-proxy` (camada app).
+- Ferramentas MCP criadas para leitura de servicos/status/logs e diagnostico consolidado (`ops_full_diagnosis`).
+- Mutacoes (restart/redeploy/create/delete) foram codificadas, mas protegidas por `MCP_MODE=operator` e `ALLOW_MUTATIONS=true`.
+- Build TypeScript validado com sucesso (`npm run build` em `supabase/mcp-ops`).
+
+### 9) Frontend pronto para deploy no EasyPanel
+- Criado `Dockerfile` na raiz para build do Vite e runtime em Nginx.
+- Criado `nginx.conf` com fallback SPA (`try_files ... /index.html`) para suportar `BrowserRouter`.
+- Criado `.dockerignore` raiz para reduzir contexto de build.
+- Criado guia operacional `docs/operations/EASYPANEL_FRONTEND_SETUP.md` com campos e validacao.
+- Build local validado com sucesso (`npm run build`).
+
 ## Commit relevante
 - `88994e9` - `feat: habilitar processamento paralelo por instancia`.
 

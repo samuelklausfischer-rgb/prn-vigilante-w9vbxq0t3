@@ -1,0 +1,15 @@
+.git
+.gitignore
+.vscode
+
+node_modules
+dist
+dev-dist
+
+automation/node_modules
+automation/automation-worker.exe
+
+supabase/.branches
+supabase/.temp
+
+Obsidian Memory

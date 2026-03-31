@@ -9,6 +9,9 @@
 - Commit de referencia: `88994e9` (`feat: habilitar processamento paralelo por instancia`).
 - Migrations de claim por instancia criadas no repo e aplicadas no Supabase remoto.
 - EasyPanel ainda apresenta sinais de runtime com fluxo antigo e teve erro de download GitHub `429`.
+- Estrutura local de MCP operacional criada em `supabase/mcp-ops/` para diagnostico de EasyPanel + Evolution.
+- Frontend preparado para deploy no EasyPanel com arquivos de infra adicionados (`Dockerfile`, `nginx.conf`, `.dockerignore`).
+- Build local do frontend validado com sucesso (`npm run build`).
 
 ## Entregas principais realizadas
 - Planejamento e documentacao de migracao para VPS/EasyPanel.
@@ -26,3 +29,5 @@
 - Garantir que EasyPanel rode exatamente o commit novo.
 - Confirmar paralelismo real entre instancias no runtime.
 - Corrigir a causa do erro de enfileiramento `retry_phone2`.
+- Validar autenticacao e endpoints reais da API do EasyPanel para ativar ferramentas MCP de leitura em producao local.
+- Subir novo servico `prn-frontend` no EasyPanel usando URL temporaria e validar rotas SPA com refresh.

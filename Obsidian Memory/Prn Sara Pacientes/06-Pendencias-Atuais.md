@@ -19,5 +19,16 @@
 - Mitigar `429` no download de source.
 - Definir estrategia padrao: branch estavel ou imagem de registry.
 
+## P0 - Publicar frontend no EasyPanel
+- Criar servico web `prn-frontend` apontando para o `Dockerfile` da raiz.
+- Definir `VITE_SUPABASE_URL` e `VITE_SUPABASE_PUBLISHABLE_KEY` em Build Args.
+- Validar URL temporaria publica com login e refresh de rotas SPA (`/whatsapp`, `/analytics`).
+
+## P1 - Validar API real do EasyPanel para MCP
+- Confirmar header de autenticacao aceito (Bearer, X-API-Key ou apikey).
+- Confirmar endpoints de projeto/servicos/logs usados pela versao atual do painel.
+- Mapear IDs reais dos servicos `worker` e `evolution api` no projeto `9999`.
+- Executar `supabase/mcp-ops` em modo `readonly` com retorno consistente.
+
 ## P2 - Consolidacao para `main`
 - Apos validacao completa em ambiente alvo, decidir merge da branch de trabalho para `main`.
