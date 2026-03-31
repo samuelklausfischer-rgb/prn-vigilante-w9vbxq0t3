@@ -1,7 +1,7 @@
 # 🤖 AGENTS.md - Instruções para Sub-Agentes
 
-**Versão:** 1.1  
-**Última atualização:** 18/03/2026
+**Versão:** 1.2  
+**Última atualização:** 31/03/2026
 
 Este documento contém todas as instruções **OBRIGATÓRIAS** que devem ser seguidas por sub-agentes (task tool) quando lançados para trabalhar no projeto PRN-Vigilante.
 
@@ -224,6 +224,14 @@ prn-vigilante/
 │   ├── MAPA_DO_PROJETO.md                  # Arquitetura tri-modular
 │   └── README.md                           # Documento geral
 │
+├── Obsidian Memory/                        # ⭐ Memória operacional persistente
+│   └── Prn Sara Pacientes/
+│       ├── Memoria-Operacional-PRN.md      # Índice da memória
+│       ├── 00-Resumo-Geral.md              # Estado macro do projeto
+│       ├── 02-Historico-da-Sessao.md       # Linha do tempo técnica
+│       ├── 06-Pendencias-Atuais.md         # Backlog operacional vivo
+│       └── 08-Log-de-Atualizacoes.md       # Registro cronológico contínuo
+│
 ├── .agents/                                # ⭐ Workflows e prompts para agentes
 │   ├── workflows/
 │   │   ├── setup-automacao.md              # Workflow de setup
@@ -302,6 +310,31 @@ import { buildSaraMessage } from '../../../packages/shared/templates/sara-messag
 
 ---
 
+## 🧠 Memória Operacional (Obrigatório)
+
+### Local padrão
+- `Obsidian Memory/Prn Sara Pacientes/`
+
+### Regra de uso
+- Ao concluir uma tarefa relevante (implementação, diagnóstico, deploy, rollback, decisão técnica), atualizar a memória operacional.
+- Priorizar arquivos temáticos já existentes em vez de concentrar tudo em um único arquivo.
+- Sempre registrar um evento no `08-Log-de-Atualizacoes.md` com data/hora, contexto, ação, resultado, risco e próximo passo.
+
+### Ordem recomendada de atualização
+1. `00-Resumo-Geral.md` (estado atual consolidado)
+2. `02-Historico-da-Sessao.md` (linha do tempo)
+3. arquivo temático afetado (`03-Worker-Paralelismo.md`, `05-EasyPanel-e-Deploy.md`, etc.)
+4. `06-Pendencias-Atuais.md` e `07-Proximos-Passos.md`
+5. `08-Log-de-Atualizacoes.md`
+
+### Regras de qualidade
+- Não apagar histórico sem necessidade explícita.
+- Manter linguagem objetiva, técnica e orientada a continuidade.
+- Registrar IDs concretos quando existirem (commit, migration, branch, função, serviço).
+- Em caso de incerteza, registrar hipótese como hipótese (não como fato).
+
+---
+
 ## 🚀 Checklist de Verificação
 
 ### Antes de Implementar
@@ -321,6 +354,7 @@ import { buildSaraMessage } from '../../../packages/shared/templates/sara-messag
 - [ ] Verifiquei se economizei tokens
 - [ ] Documentei mudanças se necessário
 - [ ] Testei o código
+- [ ] Atualizei a memória operacional em `Obsidian Memory/Prn Sara Pacientes/`
 
 ---
 
@@ -348,6 +382,12 @@ import { buildSaraMessage } from '../../../packages/shared/templates/sara-messag
 ---
 
 ## 🔄 Versão e Histórico
+
+### v1.2 (31/03/2026)
+- Adicionada seção obrigatória de memória operacional (`Obsidian Memory`)
+- Incluída estrutura de arquivos de memória no mapa do projeto
+- Adicionado checklist pós-implementação para atualizar memória
+- Definido padrão de atualização contínua no `08-Log-de-Atualizacoes.md`
 
 ### v1.1 (18/03/2026)
 - Adicionado alias `@shared` para frontend
