@@ -111,6 +111,8 @@ export default function EnviarLista() {
   const { toast } = useToast()
   const [rawText, setRawText] = useState('')
   const [manualExamDate, setManualExamDate] = useState('')
+  const [listName, setListName] = useState('')
+  const [listNotes, setListNotes] = useState('')
   const [loading, setLoading] = useState(false)
   const [inserting, setInserting] = useState(false)
   const [result, setResult] = useState<{ agenda_date?: string; patients: PatientAgendaItem[] } | null>(null)
@@ -181,6 +183,19 @@ export default function EnviarLista() {
 
   const issues = useMemo(() => hasBlockingIssues(result?.patients || []), [result])
 
+  useEffect(() => {
+    if (!result || listName.trim()) return
+    const selectedInstanceName =
+      instances.find((instance) => instance.id === selectedInstanceId)?.instanceName ||
+      'Canal'
+    const normalizedDate =
+      normalizeDataExame(manualExamDate) ||
+      normalizeDataExame(result.agenda_date || '') ||
+      normalizeDataExame(result.patients[0]?.data_exame || '')
+    const fallbackDate = normalizedDate || new Date().toISOString().slice(0, 10)
+    setListName(`Lista ${fallbackDate} | ${selectedInstanceName}`)
+  }, [result, instances, selectedInstanceId, manualExamDate, listName])
+
   const handleGenerate = async () => {
     if (!rawText.trim()) {
       toast({ title: 'Lista vazia', description: 'Cole a lista desorganizada antes de gerar.', variant: 'destructive' })
@@ -246,6 +261,14 @@ export default function EnviarLista() {
 
   const handleApproveInsert = async () => {
     if (!result) return
+    if (!selectedInstanceId) {
+      toast({ title: 'Canal obrigatorio', description: 'Selecione um canal de WhatsApp antes de aprovar.', variant: 'destructive' })
+      return
+    }
+    if (!listName.trim()) {
+      toast({ title: 'Nome obrigatorio', description: 'Informe um nome para esta lista.', variant: 'destructive' })
+      return
+    }
     if (issues.blocked) {
       toast({
         title: 'Não é possível aprovar',
@@ -260,6 +283,29 @@ export default function EnviarLista() {
       const patientsWithWarnings = [...result.patients]
       let successCount = 0
       let duplicateCount = 0
+      const insertedIds: string[] = []
+
+      const examDateIso =
+        normalizeDataExame(manualExamDate) ||
+        normalizeDataExame(result.agenda_date || '') ||
+        normalizeDataExame(result.patients[0]?.data_exame || '') ||
+        null
+
+      const { data: sendList, error: sendListError } = await (supabase.from('send_lists') as any)
+        .insert({
+          name: listName.trim(),
+          exam_date: examDateIso,
+          locked_instance_id: selectedInstanceId,
+          notes: listNotes.trim() || null,
+          status: 'queued',
+          updated_at: new Date().toISOString(),
+        })
+        .select('id')
+        .single()
+
+      if (sendListError) throw sendListError
+      const sendListId = String(sendList?.id || '')
+      if (!sendListId) throw new Error('Falha ao criar a lista de envio.')
 
       for (let i = 0; i < result.patients.length; i++) {
         const p = result.patients[i]
@@ -309,8 +355,18 @@ export default function EnviarLista() {
         }
 
         if (rpcResult?.status === 'success') {
+          if (rpcResult?.id) insertedIds.push(String(rpcResult.id))
           successCount++
         }
+      }
+
+      if (insertedIds.length > 0) {
+        const { error: linkError } = await (supabase.from('patients_queue') as any)
+          .update({ send_list_id: sendListId, updated_at: new Date().toISOString() })
+          .in('id', insertedIds)
+        if (linkError) throw linkError
+      } else {
+        await (supabase.from('send_lists') as any).delete().eq('id', sendListId)
       }
 
       setResult({ ...result, patients: patientsWithWarnings })
@@ -319,12 +375,19 @@ export default function EnviarLista() {
       const selectedInstanceName = instances.find((i: any) => i.id === selectedInstanceId)?.instanceName || 'instância selecionada'
       if (successCount > 0) messages.push(`${successCount} paciente(s) inserido(s) via ${selectedInstanceName}`)
       if (duplicateCount > 0) messages.push(`${duplicateCount} duplicado(s) recente(s)`)
+      if (insertedIds.length > 0) {
+        messages.push(`Lista: ${listName.trim()}`)
+      } else {
+        messages.push('Nenhum paciente novo foi inserido; lista nao foi criada')
+      }
 
       toast({ title: 'Processamento concluído', description: messages.join('. ') })
 
       if (successCount === result.patients.length) {
         setResult(null)
         setRawText('')
+        setListNotes('')
+        setListName('')
       }
     } catch (e: any) {
       toast({ title: 'Falha ao inserir', description: e.message || 'Erro inesperado.', variant: 'destructive' })
@@ -361,6 +424,26 @@ export default function EnviarLista() {
               onChange={(e) => setManualExamDate(e.target.value)}
               placeholder="DD/MM/AAAA"
               className="bg-black/30 border-white/10"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-xs font-medium text-slate-200">Nome da lista</label>
+            <Input
+              value={listName}
+              onChange={(e) => setListName(e.target.value)}
+              placeholder="Ex: Lista 2026-03-31 | Canal 01"
+              className="bg-black/30 border-white/10"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-xs font-medium text-slate-200">Observacoes da lista (opcional)</label>
+            <Textarea
+              value={listNotes}
+              onChange={(e) => setListNotes(e.target.value)}
+              placeholder="Informacoes operacionais desta lista"
+              className="min-h-[90px] bg-black/30 border-white/10"
             />
           </div>
 

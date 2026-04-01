@@ -10,7 +10,7 @@ import {
   SidebarTrigger,
 } from '@/components/ui/sidebar'
 import { Button } from '@/components/ui/button'
-import { ShieldCheck, ListTodo, Archive, PowerOff, LogOut, Smartphone, Send, Repeat2, BarChart3, CalendarRange, Target, LayoutGrid } from 'lucide-react'
+import { ShieldCheck, ListTodo, Archive, PowerOff, LogOut, Smartphone, Send, Repeat2, BarChart3, CalendarRange, Target, LayoutGrid, FolderOpen } from 'lucide-react'
 import { useAuth } from '@/hooks/use-auth'
 import { useAppData } from '@/hooks/use-app-data'
 import { useToast } from '@/hooks/use-toast'
@@ -34,6 +34,7 @@ function AppSidebar() {
     { title: 'Analytics', url: '/analytics', icon: BarChart3 },
     { title: 'Fila de Envios', url: '/', icon: ListTodo },
     { title: 'Enviar lista', url: '/enviar-lista', icon: Send },
+    { title: 'Listas', url: '/listas', icon: FolderOpen },
     { title: 'Segunda chamada', url: '/segunda-chamada', icon: Repeat2 },
     { title: 'Estratégico', url: '/estrategico', icon: Target },
     { title: 'CRM Kanban', url: '/crm', icon: LayoutGrid },
@@ -128,6 +129,8 @@ function TopBar() {
       ? 'Monitoramento em Tempo Real'
       : location.pathname === '/enviar-lista'
         ? 'Enviar lista'
+        : location.pathname === '/listas'
+          ? 'Listas cadastradas'
         : location.pathname === '/segunda-chamada'
           ? 'Segunda chamada'
           : location.pathname === '/estrategico'

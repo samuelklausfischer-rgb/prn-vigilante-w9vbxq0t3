@@ -32,3 +32,14 @@
 
 ## P2 - Consolidacao para `main`
 - Apos validacao completa em ambiente alvo, decidir merge da branch de trabalho para `main`.
+
+## P0 - Rollout da aba `Listas`
+- Validar criacao de `send_lists` e vinculo `patients_queue.send_list_id` em ambiente real.
+- Confirmar fluxo de `Enviar lista` criando lista + pacientes vinculados sem erro de RPC.
+
+## P1 - Validacao operacional da nova tela
+- Testar rota `/listas` com filtros, detalhe e reatribuicao de canal.
+- Validar cancelamento de lista (afeta somente pacientes `queued`).
+- Validar bloqueio de exclusao quando houver paciente ja processado.
+- Validar secao `Listas legadas` (somente leitura) exibindo nome do paciente, horario e status sem alterar dados antigos.
+- Validar fluxo novo de conversao de lista legada para cadastrada com abertura automatica do popup de edicao.

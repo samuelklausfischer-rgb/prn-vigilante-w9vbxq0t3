@@ -41,6 +41,8 @@ export type ManualPriority = 'low' | 'medium' | 'high' | 'urgent'
 
 export type JourneyEventSource = 'worker' | 'webhook' | 'polling' | 'ai' | 'manual'
 
+export type SendListStatus = 'draft' | 'queued' | 'in_progress' | 'completed' | 'cancelled'
+
 // ============================================
 // Tabelas do Banco de Dados
 // ============================================
@@ -89,6 +91,7 @@ export interface PatientQueue {
   canonical_phone?: string | null
   origin_queue_id?: string | null
   dedupe_hash?: string | null
+  send_list_id?: string | null
 
   // Campos do sistema de jornada (PR 1)
   journey_id?: string | null
@@ -125,6 +128,63 @@ export interface PatientQueue {
 export interface DateRangeFilter {
   from?: Date
   to?: Date
+}
+
+export interface SendList {
+  id: string
+  name: string
+  exam_date?: string | null
+  locked_instance_id?: string | null
+  status: SendListStatus
+  notes?: string | null
+  created_by?: string | null
+  created_at: string
+  updated_at: string
+}
+
+export interface SendListSummary extends SendList {
+  total_patients: number
+  queued_count: number
+  in_progress_count: number
+  completed_count: number
+  cancelled_count: number
+  unknown_count: number
+  locked_instance_name?: string | null
+  locked_instance_phone?: string | null
+}
+
+export interface SendListPatient extends PatientQueue {
+  send_list_id?: string | null
+}
+
+export interface LegacyListPatient {
+  id: string
+  patient_name: string
+  phone_number: string
+  data_exame?: string | null
+  horario_inicio?: string | null
+  horario_final?: string | null
+  procedimentos?: string | null
+  status: QueueStatus
+  locked_instance_id?: string | null
+  created_at: string
+}
+
+export interface LegacyListGroup {
+  id: string
+  source: 'legacy'
+  title: string
+  instance_id?: string | null
+  instance_name?: string | null
+  exam_date?: string | null
+  status: SendListStatus
+  total_patients: number
+  queued_count: number
+  in_progress_count: number
+  completed_count: number
+  failed_count: number
+  cancelled_count: number
+  patients: LegacyListPatient[]
 }
 
 export interface AnalyticsProcedureSummary {

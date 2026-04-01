@@ -478,7 +478,7 @@ export async function scheduleFollowup(queueMessageId: string): Promise<boolean>
 export interface PhoneLadderResult {
   action: 'escalated' | 'exhausted'
   nextPhone?: string
-  nextPhoneIndex?: number
+  nextIndex?: number
 }
 
 /**
@@ -507,17 +507,31 @@ export async function handlePhoneLadderEscalation(
   }
 
   const currentIndex: number = fullRow.phone_attempt_index || 1
+  const currentPhoneNorm = normalizePhone(fullRow.phone_number)
+  const phone2Norm = fullRow.phone_2 ? normalizePhone(fullRow.phone_2) : null
+  const phone3Norm = fullRow.phone_3 ? normalizePhone(fullRow.phone_3) : null
 
-  // Determinar próximo telefone na escada
+  // Determinar próximo telefone na escada com deduplicação
   let nextPhone: string | null = null
   let nextIndex: number | null = null
 
-  if (currentIndex === 1 && fullRow.phone_2) {
-    nextPhone = String(fullRow.phone_2).trim()
-    nextIndex = 2
-  } else if (currentIndex <= 2 && fullRow.phone_3) {
-    nextPhone = String(fullRow.phone_3).trim()
-    nextIndex = 3
+  if (currentIndex === 1) {
+    // Tentar o 2 se for diferente do 1
+    if (phone2Norm && phone2Norm !== currentPhoneNorm) {
+      nextPhone = String(fullRow.phone_2).trim()
+      nextIndex = 2
+    } 
+    // Se o 2 for igual ao 1 ou não existir, tentar o 3 se for diferente do 1
+    else if (phone3Norm && phone3Norm !== currentPhoneNorm) {
+      nextPhone = String(fullRow.phone_3).trim()
+      nextIndex = 3
+    }
+  } else if (currentIndex === 2) {
+    // Tentar o 3 se for diferente do 2 (e do 1 por segurança)
+    if (phone3Norm && phone3Norm !== currentPhoneNorm && phone3Norm !== phone2Norm) {
+      nextPhone = String(fullRow.phone_3).trim()
+      nextIndex = 3
+    }
   }
 
   // Atualizar jornada com notas de automação
@@ -609,6 +623,8 @@ export async function handlePhoneLadderEscalation(
   if (!result || result.status !== 'success') {
     if (result?.status === 'duplicate_recent') {
       console.log(`ℹ️ ${dedupeKind} já enfileirado para ${sanitizeBrazilianNumber(nextPhone)}`)
+      // Se já está enfileirado, consideramos como sucesso no escalonamento (foi "escalado" anteriormente ou manualmente)
+      return { action: 'escalated', nextPhone, nextIndex }
     } else {
       console.warn(`⚠️ ${dedupeKind} não enfileirado: ${result?.error_message || 'sem resultado'}`)
     }
@@ -635,7 +651,7 @@ export async function handlePhoneLadderEscalation(
   return {
     action: 'escalated',
     nextPhone,
-    nextPhoneIndex: nextIndex,
+    nextIndex,
   }
 }
 

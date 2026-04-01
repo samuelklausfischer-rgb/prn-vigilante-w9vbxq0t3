@@ -418,24 +418,35 @@ export class QueueManager {
           }
         }
 
+        const delayMinutes = Math.floor(Math.random() * 5) + 5
+        const sendAfterDelay = new Date(Date.now() + delayMinutes * 60 * 1000)
+
+        const ladderResult = await handlePhoneLadderEscalation(
+          message,
+          'provider_send_failed',
+          `Tel${message.phone_attempt_index || 1}: Erro técnico (${sendResult.errorType}). Tentando Tel${(message.phone_attempt_index || 1) + 1} em ${delayMinutes}min`,
+          sendAfterDelay,
+        )
+
         await markMessageFailed(
           message.id,
-          sendResult.error || 'Falha ao enviar mensagem',
+          sendResult.error || 'Falha técnica no envio',
           message.attempt_count,
           workerId,
           {
-            secondCallReason: 'provider_send_failed',
-            needsSecondCall: true,
+            secondCallReason: ladderResult.action === 'escalated' ? 'provider_error_escalated' : 'phone_ladder_exhausted',
+            needsSecondCall: ladderResult.action !== 'escalated',
           },
         )
 
         return {
           processed: true,
           messageId: message.id,
-          status: 'failed',
-          reason: sendResult.errorType,
+          status: ladderResult.action === 'escalated' ? 'skipped' : 'failed',
+          reason: ladderResult.action === 'escalated' ? 'provider_error_escalated' : sendResult.errorType,
         }
       }
+
 
       // ──────────────────────────────────────
       // 6. Sucesso — Registrar Aceitação e Iniciar Polling

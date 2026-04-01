@@ -182,7 +182,7 @@ export function QueueList({ items, onToggleApprove, onEdit, onCancel }: QueueLis
           bg: 'bg-emerald-400/10',
           border: 'border-emerald-400/20',
           dot: 'bg-emerald-400',
-          label: 'Entregue',
+          label: 'Enviado',
         }
       case 'failed':
         return {

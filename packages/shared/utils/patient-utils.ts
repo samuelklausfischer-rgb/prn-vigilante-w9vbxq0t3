@@ -21,26 +21,36 @@ export function getPatientCategory(patient: PatientQueue): PatientCategory {
   // 1. Respondido (Prioridade: Paciente interagiu)
   if (patient.replied_at || patient.current_outcome) return 'respondido'
 
-  // 2. Fixo (Identificado por regra de número ou flag da automação)
+  // 2. Escalonado (Já pulou para o próximo telefone automaticamente)
+  // Movemos para histórico para não poluir as abas de Fixo ou Falha.
+  const isEscalated = 
+    patient.second_call_reason === 'landline_detected' || 
+    patient.second_call_reason === 'provider_error_escalated' ||
+    patient.second_call_reason === 'send_failed_no_whatsapp'
+
+  if (isEscalated) return 'historico'
+
+  // 3. Fixo (Identificado por regra de número ou flag da automação)
   if (patient.is_landline || patient.second_call_reason === 'landline_only' || isLandline(patient.phone_number)) {
     return 'fixo'
   }
 
-  // 3. Crítico (Tentativas esgotadas ou falha em múltiplos números)
+  // 4. Crítico (Tentativas esgotadas ou falha em múltiplos números)
   const isCritical = 
     Number(patient.attempt_count || 0) >= 3 || 
     patient.second_call_reason === 'not_received_retry_phone2' ||
+    patient.second_call_reason === 'phone_ladder_exhausted' ||
     (patient.status === 'failed' && !patient.phone_2)
 
   if (isCritical) return 'critico'
 
-  // 4. Falha (Não recebido / Não enviado na primeira tentativa)
+  // 5. Falha (Erro de envio sem escalonamento possível)
   if (patient.status === 'failed') return 'falha'
 
-  // 5. Pendente (Enviado mas sem resposta ainda)
+  // 6. Pendente (Enviado mas sem resposta ainda)
   if (patient.status === 'delivered') return 'pendente'
 
-  // Default para histórico se for algo muito antigo ou processado
+  // Default para histórico
   return 'historico'
 }
 

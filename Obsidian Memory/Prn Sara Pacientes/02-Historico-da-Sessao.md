@@ -54,6 +54,58 @@
 - Criado guia operacional `docs/operations/EASYPANEL_FRONTEND_SETUP.md` com campos e validacao.
 - Build local validado com sucesso (`npm run build`).
 
+### 10) Implementacao da aba separada `Listas`
+- Criada migration `20260331121500_create_send_lists_and_link_queue.sql` para:
+  - criar tabela `public.send_lists`;
+  - adicionar `send_list_id` em `patients_queue`;
+  - indices e politica RLS para operacao autenticada.
+- Criado service `src/services/send-lists.ts` com operacoes de listagem, detalhe, edicao, reatribuicao de canal, cancelamento e exclusao segura.
+- Criada pagina `src/pages/Listas.tsx` com:
+  - filtros;
+  - listagem de listas;
+  - detalhe com pacientes vinculados;
+  - acoes operacionais (editar, trocar canal, cancelar, excluir).
+- Fluxo `src/pages/EnviarLista.tsx` atualizado para:
+  - capturar nome/observacao da lista;
+  - criar `send_list` no momento da aprovacao;
+  - vincular registros inseridos via `send_list_id`.
+- Navegacao atualizada em `src/App.tsx` e `src/components/Layout.tsx` com rota/menu `/listas`.
+
+### 11) Visualizacao de listas legadas sem alterar dados antigos
+- Ajustada `src/pages/Listas.tsx` para modelo hibrido:
+  - secao `Listas cadastradas` (entidade real em `send_lists`);
+  - secao `Listas legadas` (agrupamento visual somente leitura).
+- Implementado agrupamento legado em `src/services/send-lists.ts` por `locked_instance_id + data_exame` para pacientes com `send_list_id is null`.
+- Cards legados agora exibem resumo por status e detalhes com nome do paciente, horario e status de disparo, sem editar historico.
+
+### 12) UX de edicao movida para popup na aba `Listas`
+- Criado componente `src/components/send-lists/EditSendListDialog.tsx` com campos de nome, canal responsavel, status e observacoes.
+- Popup implementado com botoes `Salvar`, `Cancelar` e fechamento por `X` nativo do `DialogContent`.
+- `src/pages/Listas.tsx` foi simplificado: removida edicao inline e adicionado botao `Editar` para listas cadastradas.
+- Fluxo de persistencia centralizado em `handleSaveEditDialog` usando `updateSendList` e `reassignSendListInstance` quando o canal muda.
+
+### 13) Ajuste de visibilidade do botao `Editar` nos cards
+- Botao `Editar` mantido dentro de cada card de `Listas cadastradas` e estilizado com destaque (`bg-blue-600`) para reduzir risco de baixa visibilidade.
+
+### 14) Interacao por clique no card cadastrado
+- Ajustado `src/pages/Listas.tsx` para abrir o popup de edicao ao clicar no card de `Listas cadastradas`.
+- Fluxo operacional: selecionar card cadastrado -> abrir modal de edicao diretamente.
+- Cards legados permanecem com comportamento de detalhe somente leitura.
+
+### 15) Conversao de card legado para lista cadastrada
+- Implementado `convertLegacyGroupToSendList` em `src/services/send-lists.ts`.
+- Clique no card de `Listas legadas` agora abre confirmacao para conversao.
+- Ao confirmar:
+  - cria `send_list`;
+  - vincula pacientes do grupo via `send_list_id`;
+  - recarrega a tela;
+  - abre o popup de edicao automaticamente.
+
+### 15) Limpeza operacional de agenda por data no banco
+- Executada remocao de dados para `2026-04-04` e `2026-04-05` conforme solicitacao operacional.
+- Escopo removido: `patients_queue` (43), `message_events` (76), `message_logs` (1) e `webhook_events_raw` relacionado por `provider_message_id` (16).
+- Validacao pos-execucao: nenhuma linha restante para essas datas na fila e sem residuos vinculados em logs/eventos.
+
 ## Commit relevante
 - `88994e9` - `feat: habilitar processamento paralelo por instancia`.
 

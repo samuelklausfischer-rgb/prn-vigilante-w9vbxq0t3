@@ -36,3 +36,14 @@
 3. Preencher Build Args `VITE_SUPABASE_URL` e `VITE_SUPABASE_PUBLISHABLE_KEY`.
 4. Fazer deploy e abrir URL temporaria gerada pelo EasyPanel.
 5. Validar login + refresh de `/whatsapp` sem 404.
+
+## Checklist funcional da aba `Listas`
+1. Executar fluxo em `Enviar lista` com nome/observacao e confirmar criacao de `send_list`.
+2. Confirmar que pacientes inseridos recebem `send_list_id`.
+3. Abrir `/listas` e validar listagem + detalhe dos pacientes.
+4. Testar reatribuicao de canal e confirmar update em pacientes elegiveis (`queued`/`failed`).
+5. Testar cancelamento de lista e confirmar update apenas para `queued`.
+6. Testar exclusao segura (permitida so em status seguros).
+7. Validar cards legados agrupados por instancia + data com exibicao de nome, horario e status de disparo.
+8. Validar popup de edicao da lista cadastrada com `Salvar`, `Cancelar` e fechamento por `X`.
+9. Validar conversao: clicar em card legado -> confirmar -> virar lista cadastrada -> abrir popup de edicao.

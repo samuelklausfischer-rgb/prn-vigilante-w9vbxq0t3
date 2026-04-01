@@ -527,7 +527,21 @@ Deno.serve(async (req: Request) => {
       await updateJourneyStatus(journeyId, eventType, eventAt)
     }
 
-    if (eventType === 'delivered') {
+    if (eventType === 'send_accepted') {
+      // Mensagem aceita pelo servidor do WhatsApp (Status 2).
+      // Isso é suficiente para confirmar que o envio foi concluído pelo nosso sistema.
+      // Atualiza o status imediatamente para tirar da fila de "Processando".
+      if (resolvedMessageId) {
+        await restPatch('patients_queue', { id: resolvedMessageId }, {
+          last_delivery_status: 'sent',
+          accepted_at: eventAt,
+          status: 'delivered',
+          locked_by: null,
+          locked_at: null,
+        })
+        console.log(`[evolution-webhook] send_accepted: patients_queue ${resolvedMessageId} marcado como delivered.`)
+      }
+    } else if (eventType === 'delivered') {
       if (resolvedMessageId) {
         await restPatch('patients_queue', { id: resolvedMessageId }, {
           delivered_at: eventAt,

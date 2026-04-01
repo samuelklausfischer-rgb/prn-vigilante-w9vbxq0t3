@@ -79,7 +79,7 @@ const getStatusConfig = (status: string) => {
     case 'sending':
       return { color: 'text-blue-400', bg: 'bg-blue-400/10', label: 'Processando' }
     case 'delivered':
-      return { color: 'text-emerald-400', bg: 'bg-emerald-400/10', label: 'Entregue' }
+      return { color: 'text-emerald-400', bg: 'bg-emerald-400/10', label: 'Enviado' }
     case 'failed':
       return { color: 'text-red-400', bg: 'bg-red-400/10', label: 'Falha' }
     case 'cancelled':
