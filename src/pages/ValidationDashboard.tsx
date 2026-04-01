@@ -1,4 +1,4 @@
-import { useAppData } from '@/hooks/use-app-data'
+import { useValidatedPatients } from '@/hooks/use-validated-patients'
 import { CheckCircle2, XCircle, HelpCircle, RefreshCw, Smartphone, Clock } from 'lucide-react'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
@@ -6,16 +6,7 @@ import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
 export default function ValidationDashboard() {
-  const { items, loading, refetch } = useAppData(['queued'])
-
-  // Filtrar apenas com o status de validação finalizado
-  const validatedItems = items.filter(
-    (i) => i.whatsapp_checked_at != null
-  )
-
-  const pendingItems = items.filter(
-    (i) => i.whatsapp_checked_at == null
-  )
+  const { items, loading, refetch } = useValidatedPatients()
 
   const renderStatusIcon = (validStatus?: boolean | null) => {
     if (validStatus === true) return <CheckCircle2 className="w-5 h-5 text-emerald-500" />
@@ -32,20 +23,14 @@ export default function ValidationDashboard() {
             Raio-X de WhatsApp
           </h2>
           <p className="text-sm text-muted-foreground">
-            Acompanhe o mapa de telefones validados automaticamente (Fase 1).
+            Pacientes com telefones validados automaticamente.
           </p>
         </div>
         <div className="flex items-center gap-4">
           <div className="px-4 py-2 bg-blue-500/10 border border-blue-500/20 rounded-xl">
             <span className="text-sm font-medium text-blue-400">
               Escaneados:{' '}
-              <strong className="text-white">{validatedItems.length}</strong>
-            </span>
-          </div>
-          <div className="px-4 py-2 bg-amber-500/10 border border-amber-500/20 rounded-xl">
-            <span className="text-sm font-medium text-amber-400">
-              Na fila:{' '}
-              <strong className="text-white">{pendingItems.length}</strong>
+              <strong className="text-white">{items.length}</strong>
             </span>
           </div>
           <Button
@@ -64,7 +49,7 @@ export default function ValidationDashboard() {
       <div className="rounded-2xl border border-white/5 bg-card/50 overflow-hidden shadow-2xl backdrop-blur-xl">
         <div className="p-4 border-b border-white/5 bg-white/[0.02]">
           <h3 className="font-heading font-medium text-lg text-slate-200">
-            Últimos Pacientes Escaneados
+            Ultimos Pacientes Escaneados
           </h3>
         </div>
 
@@ -80,14 +65,14 @@ export default function ValidationDashboard() {
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5">
-              {validatedItems.length === 0 ? (
+              {items.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="px-6 py-12 text-center text-muted-foreground">
-                    Nenhum paciente passou pelo Raio-X ainda hoje.
+                    Nenhum paciente passou pelo Raio-X ainda.
                   </td>
                 </tr>
               ) : (
-                validatedItems.map((item) => (
+                items.map((item) => (
                   <tr
                     key={item.id}
                     className="hover:bg-white/[0.02] transition-colors group cursor-default"
@@ -103,9 +88,9 @@ export default function ValidationDashboard() {
                     <td className="px-6 py-4">
                       <div className="flex flex-col items-center justify-center gap-2">
                         <span className="font-mono text-xs tracking-wider text-slate-300">
-                          {item.phone_number || 'Sem número'}
+                          {item.phone_number || 'Sem numero'}
                         </span>
-                        {item.phone_number && renderStatusIcon(item.phone_1_whatsapp_valid)}
+                        {item.phone_number && renderStatusIcon(item.phone_1_whatsapp_valid ?? item.whatsapp_valid)}
                       </div>
                     </td>
                     <td className="px-6 py-4 border-l border-white/5">
@@ -125,12 +110,14 @@ export default function ValidationDashboard() {
                       </div>
                     </td>
                     <td className="px-6 py-4 text-right">
-                      {item.whatsapp_checked_at && (
+                      {(item.whatsapp_checked_at || item.updated_at) && (
                         <div className="inline-flex items-center rounded-lg bg-blue-500/10 px-3 py-1 text-xs font-medium text-blue-400 border border-blue-500/20 shadow-[0_0_10px_rgba(59,130,246,0.1)]">
                           <Clock className="w-3 h-3 mr-1.5 opacity-70" />
-                          {format(new Date(item.whatsapp_checked_at), "HH:mm '•' dd/MMM", {
-                            locale: ptBR,
-                          })}
+                          {format(
+                            new Date(item.whatsapp_checked_at || item.updated_at),
+                            "HH:mm '•' dd/MMM",
+                            { locale: ptBR },
+                          )}
                         </div>
                       )}
                     </td>

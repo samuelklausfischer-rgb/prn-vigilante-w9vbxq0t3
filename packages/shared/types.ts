@@ -530,10 +530,13 @@ export interface ClaimedMessage {
   phone_3?: string | null
   /** Último telefone usado para contato */
   last_phone_used?: string | null
+  /** Phone 1 foi verificado e tem WhatsApp válido */
+  phone_1_whatsapp_valid?: boolean | null
   /** Phone 2 foi verificado e tem WhatsApp válido */
   phone_2_whatsapp_valid?: boolean | null
   /** Phone 3 foi verificado e tem WhatsApp válido */
   phone_3_whatsapp_valid?: boolean | null
+
   /** Resultado do último check proativo de WhatsApp */
   whatsapp_valid?: boolean | null
   /** Timestamp do último check proativo de WhatsApp */

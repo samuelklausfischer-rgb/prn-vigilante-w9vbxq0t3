@@ -80,6 +80,7 @@ export interface ClaimedMessage {
   phone_2?: string | null
   phone_3?: string | null
   last_phone_used?: string | null
+  phone_1_whatsapp_valid?: boolean | null
   phone_2_whatsapp_valid?: boolean | null
   phone_3_whatsapp_valid?: boolean | null
   whatsapp_valid?: boolean | null

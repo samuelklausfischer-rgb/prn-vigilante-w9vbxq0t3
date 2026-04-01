@@ -1,4 +1,6 @@
+import process from 'node:process';
 import { createClient } from '@supabase/supabase-js'
+
 import 'dotenv/config'
 import type {
   ClaimedMessage,
@@ -11,7 +13,7 @@ import type {
 } from '../types'
 import { isLikelyLandlineBR, sanitizeBrazilianNumber } from '../utils/helpers'
 import { normalizePhone } from '../../shared/validators'
-import { checkWhatsAppNumber } from './evolution'
+import { checkWhatsAppNumber, validatePhoneForWhatsApp } from './evolution'
 
 const supabaseUrl = process.env.SUPABASE_URL
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY
@@ -107,6 +109,8 @@ export async function claimNextMessageForInstance(
     return null
   }
 }
+
+
 
 /**
  * Marca mensagem como aceita pela Evolution API (envio iniciado)
@@ -590,7 +594,7 @@ export async function handlePhoneLadderEscalation(
   const dedupeKind = nextIndex === 2 ? 'retry_phone2' : 'retry_phone3'
   const normalizedPhone = normalizePhone(nextPhone)
 
-  const { data: enqueueResult, error: enqueueError } = await supabase.rpc('enqueue_patient', {
+  const { data: enqueueResult, error: enqueueError } = await supabase.rpc('enqueue_patient_v2', {
     p_patient_name: fullRow.patient_name,
     p_phone_number: nextPhone,
     p_message_body: fullRow.message_body,
@@ -671,6 +675,7 @@ export async function updateWhatsAppCheckResult(
       .update({
         whatsapp_checked_at: nowIso,
         whatsapp_valid: hasWhatsApp,
+        phone_1_whatsapp_valid: hasWhatsApp,
         updated_at: nowIso,
       })
       .eq('id', messageId)
@@ -858,7 +863,7 @@ if (examDate === today && examHour < currentHour) {
           
           // Se chegou aqui, phone_3 tem WhatsApp → usar phone_3
           const normalizedPhone = normalizePhone(toPhone3)
-          const { data: enqueueResult, error: enqueueError } = await supabase.rpc('enqueue_patient', {
+          const { data: enqueueResult, error: enqueueError } = await supabase.rpc('enqueue_patient_v2', {
             p_patient_name: row.patient_name,
             p_phone_number: toPhone3,
             p_message_body: row.message_body,
@@ -918,7 +923,7 @@ if (examDate === today && examHour < currentHour) {
       
       const normalizedPhone = normalizePhone(toPhone2)
 
-      const { data: enqueueResult, error: enqueueError } = await supabase.rpc('enqueue_patient', {
+      const { data: enqueueResult, error: enqueueError } = await supabase.rpc('enqueue_patient_v2', {
         p_patient_name: row.patient_name,
         p_phone_number: toPhone2,
         p_message_body: row.message_body,
@@ -951,7 +956,7 @@ if (examDate === today && examHour < currentHour) {
       const result = results && results.length > 0 ? results[0] : null
       
       if (!result) {
-        console.warn(`⚠️ Nenhum resultado da RPC enqueue_patient para retry_phone2`)
+        console.warn(`⚠️ Nenhum resultado da RPC enqueue_patient_v2 para retry_phone2`)
         continue
       }
 
@@ -1038,7 +1043,7 @@ if (examDate === today && examHour < currentHour) {
       const followupText = 'Podemos confirmar?'
       const normalizedPhone = normalizePhone(row.phone_number)
 
-      const { data: enqueueResult, error: enqueueError } = await supabase.rpc('enqueue_patient', {
+      const { data: enqueueResult, error: enqueueError } = await supabase.rpc('enqueue_patient_v2', {
         p_patient_name: row.patient_name,
         p_phone_number: row.phone_number,
         p_message_body: followupText,
@@ -1184,7 +1189,7 @@ const { data: notReceivedPhone3 } = await supabase
       
       const normalizedPhone = normalizePhone(toPhone3)
 
-      const { data: enqueueResult, error: enqueueError } = await supabase.rpc('enqueue_patient', {
+      const { data: enqueueResult, error: enqueueError } = await supabase.rpc('enqueue_patient_v2', {
         p_patient_name: row.patient_name,
         p_phone_number: toPhone3,
         p_message_body: row.message_body,
@@ -1843,7 +1848,6 @@ export async function updateJourneyMessageDelivered(
     return false
   }
 }
-
 export async function insertJourneyEvent(
   journeyId: string,
   messageId: string | null,
@@ -1934,7 +1938,7 @@ export async function runBatchPreValidation(workerId: string, limit = 20): Promi
       .from('patients_queue')
       .select('id, phone_number, phone_2, phone_3')
       .is('whatsapp_checked_at', null)
-      .in('status', ['queued', 'failed']) // Opcionalmente, 'failed' também pode não ter sido validado
+      .in('status', ['queued', 'failed', 'sending']) 
       .order('created_at', { ascending: true })
       .limit(limit)
 
@@ -1949,16 +1953,9 @@ export async function runBatchPreValidation(workerId: string, limit = 20): Promi
 
     let checkCount = 0
 
-    // Importamos dinamicamente para evitar circular-dependencies se houver
-    const { validatePhoneForWhatsApp } = await import('./evolution.js')
-
     console.log(`🩻 [Raio-X] Iniciando validação prévia em lote para ${patients.length} pacientes...`)
 
     for (const p of patients) {
-      // Usaremos o instanceName "worker" default ou o que estiver livre
-      // No pior caso, validatePhone irá procurar uma instância. 
-      // Em lote, isso exige instâncias livres
-      
       let p1Valid: boolean | null = null
       let p2Valid: boolean | null = null
       let p3Valid: boolean | null = null
@@ -1986,7 +1983,7 @@ export async function runBatchPreValidation(workerId: string, limit = 20): Promi
         .from('patients_queue')
         .update({
           whatsapp_checked_at: new Date().toISOString(),
-          whatsapp_valid: p1Valid, // Atualizando o whatsapp_valid legado apenas por precaução
+          whatsapp_valid: p1Valid, 
           phone_1_whatsapp_valid: p1Valid,
           phone_2_whatsapp_valid: p2Valid,
           phone_3_whatsapp_valid: p3Valid,
@@ -2010,3 +2007,4 @@ export async function runBatchPreValidation(workerId: string, limit = 20): Promi
     return 0
   }
 }
+

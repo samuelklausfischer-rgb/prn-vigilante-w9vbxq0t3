@@ -319,6 +319,7 @@ export class QueueManager {
             .from('patients_queue')
             .update({
               whatsapp_valid: true,
+              phone_1_whatsapp_valid: true,
               whatsapp_checked_at: new Date().toISOString(),
               whatsapp_validated_format: validation.format,
             })
@@ -333,6 +334,7 @@ export class QueueManager {
             .from('patients_queue')
             .update({
               whatsapp_valid: false,
+              phone_1_whatsapp_valid: false,
               whatsapp_checked_at: new Date().toISOString(),
             })
             .eq('id', message.id)

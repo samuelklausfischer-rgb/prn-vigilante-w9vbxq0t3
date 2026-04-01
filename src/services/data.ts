@@ -171,3 +171,20 @@ export async function toggleSystemPause(is_paused: boolean) {
     return false
   }
 }
+
+export async function fetchValidatedPatients(): Promise<PatientQueue[]> {
+  try {
+    const { data, error } = await supabase
+      .from('patients_queue')
+      .select('id, patient_name, phone_number, phone_2, phone_3, phone_1_whatsapp_valid, phone_2_whatsapp_valid, phone_3_whatsapp_valid, whatsapp_checked_at, whatsapp_valid, whatsapp_validated_format, status, updated_at')
+      .or('whatsapp_checked_at.not.is.null,phone_1_whatsapp_valid.not.is.null,phone_2_whatsapp_valid.not.is.null,phone_3_whatsapp_valid.not.is.null,whatsapp_valid.not.is.null')
+      .order('updated_at', { ascending: false })
+      .limit(200)
+
+    if (error) throw error
+    return data as PatientQueue[]
+  } catch (e) {
+    console.error('Error fetching validated patients', e)
+    return []
+  }
+}

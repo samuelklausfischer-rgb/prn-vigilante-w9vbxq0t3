@@ -147,3 +147,17 @@
 +- Resultado: console limpo e focado, mostrando apenas erros, avisos e eventos reais de negócio (envio, confirmação, escalonamento).
 +- Risco/Impacto: nulo; melhora apenas a operabilidade e diagnóstico visual.
 +- Proximo passo: git push e implantação na VPS.
+
+## 01/04/2026 21:30
+- Contexto: Raio-X WhatsApp no frontend mostrava 0 pacientes apesar do worker validar numeros. Diagnostico: (1) whatsapp_checked_at nunca era preenchido nos updates parciais do worker; (2) frontend filtrava apenas por whatsapp_checked_at != null e so via status queued; (3) phone_1_whatsapp_valid nunca era populado nos updates inline do queue-manager.
+- Acao executada:
+  - Worker: updateWhatsAppCheckResult agora grava phone_1_whatsapp_valid alem de whatsapp_valid e whatsapp_checked_at.
+  - Worker: queue-manager.ts agora grava phone_1_whatsapp_valid nos dois blocos de validacao de formato (valid=true e valid=false).
+  - Worker: adicionado phone_1_whatsapp_valid ao tipo ClaimedMessage em automation/shared/types.ts.
+  - Frontend: novo hook useValidatedPatients com query dedicada via fetchValidatedPatients (busca por qualquer campo de validacao preenchido, independente de status).
+  - Frontend: ValidationDashboard.tsx reescrito para usar o hook dedicado e mostrar phone_1_whatsapp_valid ?? whatsapp_valid como fallback.
+  - Frontend: coluna Escaneado Em usa whatsapp_checked_at || updated_at como fallback.
+  - Banco: migration backfill_whatsapp_checked_at preencheu whatsapp_checked_at e phone_1_whatsapp_valid para 182 registros retroativos.
+- Resultado: antes=0 com whatsapp_checked_at, depois=182. Frontend agora mostra pacientes validados independentemente do status. Build validado sem erros.
+- Risco/Impacto: baixo. Backfill seguro (somente SET, sem DELETE). Novos processamentos do worker ja preenchem todos os campos consistentemente.
+- Proximo passo: git push, redeploy worker e frontend no EasyPanel, confirmar visualmente no Raio-X.
