@@ -812,7 +812,8 @@ if (examDate === today && examHour < currentHour) {
       
       // Verificar se phone_2 tem WhatsApp ANTES de enfileirar
       if (connectedInstance) {
-        const hasWhatsApp = await checkWhatsAppNumber(connectedInstance.instance_name, toPhone2)
+        const check2 = await checkWhatsAppNumber(connectedInstance.instance_name, toPhone2)
+        const hasWhatsApp = check2.exists
         
         // Atualizar resultado da verificação
         await supabase.from('patients_queue').update({
@@ -827,7 +828,8 @@ if (examDate === today && examHour < currentHour) {
           const toPhone3 = String(row.phone_3 || '').trim()
           if (toPhone3) {
             // Verificar phone_3
-            const hasWhatsApp3 = await checkWhatsAppNumber(connectedInstance.instance_name, toPhone3)
+            const check3 = await checkWhatsAppNumber(connectedInstance.instance_name, toPhone3)
+            const hasWhatsApp3 = check3.exists
             await supabase.from('patients_queue').update({
               phone_3_whatsapp_valid: hasWhatsApp3,
               phone_3_whatsapp_checked_at: new Date().toISOString(),
@@ -1154,7 +1156,8 @@ const { data: notReceivedPhone3 } = await supabase
       
       // Verificar se phone_3 tem WhatsApp ANTES de enfileirar
       if (instanceToUse) {
-        const hasWhatsApp = await checkWhatsAppNumber(instanceToUse.instance_name, toPhone3)
+        const check3 = await checkWhatsAppNumber(instanceToUse.instance_name, toPhone3)
+        const hasWhatsApp = check3.exists
         
         // Atualizar resultado da verificação
         await supabase.from('patients_queue').update({

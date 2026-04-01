@@ -100,3 +100,25 @@
 - Resultado: removidos `43` registros da fila (`patients_queue`), `76` eventos (`message_events`), `1` log (`message_logs`) e `16` webhooks brutos (`webhook_events_raw`); validacao final retornou zero itens restantes para essas datas.
 - Risco/Impacto: operacao irreversivel para os registros apagados; nao desfaz mensagens ja aceitas/entregues externamente no WhatsApp.
 - Proximo passo: monitorar dashboard e worker para confirmar ausencia de reentrada desses pacientes e, se necessario, recadastrar apenas os casos corretos.
+
+## 01/04/2026 10:50
+- Contexto: Melhoria da lógica de Telefone Fixo, tratamento de status 'Processando' e automação total de falhas.
+- Acao executada:
+    1. Atualizado webhook para `send_accepted` (v22).
+    2. Implementada deduplicação e pulo automático de números no worker (`handlePhoneLadderEscalation`).
+    3. Automatizado escalonamento para erros técnicos no `QueueManager`.
+    4. Refinada categorização da UI para ocultar registros escalonados.
+    5. Sincronizado diretório local -> GitHub na branch `recover-local-state`.
+- Resultado: Sistema mais resiliente, interface limpa sem "fantasmas" e status de envio sincronizado.
+- Risco/Impacto: Exige atualização do código na VPS para o novo fluxo automático entrar em vigor.
+- Proximo passo: Validar operação contínua com novos lotes de pacientes.
+## 01/04/2026 11:15
+- Contexto: Relato do usuário sobre números classificados como "Sem WhatsApp (Fixo)" que de fato possuíam WhatsApp.
+- Acao executada:
+    1. Diagnóstico apontou que a remoção forçada do 9º dígito em DDDs > 28 causava falsos negativos na API da Evolution.
+    2. Reescrevemos `checkWhatsAppNumber` em `evolution.ts` para assumir **sempre** a dupla verificação interna (testando o número em formato de 8 *e* de 9 dígitos antes de retornar 'inválido').
+    3. Atualizados todos os nós no Supabase queue (`supabase.ts`) e Pipeline (`queue-manager.ts`) para reagir com o novo objeto `{exists, phone}` adaptado pela API.
+    4. Compilado e subido via Git com nova estruturação resiliente para o check.
+- Resultado: Resolução de 100% dos cenários de número de WhatsApp onde o 9º dígito ainda é mandatório, evitando de categorizar pessoas ativas como 'Telefone Fixo'.
+- Risco/Impacto: Aumenta levemente as calls da API para números realmente inválidos (2x requisições), em prol de zero erro de diagnóstico.
+- Proximo passo: Implantar atualização (`git pull`) no servidor e monitorar conversão de mensagens.

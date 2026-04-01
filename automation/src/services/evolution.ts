@@ -190,60 +190,82 @@ export async function getConnectionStatus(instanceName: string): Promise<string>
  * Verifica proativamente se um número possui WhatsApp.
  * Usa o endpoint /chat/whatsappNumbers da Evolution API.
  * 
+ * ⚠️ DUPLA VERIFICAÇÃO: Para evitar falsos negativos causados pelo 9º dígito
+ * (DDDs acima de 28 às vezes exigem o 9 no WhatsApp), a função testa
+ * automaticamente as duas variantes do número (com e sem o 9).
+ * 
  * @param instanceName - Nome da instância para fazer a verificação
  * @param phoneNumber - Número bruto (será sanitizado internamente)
- * @returns true se o número tem WhatsApp, false se é fixo/inválido
+ * @returns { exists: boolean, phone: string } — se existe e qual formato usar
  */
 export async function checkWhatsAppNumber(
   instanceName: string,
   phoneNumber: string,
-): Promise<boolean> {
-  const cleanNumber = sanitizeBrazilianNumber(phoneNumber)
+): Promise<{ exists: boolean; phone: string }> {
+  const v8 = force8Digit(phoneNumber)
+  const v9 = force9Digit(phoneNumber)
 
-  try {
-    console.log(`[${timestamp()}] 🔍 Verificando WhatsApp para ${maskPhone(cleanNumber)}`, {
-      instanceName,
-    })
+  // Determina o formato "padrão" pela regra de DDD (igual ao sanitize)
+  const ddd = parseInt(v8.substring(2, 4))
+  const primaryForm = ddd > 28 ? v8 : v9
+  const secondaryForm = ddd > 28 ? v9 : v8
 
-    const result = await callEvolution(`/chat/whatsappNumbers/${instanceName}`, {
-      method: 'POST',
-      body: JSON.stringify({
-        numbers: [cleanNumber],
-      }),
-    }, 10000)
+  const phonesToTry = [primaryForm, secondaryForm].filter(
+    (p, i, arr) => arr.indexOf(p) === i, // remove duplicatas se v8===v9
+  )
 
-    // A Evolution API retorna um array com objetos { exists: boolean, jid: string }
-    const numbers = Array.isArray(result) ? result : (result?.data || result?.numbers || [])
-
-    if (!Array.isArray(numbers) || numbers.length === 0) {
-      console.warn(`[${timestamp()}] ⚠️ Resposta inesperada do check WhatsApp`, {
+  for (const candidate of phonesToTry) {
+    try {
+      console.log(`[${timestamp()}] 🔍 Verificando WhatsApp para ${maskPhone(candidate)}`, {
         instanceName,
-        phone: maskPhone(cleanNumber),
-        resultType: typeof result,
+        format: candidate === v9 ? '9_digits' : '8_digits',
       })
-      // Em caso de dúvida, permitir o envio (não bloquear por erro de API)
-      return true
+
+      const result = await callEvolution(`/chat/whatsappNumbers/${instanceName}`, {
+        method: 'POST',
+        body: JSON.stringify({ numbers: [candidate] }),
+      }, 10000)
+
+      const numbers = Array.isArray(result) ? result : (result?.data || result?.numbers || [])
+
+      if (!Array.isArray(numbers) || numbers.length === 0) {
+        console.warn(`[${timestamp()}] ⚠️ Resposta inesperada do check WhatsApp`, {
+          instanceName,
+          phone: maskPhone(candidate),
+          resultType: typeof result,
+        })
+        // Em caso de dúvida, retornar como válido (fail-open) no formato primário
+        return { exists: true, phone: primaryForm }
+      }
+
+      const entry = numbers[0]
+      const exists = Boolean(entry?.exists ?? entry?.numberExists ?? entry?.isWhatsapp)
+
+      console.log(`[${timestamp()}] ${exists ? '✅' : '❌'} WhatsApp check: ${maskPhone(candidate)} → ${exists ? 'TEM WhatsApp' : 'NÃO tem (tentando outro formato)'}`, {
+        instanceName,
+        exists,
+        jid: entry?.jid || entry?.number || null,
+      })
+
+      if (exists) {
+        return { exists: true, phone: candidate }
+      }
+
+    } catch (error) {
+      console.error(`[${timestamp()}] ❌ Falha no check de WhatsApp para ${maskPhone(candidate)}`, {
+        instanceName,
+        error: serializeError(error),
+      })
+      // Em caso de erro de comunicação, permitir envio (fail-open)
+      return { exists: true, phone: primaryForm }
     }
-
-    const entry = numbers[0]
-    const exists = Boolean(entry?.exists ?? entry?.numberExists ?? entry?.isWhatsapp)
-
-    console.log(`[${timestamp()}] ${exists ? '✅' : '❌'} WhatsApp check: ${maskPhone(cleanNumber)} → ${exists ? 'TEM WhatsApp' : 'NÃO tem WhatsApp (fixo/inválido)'}`, {
-      instanceName,
-      exists,
-      jid: entry?.jid || entry?.number || null,
-    })
-
-    return exists
-  } catch (error) {
-    console.error(`[${timestamp()}] ❌ Falha no check de WhatsApp`, {
-      instanceName,
-      phone: maskPhone(cleanNumber),
-      error: serializeError(error),
-    })
-    // Em caso de erro de comunicação, permitir envio (fail-open)
-    return true
   }
+
+  // Nenhum dos dois formatos funcionou
+  console.warn(`[${timestamp()}] 📵 Número sem WhatsApp em ambos os formatos: ${maskPhone(primaryForm)} / ${maskPhone(secondaryForm)}`, {
+    instanceName,
+  })
+  return { exists: false, phone: primaryForm }
 }
 
 /**
@@ -254,48 +276,19 @@ export async function validatePhoneForWhatsApp(
   instanceName: string,
   phoneNumber: string,
 ): Promise<{ valid: boolean; format: '9_digits' | '8_digits' | null; phone: string | null }> {
-  // 1. Gera as duas versões para teste
-  const v8 = force8Digit(phoneNumber)
-  const v9 = force9Digit(phoneNumber)
-
-  // 2. Determina qual testar primeiro (baseado na regra do sanitize)
-  const ddd = parseInt(v8.substring(2, 4))
-  const defaultIs8 = ddd > 28
+  // A função checkWhatsAppNumber já testa ambos os formatos (8 e 9 dígitos) internamente
+  // e retorna qual deles funcionou, evitando código duplicado.
+  const result = await checkWhatsAppNumber(instanceName, phoneNumber)
   
-  const first = defaultIs8 ? v8 : v9
-  const second = defaultIs8 ? v9 : v8
-  
-  console.log(`[${timestamp()}] 🧪 Iniciando validacao dupla: ${maskPhone(v8)} vs ${maskPhone(v9)}`, {
-    instanceName,
-    ddd,
-    testingFirst: maskPhone(first),
-  })
-
-  // 3. Testa o formato padrão primeiro
-  const existsFirst = await checkWhatsAppNumber(instanceName, first)
-  if (existsFirst) {
+  if (result.exists) {
     return {
       valid: true,
-      format: first.length === 13 ? '9_digits' : '8_digits',
-      phone: first,
+      format: result.phone.length === 13 ? '9_digits' : '8_digits',
+      phone: result.phone,
     }
   }
 
-  // 4. Se não existe, testa o formato alternativo
-  console.log(`[${timestamp()}] 🔍 Tentando formato alternativo para ${maskPhone(second)}`, {
-    instanceName,
-  })
-  
-  const existsSecond = await checkWhatsAppNumber(instanceName, second)
-  if (existsSecond) {
-    return {
-      valid: true,
-      format: second.length === 13 ? '9_digits' : '8_digits',
-      phone: second,
-    }
-  }
-
-  // 5. Nenhum funcionou
+  // Nenhum funcionou
   return { valid: false, format: null, phone: null }
 }
 

@@ -156,15 +156,16 @@ export class QueueManager {
           instanceName: selectedInstance.instanceName,
         })
 
-        const hasWhatsApp = await checkWhatsAppNumber(
+        // Dupla verificação: testa 8 e 9 dígitos antes de desistir
+        const whatsappValidation = await validatePhoneForWhatsApp(
           selectedInstance.instanceName,
           message.phone_number,
         )
 
         // Gravar resultado do check no banco (cache 24h)
-        await updateWhatsAppCheckResult(message.id, hasWhatsApp)
+        await updateWhatsAppCheckResult(message.id, whatsappValidation.valid)
 
-        if (!hasWhatsApp) {
+        if (!whatsappValidation.valid) {
           console.warn(`[${timestamp()}] 📵 Número NÃO tem WhatsApp (fixo/inválido). Acionando escada de telefones.`, {
             messageId: message.id,
             phone: maskPhone(message.phone_number),
@@ -377,12 +378,13 @@ export class QueueManager {
 
         // Fallback automático da escada de telefones:
         // Só escala para Tel2/Tel3 quando confirmar que o número atual não tem WhatsApp.
-        const hasWhatsAppAfterFailure = await checkWhatsAppNumber(
+        // Dupla verificação pós-falha: testa os dois formatos antes de escalar
+        const checkAfterFailure = await checkWhatsAppNumber(
           selectedInstance.instanceName,
           finalPhoneNumber,
         )
 
-        if (!hasWhatsAppAfterFailure) {
+        if (!checkAfterFailure.exists) {
           console.warn(`[${timestamp()}] 📵 Falha de envio + número sem WhatsApp confirmado. Acionando escada.`, {
             messageId: message.id,
             phone: maskPhone(finalPhoneNumber),
