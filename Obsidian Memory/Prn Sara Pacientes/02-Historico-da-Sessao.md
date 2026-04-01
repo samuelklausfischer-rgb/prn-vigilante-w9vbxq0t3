@@ -106,6 +106,12 @@
 - Escopo removido: `patients_queue` (43), `message_events` (76), `message_logs` (1) e `webhook_events_raw` relacionado por `provider_message_id` (16).
 - Validacao pos-execucao: nenhuma linha restante para essas datas na fila e sem residuos vinculados em logs/eventos.
 
+### 16) Kit de prompts Stitch para redesign guiado
+- Criada pasta `docs/stitch-prompts/` para suportar recriacao visual do frontend no Stitch sem alterar regras de negocio.
+- Entregue `00-identidade-visual.md` com direcao "Saude acolhedora", paletas A/B, tipografia, tokens e padrao de componentes.
+- Entregues prompts detalhados por pagina (`01` a `12`) cobrindo: Index, Analytics, Enviar Lista, Listas, Segunda Chamada, Estrategico, CRM, Arquivar por Data, Arquivo Morto, WhatsApp, Auth e 404.
+- Criado `docs/stitch-prompts/README.md` com ordem de uso e checklist de validacao para preservar estrutura (botoes, cards, tabs, modais, filtros e acoes).
+
 ## Commit relevante
 - `88994e9` - `feat: habilitar processamento paralelo por instancia`.
 

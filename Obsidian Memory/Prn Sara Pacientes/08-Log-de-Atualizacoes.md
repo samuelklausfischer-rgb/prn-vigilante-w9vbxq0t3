@@ -122,3 +122,17 @@
 - Resultado: Resolução de 100% dos cenários de número de WhatsApp onde o 9º dígito ainda é mandatório, evitando de categorizar pessoas ativas como 'Telefone Fixo'.
 - Risco/Impacto: Aumenta levemente as calls da API para números realmente inválidos (2x requisições), em prol de zero erro de diagnóstico.
 - Proximo passo: Implantar atualização (`git pull`) no servidor e monitorar conversão de mensagens.
+
+## 01/04/2026 12:10
+- Contexto: solicitacao para preparar base de prompts detalhados para recriacao visual das paginas no Stitch, sem perda de estrutura funcional.
+- Acao executada: criada pasta `docs/stitch-prompts/` com `README.md`, prompt mestre `00-identidade-visual.md` (direcao "Saude acolhedora", paletas, tipografia, tokens e padroes) e 12 prompts por pagina (`01` a `12`) cobrindo todas as rotas do frontend.
+- Resultado: pacote pronto para uso no Stitch com orientacao por pagina e checklist de preservacao de botoes, cards, filtros, tabs, modais e acoes criticas.
+- Risco/Impacto: risco baixo por ser alteracao documental; risco operacional apenas se prompts forem aplicados sem validar checklist de preservacao funcional.
+- Proximo passo: executar redesign no Stitch em ciclos (identidade -> pagina) e validar desktop/mobile antes de publicar.
++
++## 01/04/2026 12:15
++- Contexto: identificação de falha silenciosa no enfileiramento de retentativas (retry_phone2/3) e followup, mesmo com WhatsApp validado.
++- Acao executada: corrigida a manipulação do retorno da RPC `enqueue_patient` em `supabase.ts` e `test-dispatch.ts`. Como a função SQL usa `RETURNS TABLE`, o client JS recebe um Array, mas o código tratava como Objeto (causando `status` undefined).
++- Resultado: correção do fluxo de enfileiramento automático da escada de telefones. Agora o robô consegue criar as novas mensagens na fila sem erro de "desconhecido".
++- Risco/Impacto: baixo; corrige um bug de tipagem/retorno que bloqueava a automação.
++- Proximo passo: git push e implantação na VPS.

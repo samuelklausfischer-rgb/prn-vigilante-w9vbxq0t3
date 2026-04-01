@@ -43,3 +43,8 @@
 - Validar bloqueio de exclusao quando houver paciente ja processado.
 - Validar secao `Listas legadas` (somente leitura) exibindo nome do paciente, horario e status sem alterar dados antigos.
 - Validar fluxo novo de conversao de lista legada para cadastrada com abertura automatica do popup de edicao.
+
+## P1 - Execucao do redesign no Stitch
+- Aplicar prompt mestre `docs/stitch-prompts/00-identidade-visual.md` para fixar identidade visual global.
+- Aplicar prompts por pagina (`docs/stitch-prompts/01` ate `12`) preservando estrutura funcional existente.
+- Validar que nenhum CTA/fluxo operacional foi removido apos geracao no Stitch.

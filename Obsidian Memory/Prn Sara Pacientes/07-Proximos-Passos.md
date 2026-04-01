@@ -47,3 +47,10 @@
 7. Validar cards legados agrupados por instancia + data com exibicao de nome, horario e status de disparo.
 8. Validar popup de edicao da lista cadastrada com `Salvar`, `Cancelar` e fechamento por `X`.
 9. Validar conversao: clicar em card legado -> confirmar -> virar lista cadastrada -> abrir popup de edicao.
+
+## Checklist de redesign no Stitch
+1. Aplicar `docs/stitch-prompts/00-identidade-visual.md`.
+2. Aplicar prompt da pagina alvo (`01` a `12`) mantendo estrutura funcional.
+3. Conferir visual desktop e mobile.
+4. Validar que botoes, cards, filtros, tabs e modais continuam presentes.
+5. Registrar feedback por pagina antes de iterar proximo prompt.

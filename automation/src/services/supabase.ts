@@ -619,14 +619,15 @@ export async function handlePhoneLadderEscalation(
     return { action: 'exhausted' }
   }
 
-  const result = enqueueResult as { id: string; status: string; error_message: string } | null
+  const results = enqueueResult as { id: string; status: string; error_message: string }[] | null
+  const result = results && results.length > 0 ? results[0] : null
+
   if (!result || result.status !== 'success') {
     if (result?.status === 'duplicate_recent') {
       console.log(`ℹ️ ${dedupeKind} já enfileirado para ${sanitizeBrazilianNumber(nextPhone)}`)
-      // Se já está enfileirado, consideramos como sucesso no escalonamento (foi "escalado" anteriormente ou manualmente)
       return { action: 'escalated', nextPhone, nextIndex }
     } else {
-      console.warn(`⚠️ ${dedupeKind} não enfileirado: ${result?.error_message || 'sem resultado'}`)
+      console.warn(`⚠️ ${dedupeKind} não enfileirado: ${result?.error_message || result?.status || 'sem resultado'}`)
     }
     return { action: 'exhausted' }
   }
@@ -886,7 +887,9 @@ if (examDate === today && examHour < currentHour) {
             continue
           }
           
-          const result = enqueueResult as { id: string; status: string; error_message: string } | null
+          const results = enqueueResult as { id: string; status: string; error_message: string }[] | null
+          const result = results && results.length > 0 ? results[0] : null
+
           if (result && result.status === 'success') {
             await supabase.from('patients_queue').update({
               retry_phone3_sent_at: new Date().toISOString(),
@@ -900,6 +903,9 @@ if (examDate === today && examHour < currentHour) {
               })
             }
             processed += 1
+          } else {
+            const msg = result?.error_message || result?.status || 'erro desconhecido'
+            console.warn(`⚠️ Erro ao enfileirar retry_phone3 (loop): ${msg}`)
           }
           continue
         }
@@ -936,7 +942,9 @@ if (examDate === today && examHour < currentHour) {
         continue
       }
 
-      const result = enqueueResult as { id: string; status: string; error_message: string } | null
+      const results = enqueueResult as { id: string; status: string; error_message: string }[] | null
+      const result = results && results.length > 0 ? results[0] : null
+      
       if (!result) {
         console.warn(`⚠️ Nenhum resultado da RPC enqueue_patient para retry_phone2`)
         continue
@@ -1054,19 +1062,11 @@ if (examDate === today && examHour < currentHour) {
         continue
       }
 
-      const result = enqueueResult as { id: string; status: string; error_message: string } | null
-      if (!result) {
-        console.warn(`⚠️ Nenhum resultado da RPC enqueue_patient para followup`)
-        continue
-      }
-
-      if (result.status === 'duplicate_recent') {
-        console.log(`ℹ️ Mensagem recente para ${normalizedPhone}, pulando followup`)
-        continue
-      }
-
-      if (result.status !== 'success') {
-        const msg = result.error_message || result.status || 'erro desconhecido'
+      const results = enqueueResult as { id: string; status: string; error_message: string }[] | null
+      const result = results && results.length > 0 ? results[0] : null
+      
+      if (!result || result.status !== 'success') {
+        const msg = result?.error_message || result?.status || 'erro desconhecido'
         console.warn(`⚠️ Erro ao enfileirar followup: ${msg}`)
         continue
       }
@@ -1207,11 +1207,15 @@ const { data: notReceivedPhone3 } = await supabase
         console.error(`❌ Erro ao enfileirar retry_phone3 para paciente ${row.patient_name}:`, enqueueError)
         continue
       }
-
-      const result = enqueueResult as { id: string; status: string; error_message: string } | null
+      const results = enqueueResult as { id: string; status: string; error_message: string }[] | null
+      const result = results && results.length > 0 ? results[0] : null
+      
       if (!result || result.status !== 'success') {
         if (result?.status === 'duplicate_recent') {
           console.log(`ℹ️ Mensagem recente para ${normalizedPhone}, pulando retry_phone3`)
+        } else {
+          const msg = result?.error_message || result?.status || 'erro desconhecido'
+          console.warn(`⚠️ Erro ao enfileirar retry_phone3 (stale): ${msg}`)
         }
         continue
       }

@@ -16,6 +16,7 @@
 - Migration de listas aplicada no Supabase remoto com sucesso (`create_send_lists_and_link_queue`).
 - Conversao de `listas legadas` para `listas cadastradas` implementada no frontend (com confirmacao), habilitando edicao tambem para cards legados.
 - Limpeza operacional concluida para agenda de `2026-04-04` e `2026-04-05`, com remocao de itens da fila e rastros tecnicos relacionados.
+- Pacote de prompts para redesign no Stitch criado em `docs/stitch-prompts/` com 1 prompt mestre de identidade visual + 12 prompts de pagina.
 
 ## Entregas principais realizadas
 - Planejamento e documentacao de migracao para VPS/EasyPanel.
@@ -37,3 +38,4 @@
 - Subir novo servico `prn-frontend` no EasyPanel usando URL temporaria e validar rotas SPA com refresh.
 - Concluir rollout da aba `Listas` (visualizacao, edicao, reatribuicao de canal, cancelamento/exclusao segura) sem regressao no fluxo atual de fila.
 - Acompanhar 24h de operacao para garantir que nao haja reentrada indevida dos pacientes removidos por data.
+- Executar rodada de redesign no Stitch usando `00-identidade-visual.md` + prompts por pagina para validar consistencia visual sem perda funcional.

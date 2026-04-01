@@ -32,12 +32,15 @@ async function runTest() {
       p_notes: `Teste controlado ${testTag}`,
     })
 
-  if (rpcError) {
-    console.error('❌ Erro ao enfileirar paciente:', rpcError.message)
+  const results = rpcData as any[] | null
+  const result = results && results.length > 0 ? results[0] : null
+
+  if (!result) {
+    console.error('❌ Erro: Nenhum resultado retornado pela RPC enqueue_patient')
     return
   }
 
-  console.log(`✅ Paciente enfileirado com sucesso! ID: ${rpcData.id}`)
+  console.log(`✅ Paciente enfileirado com sucesso! ID: ${result.id}`)
   console.log(`🏷️ Tag do teste: ${testTag}`)
   
   // 2. Garantir que LGPD não bloqueie (inserir consentimento)
