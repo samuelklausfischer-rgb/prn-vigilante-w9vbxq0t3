@@ -10,6 +10,7 @@ import {
   removeHeartbeat,
   releaseWorkerLease,
   runSecondCallRecovery,
+  runBatchPreValidation,
   upsertHeartbeat,
 } from '../services/supabase'
 import { checkEvolutionHealth } from '../services/evolution'
@@ -121,6 +122,12 @@ export class WorkerEngine {
           console.log(`[${timestamp()}] ⚠️ Evolution API indisponível. Retry no próximo ciclo.`)
           await sleep(this.pollIntervalMs)
           continue
+        }
+
+        // ── 3.5. Raio-X de Pacientes (Pré-validação de WhatsApp) ──
+        const preValidatedCount = await runBatchPreValidation(this.workerId, 20)
+        if (preValidatedCount > 0) {
+          console.log(`[${timestamp()}] 🔍 Pré-validação concluída para ${preValidatedCount} pacientes novos.`)
         }
 
         // ── 4. Liberar locks expirados ──

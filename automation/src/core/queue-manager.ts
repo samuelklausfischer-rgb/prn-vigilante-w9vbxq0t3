@@ -144,16 +144,27 @@ export class QueueManager {
           instanceName: selectedInstance.instanceName,
         })
 
-        // Dupla verificação: testa 8 e 9 dígitos antes de desistir
-        const whatsappValidation = await validatePhoneForWhatsApp(
-          selectedInstance.instanceName,
-          message.phone_number,
-        )
+        // Verifica no banco qual foi o resultado do RAIO-X para o telefone atual
+        const attemptIndex = message.phone_attempt_index || 1
+        let isWhatsAppValid = true // Default caso não tenha passado pelo Raio-X ainda
+        
+        if (attemptIndex === 1 && message.phone_1_whatsapp_valid !== undefined && message.phone_1_whatsapp_valid !== null) {
+          isWhatsAppValid = Boolean(message.phone_1_whatsapp_valid)
+        } else if (attemptIndex === 2 && message.phone_2_whatsapp_valid !== undefined && message.phone_2_whatsapp_valid !== null) {
+          isWhatsAppValid = Boolean(message.phone_2_whatsapp_valid)
+        } else if (attemptIndex === 3 && message.phone_3_whatsapp_valid !== undefined && message.phone_3_whatsapp_valid !== null) {
+          isWhatsAppValid = Boolean(message.phone_3_whatsapp_valid)
+        } else {
+          // Fallback: se por algum motivo não passou pelo Raio-X, valida na hora
+          const whatsappValidation = await validatePhoneForWhatsApp(
+            selectedInstance.instanceName,
+            message.phone_number,
+          )
+          isWhatsAppValid = whatsappValidation.valid
+          await updateWhatsAppCheckResult(message.id, isWhatsAppValid)
+        }
 
-        // Gravar resultado do check no banco (cache 24h)
-        await updateWhatsAppCheckResult(message.id, whatsappValidation.valid)
-
-        if (!whatsappValidation.valid) {
+        if (!isWhatsAppValid) {
           console.warn(`[${timestamp()}] 📵 Número NÃO tem WhatsApp (fixo/inválido). Acionando escada de telefones.`, {
             messageId: message.id,
             phone: maskPhone(message.phone_number),

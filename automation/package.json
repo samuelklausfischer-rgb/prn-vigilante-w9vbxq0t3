@@ -13,7 +13,10 @@
     "start:exe": "./automation-worker.exe"
   },
   "dependencies": {
-    "dotenv": "^16.5.0",
-    "@supabase/supabase-js": "^2.99.0"
+    "@supabase/supabase-js": "^2.99.0",
+    "dotenv": "^16.5.0"
+  },
+  "devDependencies": {
+    "@types/node": "^25.5.0"
   }
 }
