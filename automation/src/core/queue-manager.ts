@@ -71,16 +71,7 @@ export class QueueManager {
     const lockRefreshIntervalMs = 60_000
     let lockRefreshTimer: ReturnType<typeof setInterval> | undefined
 
-    console.log(`[${timestamp()}] 🧾 Iniciando processamento da mensagem`, {
-      messageId: message.id,
-      workerId,
-      instanceName: message.instance_name,
-      phone: maskPhone(message.phone_number),
-      attemptCount: message.attempt_count,
-      phoneAttemptIndex: message.phone_attempt_index || 1,
-      lockedInstanceId: message.locked_instance_id || 'nenhum (novo)',
-      dryRun,
-    })
+    console.log(`[${timestamp()}] 🧾 Processando: ${message.patient_name} (${maskPhone(message.phone_number)}) [At: ${message.phone_attempt_index || 1}]`)
 
     const startLockRefresh = () => {
       lockRefreshTimer = setInterval(async () => {
@@ -88,10 +79,7 @@ export class QueueManager {
         if (!refreshed) {
           console.warn(`[${timestamp()}] ⚠️ Falha ao renovar lock da mensagem ${message.id}.`)
         } else {
-          console.log(`[${timestamp()}] 🔒 Lock renovado`, {
-            messageId: message.id,
-            workerId,
-          })
+          // Lock renovado silenciosamente
         }
       }, lockRefreshIntervalMs)
     }

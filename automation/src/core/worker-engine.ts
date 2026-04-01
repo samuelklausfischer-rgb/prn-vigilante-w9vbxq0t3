@@ -157,12 +157,6 @@ export class WorkerEngine {
         }
 
         if (claimedCount === 0) {
-          console.log(`[${timestamp()}] 📭 Nenhuma mensagem elegível nas lanes`, {
-            workerId: this.workerId,
-            connectedInstances: connectedInstances.length,
-            activeLanes: lanes.length,
-            pollIntervalMs: this.pollIntervalMs,
-          })
           await sleep(this.pollIntervalMs)
           continue
         }

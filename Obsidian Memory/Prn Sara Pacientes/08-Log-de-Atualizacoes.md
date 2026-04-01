@@ -136,3 +136,14 @@
 +- Resultado: correção do fluxo de enfileiramento automático da escada de telefones. Agora o robô consegue criar as novas mensagens na fila sem erro de "desconhecido".
 +- Risco/Impacto: baixo; corrige um bug de tipagem/retorno que bloqueava a automação.
 +- Proximo passo: git push e implantação na VPS.
++
++## 01/04/2026 12:20
++- Contexto: solicitação do usuário para reduzir spam nos logs e organizar a saída do console.
++- Acao executada:
++    - Silenciados logs de sucesso técnico (`Evolution OK`, `Lock renovado`, `Histórico obtido`).
++    - Removido log de "Nenhuma mensagem" que repetia a cada 5s (ciclo ocioso).
++    - Consolidados logs de Verificação de WhatsApp para mostrar apenas o resultado final.
++    - Simplificado log de "Processando" para uma linha informativa por mensagem.
++- Resultado: console limpo e focado, mostrando apenas erros, avisos e eventos reais de negócio (envio, confirmação, escalonamento).
++- Risco/Impacto: nulo; melhora apenas a operabilidade e diagnóstico visual.
++- Proximo passo: git push e implantação na VPS.

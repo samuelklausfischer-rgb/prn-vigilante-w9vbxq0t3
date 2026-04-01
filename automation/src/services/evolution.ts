@@ -61,13 +61,7 @@ async function callEvolution(
       throw error
     }
 
-    console.log(`[${timestamp()}] 🌐 Evolution OK`, {
-      method,
-      path,
-      status: response.status,
-      durationMs: Date.now() - startedAt,
-    })
-
+    // Sucesso silencioso
     return body
   } catch (error) {
     console.error(`[${timestamp()}] ❌ Falha de comunicacao com Evolution`, {
@@ -216,10 +210,7 @@ export async function checkWhatsAppNumber(
 
   for (const candidate of phonesToTry) {
     try {
-      console.log(`[${timestamp()}] 🔍 Verificando WhatsApp para ${maskPhone(candidate)}`, {
-        instanceName,
-        format: candidate === v9 ? '9_digits' : '8_digits',
-      })
+      // Verificação silenciosa do formato
 
       const result = await callEvolution(`/chat/whatsappNumbers/${instanceName}`, {
         method: 'POST',
@@ -238,20 +229,16 @@ export async function checkWhatsAppNumber(
         return { exists: true, phone: primaryForm }
       }
 
-      const entry = numbers[0]
-      const exists = Boolean(entry?.exists ?? entry?.numberExists ?? entry?.isWhatsapp)
-
-      console.log(`[${timestamp()}] ${exists ? '✅' : '❌'} WhatsApp check: ${maskPhone(candidate)} → ${exists ? 'TEM WhatsApp' : 'NÃO tem (tentando outro formato)'}`, {
-        instanceName,
-        exists,
-        jid: entry?.jid || entry?.number || null,
-      })
+      // Verificação individual silenciosa
+      const results = numbers as any[] | null
+      const exists = !!(results && results.length > 0 && (results[0].exists ?? results[0].numberExists ?? results[0].isWhatsapp))
 
       if (exists) {
+        console.log(`[${timestamp()}] ✅ WhatsApp check: ${maskPhone(candidate)} (exists)`)
         return { exists: true, phone: candidate }
       }
 
-    } catch (error) {
+    } catch (error: any) {
       console.error(`[${timestamp()}] ❌ Falha no check de WhatsApp para ${maskPhone(candidate)}`, {
         instanceName,
         error: serializeError(error),
@@ -408,15 +395,7 @@ export async function fetchMessageHistory(
           })
           .slice(0, limit)
 
-          console.log(`[${timestamp()}] 📋 Histórico obtido`, {
-            instanceName,
-            phone: maskPhone(phoneNumber),
-            endpoint: endpoint.path,
-            totalMessages: rawMessages.length,
-            filteredMessages: messages.length,
-            statuses: messages.map((m) => m.status),
-          })
-
+          // Histórico silencioso
           return messages
       } catch (error: any) {
         const status = error?.status
