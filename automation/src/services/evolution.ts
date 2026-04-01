@@ -9,6 +9,7 @@ import {
   force8Digit,
   serializeError,
   timestamp,
+  sleep,
 } from '../utils/helpers'
 
 import { supabase } from './supabase'
@@ -204,12 +205,18 @@ export async function checkWhatsAppNumber(
   const primaryForm = ddd > 28 ? v8 : v9
   const secondaryForm = ddd > 28 ? v9 : v8
 
-  const phonesToTry = [primaryForm, secondaryForm].filter(
-    (p, i, arr) => arr.indexOf(p) === i, // remove duplicatas se v8===v9
+  const cleanOriginal = phoneNumber.replace(/\D/g, '')
+  const rawForm = cleanOriginal.startsWith('55') ? cleanOriginal : '55' + cleanOriginal
+
+  const phonesToTry = [primaryForm, secondaryForm, rawForm].filter(
+    (p, i, arr) => arr.indexOf(p) === i, // remove duplicatas
   )
 
   for (const candidate of phonesToTry) {
     try {
+      // Pequeno delay para não sobrecarregar o check da Evolution em massa
+      if (phonesToTry.indexOf(candidate) > 0) await sleep(500)
+
       // Verificação silenciosa do formato
 
       const result = await callEvolution(`/chat/whatsappNumbers/${instanceName}`, {
@@ -248,9 +255,11 @@ export async function checkWhatsAppNumber(
     }
   }
 
-  // Nenhum dos dois formatos funcionou
-  console.warn(`[${timestamp()}] 📵 Número sem WhatsApp em ambos os formatos: ${maskPhone(primaryForm)} / ${maskPhone(secondaryForm)}`, {
+  // Nenhum dos formatos funcionou
+  console.warn(`[${timestamp()}] 📵 Número sem WhatsApp em todos os formatos tentados`, {
     instanceName,
+    tried: phonesToTry,
+    patientName: phoneNumber, // O chamador costuma passar o número, mas as vezes o nome está no log externo
   })
   return { exists: false, phone: primaryForm }
 }

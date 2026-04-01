@@ -904,9 +904,14 @@ if (examDate === today && examHour < currentHour) {
             }
             processed += 1
           } else {
-            const msg = result?.error_message || result?.status || 'erro desconhecido'
-            console.warn(`⚠️ Erro ao enfileirar retry_phone3 (loop): ${msg}`)
+            if (result?.status === 'duplicate_recent') {
+              console.log(`ℹ️ Mensagem recente para ${toPhone3}, pulando retry_phone3 (loop)`)
+            } else {
+              const msg = result?.error_message || result?.status || 'erro desconhecido'
+              console.warn(`⚠️ Erro ao enfileirar retry_phone3 (loop): ${msg}`)
+            }
           }
+          
           continue
         }
       }
