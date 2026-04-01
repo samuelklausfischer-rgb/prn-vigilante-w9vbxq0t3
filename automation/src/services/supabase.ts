@@ -1922,3 +1922,91 @@ export async function updateJourneyMessageFailed(
     return false
   }
 }
+
+/**
+ * Faz a varredura e pré-validação dos números de WhatsApp em lote (Raio-X WhatsApp).
+ * Verifica o banco por pacientes com whatsapp_checked_at nulo.
+ */
+export async function runBatchPreValidation(workerId: string, limit = 20): Promise<number> {
+  // Para evitar que a pré-validação trave todo o sistema, usamos um timeout e pegamos os primeiros da fila
+  try {
+    const { data: patients, error } = await supabase
+      .from('patients_queue')
+      .select('id, phone_number, phone_2, phone_3')
+      .is('whatsapp_checked_at', null)
+      .in('status', ['queued', 'failed']) // Opcionalmente, 'failed' também pode não ter sido validado
+      .order('created_at', { ascending: true })
+      .limit(limit)
+
+    if (error) {
+      console.error('❌ Erro ao buscar pacientes para pré-validação (Raio-X):', error.message)
+      return 0
+    }
+
+    if (!patients || patients.length === 0) {
+      return 0
+    }
+
+    let checkCount = 0
+
+    // Importamos dinamicamente para evitar circular-dependencies se houver
+    const { validatePhoneForWhatsApp } = await import('./evolution.js')
+
+    console.log(`🩻 [Raio-X] Iniciando validação prévia em lote para ${patients.length} pacientes...`)
+
+    for (const p of patients) {
+      // Usaremos o instanceName "worker" default ou o que estiver livre
+      // No pior caso, validatePhone irá procurar uma instância. 
+      // Em lote, isso exige instâncias livres
+      
+      let p1Valid: boolean | null = null
+      let p2Valid: boolean | null = null
+      let p3Valid: boolean | null = null
+
+      // Check principal
+      if (p.phone_number) {
+        const v1 = await validatePhoneForWhatsApp('any', p.phone_number)
+        p1Valid = v1.valid
+      }
+
+      // Check sec
+      if (p.phone_2) {
+        const v2 = await validatePhoneForWhatsApp('any', p.phone_2)
+        p2Valid = v2.valid
+      }
+
+      // Check ter
+      if (p.phone_3) {
+        const v3 = await validatePhoneForWhatsApp('any', p.phone_3)
+        p3Valid = v3.valid
+      }
+
+      // Update backend
+      const { error: upError } = await supabase
+        .from('patients_queue')
+        .update({
+          whatsapp_checked_at: new Date().toISOString(),
+          whatsapp_valid: p1Valid, // Atualizando o whatsapp_valid legado apenas por precaução
+          phone_1_whatsapp_valid: p1Valid,
+          phone_2_whatsapp_valid: p2Valid,
+          phone_3_whatsapp_valid: p3Valid,
+        })
+        .eq('id', p.id)
+
+      if (upError) {
+        console.error(`❌ Raio-X erro ao salvar resultados do pcte ${p.id}:`, upError.message)
+      } else {
+        checkCount++
+      }
+    }
+
+    if (checkCount > 0) {
+      console.log(`✅ [Raio-X] Concluído. ${checkCount} novos perfis examinados.`)
+    }
+
+    return checkCount
+  } catch (err) {
+    console.error('❌ Exceção não tratada na pré-validação (Raio-X):', err)
+    return 0
+  }
+}
