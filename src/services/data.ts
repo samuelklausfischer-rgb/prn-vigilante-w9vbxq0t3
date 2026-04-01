@@ -172,19 +172,68 @@ export async function toggleSystemPause(is_paused: boolean) {
   }
 }
 
-export async function fetchValidatedPatients(): Promise<PatientQueue[]> {
+export interface ActiveSendList {
+  id: string
+  name: string
+  status: string
+  exam_date: string | null
+}
+
+export interface ValidatedPatientsResult {
+  patients: PatientQueue[]
+  activeLists: ActiveSendList[]
+  hasActiveList: boolean
+}
+
+export async function fetchValidatedPatients(): Promise<ValidatedPatientsResult> {
+  const empty: ValidatedPatientsResult = { patients: [], activeLists: [], hasActiveList: false }
+
   try {
+    const { data: inProgressLists, error: err1 } = await supabase
+      .from('send_lists')
+      .select('id, name, status, exam_date')
+      .eq('status', 'in_progress')
+      .order('created_at', { ascending: false })
+
+    if (err1) throw err1
+
+    const activeLists = (inProgressLists || []) as ActiveSendList[]
+
+    if (activeLists.length === 0) {
+      const { data: queuedList, error: err2 } = await supabase
+        .from('send_lists')
+        .select('id, name, status, exam_date')
+        .eq('status', 'queued')
+        .order('created_at', { ascending: false })
+        .limit(1)
+
+      if (err2) throw err2
+      if (queuedList && queuedList.length > 0) {
+        activeLists.push(queuedList[0] as ActiveSendList)
+      }
+    }
+
+    if (activeLists.length === 0) return empty
+
+    const listIds = activeLists.map((l) => l.id)
+
     const { data, error } = await supabase
       .from('patients_queue')
-      .select('id, patient_name, phone_number, phone_2, phone_3, phone_1_whatsapp_valid, phone_2_whatsapp_valid, phone_3_whatsapp_valid, whatsapp_checked_at, whatsapp_valid, whatsapp_validated_format, status, updated_at')
+      .select('id, patient_name, phone_number, phone_2, phone_3, phone_1_whatsapp_valid, phone_2_whatsapp_valid, phone_3_whatsapp_valid, whatsapp_checked_at, whatsapp_valid, whatsapp_validated_format, status, updated_at, send_list_id')
+      .in('send_list_id', listIds)
       .or('whatsapp_checked_at.not.is.null,phone_1_whatsapp_valid.not.is.null,phone_2_whatsapp_valid.not.is.null,phone_3_whatsapp_valid.not.is.null,whatsapp_valid.not.is.null')
       .order('updated_at', { ascending: false })
-      .limit(200)
+      .limit(500)
 
     if (error) throw error
-    return data as PatientQueue[]
+
+    return {
+      patients: (data || []) as PatientQueue[],
+      activeLists,
+      hasActiveList: true,
+    }
   } catch (e) {
     console.error('Error fetching validated patients', e)
-    return []
+    return empty
   }
 }
