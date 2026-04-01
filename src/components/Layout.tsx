@@ -38,9 +38,10 @@ function AppSidebar() {
     { title: 'Segunda chamada', url: '/segunda-chamada', icon: Repeat2 },
     { title: 'Estratégico', url: '/estrategico', icon: Target },
     { title: 'CRM Kanban', url: '/crm', icon: LayoutGrid },
+    { title: 'Raio-X WhatsApp', url: '/whatsapp-check', icon: Smartphone },
     { title: 'Arquivar por data', url: '/arquivar-por-data', icon: CalendarRange },
     { title: 'Arquivo Morto', url: '/arquivo', icon: Archive },
-    { title: 'WhatsApp', url: '/whatsapp', icon: Smartphone },
+    { title: 'Instâncias Whats', url: '/whatsapp', icon: Smartphone },
   ]
 
   return (

@@ -14,6 +14,7 @@ import SegundaChamada from './pages/SegundaChamada'
 import Estrategico from './pages/Estrategico'
 import CRM from './pages/CRM'
 import Listas from './pages/Listas'
+import ValidationDashboard from './pages/ValidationDashboard'
 import NotFound from './pages/NotFound'
 import Layout from './components/Layout'
 
@@ -48,6 +49,7 @@ const AppRoutes = () => (
       <Route path="/estrategico" element={<Estrategico />} />
       <Route path="/crm" element={<CRM />} />
       <Route path="/listas" element={<Listas />} />
+      <Route path="/whatsapp-check" element={<ValidationDashboard />} />
       <Route path="/arquivar-por-data" element={<ArchiveByDate />} />
       <Route path="/arquivo" element={<Archive />} />
       <Route path="/whatsapp" element={<WhatsAppSettings />} />

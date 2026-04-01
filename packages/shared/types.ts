@@ -73,6 +73,8 @@ export interface PatientQueue {
   phone_3?: string | null
   is_landline?: boolean | null
 
+
+
   // Campos da automação
   locked_by?: string | null
   locked_at?: string | null
@@ -113,6 +115,8 @@ export interface PatientQueue {
   whatsapp_checked_at?: string | null
   /** Resultado da verificação: true=WhatsApp válido, false=fixo/inválido */
   whatsapp_valid?: boolean | null
+  /** Raio-X Phone 1 */
+  phone_1_whatsapp_valid?: boolean | null
   /** Phone 2 foi verificado e tem WhatsApp válido */
   phone_2_whatsapp_valid?: boolean | null
   /** Phone 3 foi verificado e tem WhatsApp válido */
