@@ -19,7 +19,7 @@ async function runTest() {
   console.log(`\nEnfileirando paciente via RPC: ${patientName} (${testPhone})`)
   
   const { data: rpcData, error: rpcError } = await supabase
-    .rpc('enqueue_patient', {
+    .rpc('enqueue_patient_v2', {
       p_patient_name: patientName,
       p_phone_number: testPhone,
       p_message_body: messageBody,

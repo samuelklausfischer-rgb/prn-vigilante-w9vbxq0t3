@@ -933,7 +933,7 @@ if (examDate === today && examHour < currentHour) {
             journey_id: row.journey_id,
             queue_message_id: result.id,
             direction: 'outbound',
-            message_kind: 'followup',
+            message_kind: 'followup_confirm',
             phone_number: row.phone_number,
             message_body: followupText,
             status: 'queued',

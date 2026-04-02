@@ -20,11 +20,12 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import { useToast } from '@/hooks/use-toast'
-import type { LegacyListGroup, PatientQueue, SendListStatus, SendListSummary, WhatsAppInstance } from '@/types'
+import type { CampaignKind, LegacyListGroup, PatientQueue, SendListStatus, SendListSummary, WhatsAppInstance } from '@/types'
 import {
   cancelSendList,
   convertLegacyGroupToSendList,
   deleteSendList,
+  dispatchCampaignToList,
   fetchLegacyListGroups,
   fetchSendListPatients,
   fetchSendLists,
@@ -33,8 +34,9 @@ import {
 } from '@/services/send-lists'
 import { evolutionApi } from '@/services/evolution'
 import { formatDataExameBr } from '@/lib/utils/data-exame'
-import { CalendarDays, Loader2, MessageSquare, RefreshCw, Trash2 } from 'lucide-react'
+import { CalendarDays, CheckCircle2, Loader2, MessageSquare, RefreshCw, Trash2 } from 'lucide-react'
 import { EditSendListDialog } from '@/components/send-lists/EditSendListDialog'
+import { SendListDispatchDialog } from '@/components/send-lists/SendListDispatchDialog'
 
 type SelectedKind = 'registered' | 'legacy'
 
@@ -111,6 +113,9 @@ export default function Listas() {
   const [pendingLegacyGroup, setPendingLegacyGroup] = useState<LegacyListGroup | null>(null)
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [dispatchMode, setDispatchMode] = useState<CampaignKind | null>(null)
+  const [dispatchDialogOpen, setDispatchDialogOpen] = useState(false)
+  const [sendingDispatch, setSendingDispatch] = useState(false)
 
   const connectedInstances = useMemo(
     () => instancesAll.filter((instance) => instance.status === 'connected'),
@@ -208,11 +213,13 @@ export default function Listas() {
       return
     }
 
+    let mounted = true
+
     const loadPatients = async () => {
       setLoadingPatients(true)
       try {
         const data = await fetchSendListPatients(selectedId)
-        setSelectedPatients(data)
+        if (mounted) setSelectedPatients(data)
       } catch (error: any) {
         toast({
           title: 'Erro ao carregar pacientes',
@@ -220,11 +227,12 @@ export default function Listas() {
           variant: 'destructive',
         })
       } finally {
-        setLoadingPatients(false)
+        if (mounted) setLoadingPatients(false)
       }
     }
 
     loadPatients()
+    return () => { mounted = false }
   }, [selectedKind, selectedId])
 
   const handleSaveEditDialog = async (payload: {
@@ -321,6 +329,71 @@ export default function Listas() {
       })
     } finally {
       setConvertingLegacy(false)
+    }
+  }
+
+  const handleOpenDispatch = (kind: CampaignKind) => {
+    setDispatchMode(kind)
+    setDispatchDialogOpen(true)
+  }
+
+  const handleOpenDispatchFromCard = async (listId: string, kind: CampaignKind) => {
+    setSelectedKind('registered')
+    setSelectedId(listId)
+    setDispatchMode(kind)
+    setLoadingPatients(true)
+    try {
+      const data = await fetchSendListPatients(listId)
+      setSelectedPatients(data)
+      setDispatchDialogOpen(true)
+    } catch (error: any) {
+      toast({
+        title: 'Erro ao carregar pacientes',
+        description: error?.message || 'Falha ao carregar pacientes da lista.',
+        variant: 'destructive',
+      })
+    } finally {
+      setLoadingPatients(false)
+    }
+  }
+
+  const handleDispatchConfirm = async (message: string) => {
+    if (!selectedList || !dispatchMode) return
+    try {
+      setSendingDispatch(true)
+      const result = await dispatchCampaignToList(selectedList.id, message, dispatchMode)
+      setDispatchDialogOpen(false)
+      setDispatchMode(null)
+      await loadLists(true)
+      if (selectedId) {
+        const updatedPatients = await fetchSendListPatients(selectedId)
+        setSelectedPatients(updatedPatients)
+      }
+      if (result.errors > 0) {
+        toast({
+          title: 'Envio parcial',
+          description: `${result.success} enviado(s), ${result.duplicates} duplicado(s), ${result.errors} erro(s). ${result.errorMessages.slice(0, 2).join('; ')}`,
+          variant: 'destructive',
+        })
+      } else if (result.duplicates > 0) {
+        toast({
+          title: 'Envio concluido com duplicatas',
+          description: `${result.success} enviado(s), ${result.duplicates} duplicado(s) ignorado(s).`,
+        })
+      } else {
+        toast({
+          title: 'Campanha enviada',
+          description: `${result.success} paciente(s) enfileirado(s) para ${dispatchMode === 'confirmation' ? 'confirmacao' : 'pos-atendimento'}.`,
+        })
+      }
+    } catch (error: any) {
+      toast({
+        title: 'Erro ao enviar campanha',
+        description: error?.message || 'Falha ao disparar campanha.',
+        variant: 'destructive',
+      })
+    } finally {
+      setSendingDispatch(false)
     }
   }
 
@@ -435,6 +508,29 @@ export default function Listas() {
                         <div className="text-white font-semibold">{list.completed_count}</div>
                       </div>
                     </div>
+
+                    <div className="mt-3 flex flex-wrap gap-2" onClick={(e) => e.stopPropagation()}>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="border-emerald-500/40 text-emerald-300 text-xs h-7"
+                        onClick={() => handleOpenDispatchFromCard(list.id, 'confirmation')}
+                        disabled={!list.locked_instance_id}
+                        title={list.locked_instance_id ? 'Enviar mensagem de confirmacao' : 'Defina um canal na edicao da lista'}
+                      >
+                        <CheckCircle2 className="w-3 h-3 mr-1" /> Confirmacao
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="border-amber-500/40 text-amber-300 text-xs h-7"
+                        onClick={() => handleOpenDispatchFromCard(list.id, 'post_attendance')}
+                        disabled={!list.locked_instance_id}
+                        title={list.locked_instance_id ? 'Enviar mensagem de pos-atendimento' : 'Defina um canal na edicao da lista'}
+                      >
+                        <MessageSquare className="w-3 h-3 mr-1" /> Pos-atendimento
+                      </Button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -508,9 +604,27 @@ export default function Listas() {
               <h3 className="text-lg font-semibold text-white">Detalhe da lista cadastrada</h3>
               <p className="text-xs text-muted-foreground">ID: {selectedList.id}</p>
             </div>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               <Button variant="outline" className="border-blue-500/40 text-blue-200" onClick={() => setEditDialogOpen(true)}>
                 Editar
+              </Button>
+              <Button
+                variant="outline"
+                className="border-emerald-500/40 text-emerald-300"
+                onClick={() => handleOpenDispatch('confirmation')}
+                disabled={!selectedList.locked_instance_id}
+                title={selectedList.locked_instance_id ? 'Enviar mensagem de confirmacao para os pacientes' : 'Defina um canal (WhatsApp) na edicao da lista para habilitar'}
+              >
+                <CheckCircle2 className="w-4 h-4 mr-2" /> Confirmacao
+              </Button>
+              <Button
+                variant="outline"
+                className="border-amber-500/40 text-amber-300"
+                onClick={() => handleOpenDispatch('post_attendance')}
+                disabled={!selectedList.locked_instance_id}
+                title={selectedList.locked_instance_id ? 'Enviar mensagem de pos-atendimento para os pacientes' : 'Defina um canal (WhatsApp) na edicao da lista para habilitar'}
+              >
+                <MessageSquare className="w-4 h-4 mr-2" /> Pos-atendimento
               </Button>
               <Button variant="outline" className="border-red-500/40 text-red-300" onClick={() => setCancelDialogOpen(true)}>
                 Cancelar lista
@@ -658,6 +772,18 @@ export default function Listas() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {dispatchMode && (
+        <SendListDispatchDialog
+          mode={dispatchMode}
+          open={dispatchDialogOpen}
+          onOpenChange={setDispatchDialogOpen}
+          list={selectedList}
+          patients={selectedPatients}
+          loading={sendingDispatch}
+          onConfirm={handleDispatchConfirm}
+        />
+      )}
     </div>
   )
 }

@@ -1,5 +1,6 @@
 import { supabase } from '@/lib/supabase/client'
 import type {
+  CampaignKind,
   LegacyListGroup,
   LegacyListPatient,
   PatientQueue,
@@ -307,4 +308,93 @@ export async function deleteSendList(sendListId: string) {
     .eq('id', sendListId)
 
   if (deleteListError) throw deleteListError
+}
+
+type DispatchCampaignResult = {
+  success: number
+  duplicates: number
+  errors: number
+  errorMessages: string[]
+}
+
+export async function dispatchCampaignToList(
+  sendListId: string,
+  messageBody: string,
+  kind: CampaignKind,
+): Promise<DispatchCampaignResult> {
+  const { data: patients, error: patientsError } = await (supabase.from('patients_queue') as any)
+    .select('*')
+    .eq('send_list_id', sendListId)
+    .eq('dedupe_kind', 'original')
+    .in('status', ['queued', 'delivered'])
+
+  if (patientsError) throw patientsError
+
+  const eligible = (patients || []).filter((p: any) => {
+    if (!p.phone_number) return false
+    if (kind === 'post_attendance') {
+      const today = new Date().toISOString().slice(0, 10)
+      if (p.data_exame && p.data_exame > today) return false
+    }
+    return true
+  })
+
+  const result: DispatchCampaignResult = { success: 0, duplicates: 0, errors: 0, errorMessages: [] }
+
+  for (const p of eligible) {
+    try {
+      const { data: rpcData, error: rpcError } = await (supabase.rpc as any)('enqueue_patient', {
+        p_patient_name: p.patient_name,
+        p_phone_number: p.phone_number,
+        p_message_body: messageBody,
+        p_status: 'queued',
+        p_is_approved: true,
+        p_send_after: new Date().toISOString(),
+        p_notes: `Campanha ${kind} via Lista`,
+        p_attempt_count: 0,
+        p_dedupe_kind: kind,
+        p_origin_queue_id: p.id,
+        p_canonical_phone: p.canonical_phone || null,
+        p_data_nascimento: p.Data_nascimento || null,
+        p_data_exame: p.data_exame || null,
+        p_procedimentos: p.procedimentos || null,
+        p_horario_inicio: p.horario_inicio || null,
+        p_horario_final: p.horario_final || null,
+        p_time_proce: p.time_proce || null,
+        p_phone_2: p.phone_2 || null,
+        p_phone_3: p.phone_3 || null,
+        p_locked_instance_id: p.locked_instance_id || null,
+        p_phone_attempt_index: p.phone_attempt_index || 1,
+        p_last_phone_used: p.last_phone_used || null,
+        p_phone_1_whatsapp_valid: p.phone_1_whatsapp_valid ?? null,
+        p_phone_2_whatsapp_valid: p.phone_2_whatsapp_valid ?? null,
+        p_phone_3_whatsapp_valid: p.phone_3_whatsapp_valid ?? null,
+        p_whatsapp_checked_at: p.whatsapp_checked_at || null,
+        p_send_list_id: sendListId,
+        p_campaign_kind: kind,
+      })
+
+      if (rpcError) throw rpcError
+
+      const rpcResult = Array.isArray(rpcData) ? rpcData[0] : rpcData
+
+      if (rpcResult?.status === 'duplicate_original' || rpcResult?.status === 'duplicate_recent') {
+        result.duplicates++
+        continue
+      }
+
+      if (rpcResult?.status !== 'success') {
+        result.errors++
+        result.errorMessages.push(`${p.patient_name}: ${rpcResult?.error_message || 'erro desconhecido'}`)
+        continue
+      }
+
+      result.success++
+    } catch (err: any) {
+      result.errors++
+      result.errorMessages.push(`${p.patient_name}: ${err?.message || 'falha ao enfileirar'}`)
+    }
+  }
+
+  return result
 }

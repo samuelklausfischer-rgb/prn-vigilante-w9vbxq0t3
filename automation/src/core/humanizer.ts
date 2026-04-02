@@ -12,43 +12,41 @@
  * 4. Respeito ao horário comercial (bloqueia envio fora do expediente).
  */
 
+import process from 'node:process'
 import { sleep, timestamp } from '../utils/helpers'
 
-// ============================================
-// Configuração
-// ============================================
-
 export interface HumanizerConfig {
-  /** Caracteres digitados por segundo (humano médio: 5-8) */
   typingSpeedCps: number
-  /** Delay mínimo entre mensagens (ms) */
   minInterMessageDelayMs: number
-  /** Delay máximo entre mensagens (ms) */
   maxInterMessageDelayMs: number
-  /** Jitter percentual (ex: 0.15 = ±15%) */
   jitterPercent: number
-  /** A cada N mensagens, inserir pausa longa */
   pauseEveryN: number
-  /** Duração da pausa longa (ms) */
   longPauseMs: number
-  /** Hora de início do expediente (0-23) */
   workingHoursStart: number
-  /** Hora de fim do expediente (0-23) */
   workingHoursEnd: number
-  /** Respeitar horário comercial? */
   respectWorkingHours: boolean
 }
 
 const DEFAULT_CONFIG: HumanizerConfig = {
   typingSpeedCps: 6,
-  minInterMessageDelayMs: 180_000,   // 3 minutos
-  maxInterMessageDelayMs: 780_000,   // 13 minutos
+  minInterMessageDelayMs: 180_000,
+  maxInterMessageDelayMs: 780_000,
   jitterPercent: 0.15,
   pauseEveryN: 5,
-  longPauseMs: 60_000,             // 1 minuto
+  longPauseMs: 60_000,
   workingHoursStart: 8,
   workingHoursEnd: 20,
-  respectWorkingHours: true,
+  respectWorkingHours: false,
+}
+
+export function loadHumanizerConfig(): HumanizerConfig {
+  const env = process.env
+  return {
+    ...DEFAULT_CONFIG,
+    respectWorkingHours: env.RESPECT_WORKING_HOURS === 'true',
+    workingHoursStart: Number(env.WORKING_HOURS_START) || DEFAULT_CONFIG.workingHoursStart,
+    workingHoursEnd: Number(env.WORKING_HOURS_END) || DEFAULT_CONFIG.workingHoursEnd,
+  }
 }
 
 // ============================================

@@ -29,7 +29,9 @@ export type JourneyStatus = 'queued' | 'contacting' | 'delivered_waiting_reply' 
 
 export type MessageDirection = 'outbound' | 'inbound'
 
-export type MessageKind = 'original' | 'retry_phone2' | 'retry_phone3' | 'followup_confirm' | 'patient_reply'
+export type MessageKind = 'original' | 'retry_phone2' | 'retry_phone3' | 'followup_confirm' | 'patient_reply' | 'confirmation' | 'post_attendance'
+
+export type CampaignKind = 'confirmation' | 'post_attendance'
 
 export type MessageLifecycleStatus = 'queued' | 'sending' | 'accepted' | 'delivered' | 'read' | 'replied' | 'failed' | 'cancelled'
 

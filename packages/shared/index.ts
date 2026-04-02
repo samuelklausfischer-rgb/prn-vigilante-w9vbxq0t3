@@ -1,6 +1,7 @@
 export * from './types'
 export * from './validators'
 export * from './templates/sara-message'
+export * from './templates/operational-messages'
 export * from './config/exam-durations'
 export * from './utils/phone-utils'
 export * from './utils/patient-utils'

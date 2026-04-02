@@ -16,7 +16,7 @@ import {
 } from '../services/supabase'
 import { checkEvolutionHealth } from '../services/evolution'
 import { createWorkerId, serializeError, sleep, timestamp } from '../utils/helpers'
-import { Humanizer } from './humanizer'
+import { Humanizer, loadHumanizerConfig } from './humanizer'
 
 export class WorkerEngine {
   private readonly queueManager: QueueManager
@@ -47,7 +47,7 @@ export class WorkerEngine {
   private readonly maxParallelLanes = Number(process.env.WORKER_MAX_PARALLEL_LANES || 12)
 
   constructor() {
-    this.humanizer = new Humanizer()
+    this.humanizer = new Humanizer(loadHumanizerConfig())
     this.queueManager = new QueueManager(undefined, this.humanizer)
   }
 

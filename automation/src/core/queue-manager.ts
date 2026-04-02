@@ -232,12 +232,11 @@ export class QueueManager {
             messageId: message.id,
             reason: humanResult.reason,
           })
-          // Fora do horário — liberar o lock e devolver para a fila
-          await markMessageFailed(message.id, `Adiado: ${humanResult.reason}`, 0, workerId)
+          await deferMessageForInfra(message.id, workerId, `Adiado: ${humanResult.reason}`)
           return {
             processed: true,
             messageId: message.id,
-            status: 'skipped',
+            status: 'deferred',
             reason: humanResult.reason,
           }
         }

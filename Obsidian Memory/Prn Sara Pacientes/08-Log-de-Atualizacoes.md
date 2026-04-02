@@ -161,3 +161,19 @@
 - Resultado: antes=0 com whatsapp_checked_at, depois=182. Frontend agora mostra pacientes validados independentemente do status. Build validado sem erros.
 - Risco/Impacto: baixo. Backfill seguro (somente SET, sem DELETE). Novos processamentos do worker ja preenchem todos os campos consistentemente.
 - Proximo passo: git push, redeploy worker e frontend no EasyPanel, confirmar visualmente no Raio-X.
+
+---
+
+## 02/04/2026
+- Contexto: operador solicitou botoes de disparo em lote por lista (Confirmacao e Pos-atendimento) na aba Listas cadastradas.
+- Acao executada:
+  - `packages/shared/templates/operational-messages.ts` (NOVO): centralizou textos padrao de confirmacao e pos-atendimento com helpers reutilizaveis.
+  - `packages/shared/types.ts`: adicionados tipos `CampaignKind` e expandido `MessageKind` com `confirmation` e `post_attendance`.
+  - Migration `add_campaign_dispatch_support`: expandiu enum `message_kind`, adicionou coluna `campaign_kind` em `patients_queue`, recriou `enqueue_patient` com params `p_send_list_id` e `p_campaign_kind`, dedupe expandida para os novos tipos.
+  - `src/components/send-lists/SendListDispatchDialog.tsx` (NOVO): dialog generico com mode `confirmation` | `post_attendance`, textarea editavel com texto padrao, contagem de elegiveis, botoes Cancelar e Enviar.
+  - `src/services/send-lists.ts`: nova funcao `dispatchCampaignToList()` que carrega pacientes da lista, filtra elegiveis, enfileira via `enqueue_patient` RPC com `dedupe_kind` e `campaign_kind` corretos, retorna contadores de sucesso/duplicados/erros.
+  - `src/pages/Listas.tsx`: adicionados botoes `Confirmacao` (verde) e `Pos-atendimento` (amarelo) na barra de acoes do detalhe da lista, integrados com dialog e service.
+  - `automation/src/services/supabase.ts`: corrigido `message_kind: 'followup'` para `'followup_confirm'` (inconsistencia com enum).
+- Resultado: build e typecheck limpos. Migration aplicada. Operador agora pode abrir lista cadastrada, clicar em Confirmacao ou Pos-atendimento, editar texto e disparar em lote.
+- Risco/Impacto: medio. Dedupe por `origin_queue_id + dedupe_kind` impede duplicados do mesmo tipo. Pos-atendimento filtra por `data_exame <= hoje`. Botoes ficam desabilitados sem canal vinculado.
+- Proximo passo: testar fluxo ponta a ponta em ambiente com lista real e pacientes elegiveis. Validar worker consumindo mensagens de campanha.
