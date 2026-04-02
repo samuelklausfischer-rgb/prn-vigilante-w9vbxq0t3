@@ -1770,82 +1770,84 @@ export async function runBatchPreValidation(workerId: string): Promise<number> {
 
     const realInstance = connectedInstances[0].instance_name
 
-    await supabase
-      .from('system_config')
-      .update({ xray_requested: false, updated_at: new Date().toISOString() })
-      .eq('id', 1)
+    try {
+      const { data: patients, error } = await supabase
+        .from('patients_queue')
+        .select('id')
+        .in('status', ['queued', 'sending'])
 
-    const { data: patients, error } = await supabase
-      .from('patients_queue')
-      .select('id')
-      .in('status', ['queued', 'sending'])
-
-    if (error) {
-      console.error('❌ Erro ao buscar pacientes para Raio-X:', error.message)
-      return 0
-    }
-
-    if (!patients || patients.length === 0) {
-      console.log('🩻 [Raio-X] Nenhum paciente na fila para analisar.')
-      return 0
-    }
-
-    await supabase
-      .from('patients_queue')
-      .update({
-        phone_1_whatsapp_valid: null,
-        phone_2_whatsapp_valid: null,
-        phone_3_whatsapp_valid: null,
-        whatsapp_valid: null,
-        whatsapp_checked_at: null,
-        updated_at: new Date().toISOString(),
-      })
-      .in('id', patients.map((p: any) => p.id))
-
-    console.log(`🩻 [Raio-X] Iniciando análise de ${patients.length} paciente(s) via instância "${realInstance}"...`)
-
-    for (const p of patients) {
-      try {
-        const { data: patientData } = await supabase
-          .from('patients_queue')
-          .select('phone_number, phone_2, phone_3')
-          .eq('id', p.id)
-          .single()
-
-        if (!patientData) continue
-
-        const updates: Record<string, any> = {
-          whatsapp_checked_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        }
-
-        if (patientData.phone_number) {
-          const v1 = await validatePhoneForWhatsApp(realInstance, patientData.phone_number)
-          updates.phone_1_whatsapp_valid = v1.valid
-          updates.whatsapp_valid = v1.valid
-        }
-
-        if (patientData.phone_2) {
-          const v2 = await validatePhoneForWhatsApp(realInstance, patientData.phone_2)
-          updates.phone_2_whatsapp_valid = v2.valid
-        }
-
-        if (patientData.phone_3) {
-          const v3 = await validatePhoneForWhatsApp(realInstance, patientData.phone_3)
-          updates.phone_3_whatsapp_valid = v3.valid
-        }
-
-        await supabase
-          .from('patients_queue')
-          .update(updates)
-          .eq('id', p.id)
-      } catch (err) {
-        console.error(`❌ Raio-X exceção no paciente ${p.id}:`, err)
+      if (error) {
+        console.error('❌ Erro ao buscar pacientes para Raio-X:', error.message)
+        return 0
       }
-    }
 
-    console.log(`✅ [Raio-X] Concluído. ${patients.length} paciente(s) validado(s).`)
-    return patients.length
+      if (!patients || patients.length === 0) {
+        console.log('🩻 [Raio-X] Nenhum paciente na fila para analisar.')
+        return 0
+      }
+
+      await supabase
+        .from('patients_queue')
+        .update({
+          phone_1_whatsapp_valid: null,
+          phone_2_whatsapp_valid: null,
+          phone_3_whatsapp_valid: null,
+          whatsapp_valid: null,
+          whatsapp_checked_at: null,
+          updated_at: new Date().toISOString(),
+        })
+        .in('id', patients.map((p: any) => p.id))
+
+      console.log(`🩻 [Raio-X] Iniciando análise de ${patients.length} paciente(s) via instância "${realInstance}"...`)
+
+      for (const p of patients) {
+        try {
+          const { data: patientData } = await supabase
+            .from('patients_queue')
+            .select('phone_number, phone_2, phone_3')
+            .eq('id', p.id)
+            .single()
+
+          if (!patientData) continue
+
+          const updates: Record<string, any> = {
+            whatsapp_checked_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          }
+
+          if (patientData.phone_number) {
+            const v1 = await validatePhoneForWhatsApp(realInstance, patientData.phone_number)
+            updates.phone_1_whatsapp_valid = v1.valid
+            updates.whatsapp_valid = v1.valid
+          }
+
+          if (patientData.phone_2) {
+            const v2 = await validatePhoneForWhatsApp(realInstance, patientData.phone_2)
+            updates.phone_2_whatsapp_valid = v2.valid
+          }
+
+          if (patientData.phone_3) {
+            const v3 = await validatePhoneForWhatsApp(realInstance, patientData.phone_3)
+            updates.phone_3_whatsapp_valid = v3.valid
+          }
+
+          await supabase
+            .from('patients_queue')
+            .update(updates)
+            .eq('id', p.id)
+        } catch (err) {
+          console.error(`❌ Raio-X exceção no paciente ${p.id}:`, err)
+        }
+      }
+
+      console.log(`✅ [Raio-X] Concluído. ${patients.length} paciente(s) validado(s).`)
+      return patients.length
+    } finally {
+      await supabase
+        .from('system_config')
+        .update({ xray_requested: false, updated_at: new Date().toISOString() })
+        .eq('id', 1)
+    }
   } catch (err) {
     console.error('❌ Exceção no Raio-X:', err)
     return 0

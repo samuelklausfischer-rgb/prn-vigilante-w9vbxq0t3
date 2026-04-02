@@ -11,7 +11,6 @@ import {
   releaseExpiredLocks,
   removeHeartbeat,
   releaseWorkerLease,
-  runSecondCallRecovery,
   runBatchPreValidation,
   upsertHeartbeat,
 } from '../services/supabase'
@@ -35,7 +34,7 @@ export class WorkerEngine {
 
   private running = false
   private heartbeatTimer?: ReturnType<typeof setInterval>
-  private followupTimer?: ReturnType<typeof setInterval>
+
   private processed = 0
   private accepted = 0
   private delivered = 0
@@ -44,7 +43,7 @@ export class WorkerEngine {
   private skipped = 0
   private currentJobId: string | null = null
   private currentJobStartedAt: string | null = null
-  private readonly followupIntervalMs = Number(process.env.WORKER_FOLLOWUP_INTERVAL_MS || 60000)
+
   private readonly maxParallelLanes = Number(process.env.WORKER_MAX_PARALLEL_LANES || 12)
 
   constructor() {
@@ -64,7 +63,7 @@ export class WorkerEngine {
     await this.cleanupOperationalState()
     await this.registerHeartbeat()
     this.startHeartbeatLoop()
-    this.startFollowupScheduler()
+
     this.registerSignalHandlers()
 
     while (this.running) {
@@ -194,7 +193,6 @@ export class WorkerEngine {
     console.log(`[${timestamp()}] 🛑 Desligando worker graciosamente...`)
     this.running = false
     if (this.heartbeatTimer) clearInterval(this.heartbeatTimer)
-    if (this.followupTimer) clearInterval(this.followupTimer)
 
     await removeHeartbeat(this.workerId)
     await releaseWorkerLease(this.workerId)
@@ -222,33 +220,9 @@ export class WorkerEngine {
     }, this.heartbeatIntervalMs)
   }
 
-  private startFollowupScheduler() {
-    this.followupTimer = setInterval(async () => {
-      try {
-        const hasLease = await this.ensureWorkerLease()
-        if (!hasLease) {
-          return
-        }
-
-        const rec = await runSecondCallRecovery().catch((e) => {
-          console.error(`[${timestamp()}] ❌ Falha no scheduler de follow-up`, {
-            workerId: this.workerId,
-            error: serializeError(e),
-          })
-          return { processed: 0 }
-        })
-
-        if (rec.processed > 0) {
-          console.log(`[${timestamp()}] 🔁 Follow-up scheduler: ${rec.processed} ação(ões) enfileirada(s).`)
-        }
-      } catch (error) {
-        console.error(`[${timestamp()}] ❌ Erro no scheduler de follow-up`, {
-          workerId: this.workerId,
-          error: serializeError(error),
-        })
-      }
-    }, this.followupIntervalMs)
-  }
+  // NOTE: startFollowupScheduler() removed — runSecondCallRecovery disabled to avoid
+  // conflict with pickBestPhone() which now handles phone selection via Raio-X results.
+  // Function definition preserved in supabase.ts for potential future re-enablement.
 
   private async registerHeartbeat() {
     const payload = {
