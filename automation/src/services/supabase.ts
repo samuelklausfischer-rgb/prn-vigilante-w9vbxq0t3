@@ -1929,6 +1929,23 @@ export async function updateJourneyMessageFailed(
 
 export async function runBatchPreValidation(workerId: string): Promise<number> {
   try {
+    const { data: connectedInstances, error: instError } = await supabase
+      .from('whatsapp_instances')
+      .select('instance_name')
+      .eq('status', 'connected')
+      .limit(1)
+
+    if (instError || !connectedInstances || connectedInstances.length === 0) {
+      console.error('❌ [Raio-X] Nenhuma instância conectada encontrada. Abortando.')
+      await supabase
+        .from('system_config')
+        .update({ xray_requested: false, updated_at: new Date().toISOString() })
+        .eq('id', 1)
+      return 0
+    }
+
+    const realInstance = connectedInstances[0].instance_name
+
     await supabase
       .from('system_config')
       .update({ xray_requested: false, updated_at: new Date().toISOString() })
@@ -1936,9 +1953,8 @@ export async function runBatchPreValidation(workerId: string): Promise<number> {
 
     const { data: patients, error } = await supabase
       .from('patients_queue')
-      .select('id, phone_number, phone_2, phone_3')
+      .select('id')
       .in('status', ['queued', 'sending'])
-      .order('created_at', { ascending: true })
 
     if (error) {
       console.error('❌ Erro ao buscar pacientes para Raio-X:', error.message)
@@ -1950,50 +1966,62 @@ export async function runBatchPreValidation(workerId: string): Promise<number> {
       return 0
     }
 
-    let checkCount = 0
+    await supabase
+      .from('patients_queue')
+      .update({
+        phone_1_whatsapp_valid: null,
+        phone_2_whatsapp_valid: null,
+        phone_3_whatsapp_valid: null,
+        whatsapp_valid: null,
+        whatsapp_checked_at: null,
+        updated_at: new Date().toISOString(),
+      })
+      .in('id', patients.map((p: any) => p.id))
 
-    console.log(`🩻 [Raio-X] Iniciando análise de ${patients.length} paciente(s)...`)
+    console.log(`🩻 [Raio-X] Iniciando análise de ${patients.length} paciente(s) via instância "${realInstance}"...`)
 
     for (const p of patients) {
       try {
+        const { data: patientData } = await supabase
+          .from('patients_queue')
+          .select('phone_number, phone_2, phone_3')
+          .eq('id', p.id)
+          .single()
+
+        if (!patientData) continue
+
         const updates: Record<string, any> = {
           whatsapp_checked_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         }
 
-        if (p.phone_number) {
-          const v1 = await validatePhoneForWhatsApp('any', p.phone_number)
+        if (patientData.phone_number) {
+          const v1 = await validatePhoneForWhatsApp(realInstance, patientData.phone_number)
           updates.phone_1_whatsapp_valid = v1.valid
           updates.whatsapp_valid = v1.valid
         }
 
-        if (p.phone_2) {
-          const v2 = await validatePhoneForWhatsApp('any', p.phone_2)
+        if (patientData.phone_2) {
+          const v2 = await validatePhoneForWhatsApp(realInstance, patientData.phone_2)
           updates.phone_2_whatsapp_valid = v2.valid
         }
 
-        if (p.phone_3) {
-          const v3 = await validatePhoneForWhatsApp('any', p.phone_3)
+        if (patientData.phone_3) {
+          const v3 = await validatePhoneForWhatsApp(realInstance, patientData.phone_3)
           updates.phone_3_whatsapp_valid = v3.valid
         }
 
-        const { error: upError } = await supabase
+        await supabase
           .from('patients_queue')
           .update(updates)
           .eq('id', p.id)
-
-        if (upError) {
-          console.error(`❌ Raio-X erro ao salvar ${p.id}:`, upError.message)
-        } else {
-          checkCount++
-        }
       } catch (err) {
         console.error(`❌ Raio-X exceção no paciente ${p.id}:`, err)
       }
     }
 
-    console.log(`✅ [Raio-X] Concluído. ${checkCount}/${patients.length} paciente(s) validado(s).`)
-    return checkCount
+    console.log(`✅ [Raio-X] Concluído. ${patients.length} paciente(s) validado(s).`)
+    return patients.length
   } catch (err) {
     console.error('❌ Exceção no Raio-X:', err)
     return 0

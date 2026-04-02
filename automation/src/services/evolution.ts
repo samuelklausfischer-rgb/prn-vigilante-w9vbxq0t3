@@ -232,8 +232,7 @@ export async function checkWhatsAppNumber(
           phone: maskPhone(candidate),
           resultType: typeof result,
         })
-        // Em caso de dúvida, retornar como válido (fail-open) no formato primário
-        return { exists: true, phone: primaryForm }
+        return { exists: false, phone: primaryForm }
       }
 
       // Verificação individual silenciosa
@@ -250,8 +249,7 @@ export async function checkWhatsAppNumber(
         instanceName,
         error: serializeError(error),
       })
-      // Em caso de erro de comunicação, permitir envio (fail-open)
-      return { exists: true, phone: primaryForm }
+      return { exists: false, phone: primaryForm }
     }
   }
 
