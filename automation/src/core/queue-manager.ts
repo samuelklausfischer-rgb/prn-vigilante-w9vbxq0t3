@@ -1,22 +1,18 @@
 import {
   claimNextMessage,
   claimNextMessageForInstance,
-  hasValidConsent,
   isNumberBlocked,
   markMessageAccepted,
   markMessageDelivered,
   markMessageFailed,
   deferMessageForInfra,
   refreshMessageLock,
-  handlePhoneLadderEscalation,
-  updateWhatsAppCheckResult,
   saveLockInstanceAffinity,
   supabase,
 } from '../services/supabase'
 import {
   sendTextMessage,
   syncDeliveryStatus,
-  checkWhatsAppNumber,
   validatePhoneForWhatsApp,
 } from '../services/evolution'
 import type { ClaimedMessage, SendResult } from '../types'
@@ -29,6 +25,12 @@ export interface ProcessResult {
   messageId?: string
   status?: 'delivered' | 'failed' | 'skipped' | 'deferred'
   reason?: string
+}
+
+interface BestPhoneResult {
+  phone: string
+  index: number
+  changed: boolean
 }
 
 export class QueueManager {
@@ -133,71 +135,25 @@ export class QueueManager {
       }
 
       // ──────────────────────────────────────
-      // 2. Check Proativo de WhatsApp (ANTI-FIXO)
+      // 2. Seleção do Melhor Telefone (Raio-X)
       // ──────────────────────────────────────
-      const shouldCheckWhatsApp = !dryRun && this.shouldPerformWhatsAppCheck(message)
+      if (!dryRun) {
+        const bestPhone = this.pickBestPhone(message)
 
-      if (shouldCheckWhatsApp) {
-        console.log(`[${timestamp()}] 🔍 Verificação proativa de WhatsApp iniciada`, {
-          messageId: message.id,
-          phone: maskPhone(message.phone_number),
-          instanceName: selectedInstance.instanceName,
-        })
-
-        // Verifica no banco qual foi o resultado do RAIO-X para o telefone atual
-        const attemptIndex = message.phone_attempt_index || 1
-        let isWhatsAppValid = true // Default caso não tenha passado pelo Raio-X ainda
-        
-        if (attemptIndex === 1 && message.phone_1_whatsapp_valid !== undefined && message.phone_1_whatsapp_valid !== null) {
-          isWhatsAppValid = Boolean(message.phone_1_whatsapp_valid)
-        } else if (attemptIndex === 2 && message.phone_2_whatsapp_valid !== undefined && message.phone_2_whatsapp_valid !== null) {
-          isWhatsAppValid = Boolean(message.phone_2_whatsapp_valid)
-        } else if (attemptIndex === 3 && message.phone_3_whatsapp_valid !== undefined && message.phone_3_whatsapp_valid !== null) {
-          isWhatsAppValid = Boolean(message.phone_3_whatsapp_valid)
-        } else {
-          // Fallback: se por algum motivo não passou pelo Raio-X, valida na hora
-          const whatsappValidation = await validatePhoneForWhatsApp(
-            selectedInstance.instanceName,
-            message.phone_number,
-          )
-          isWhatsAppValid = whatsappValidation.valid
-          await updateWhatsAppCheckResult(message.id, isWhatsAppValid)
-        }
-
-        if (!isWhatsAppValid) {
-          console.warn(`[${timestamp()}] 📵 Número NÃO tem WhatsApp (fixo/inválido). Acionando escada de telefones.`, {
+        if (!bestPhone) {
+          console.warn(`[${timestamp()}] 📵 Nenhum telefone com WhatsApp (Raio-X). Movendo para Crítico.`, {
             messageId: message.id,
-            phone: maskPhone(message.phone_number),
-            phoneAttemptIndex: message.phone_attempt_index || 1,
+            patientName: message.patient_name,
           })
 
-          // Calcular delay aleatório de 2-4 minutos para o próximo telefone
-          const delayMinutes = Math.floor(Math.random() * 3) + 2
-          const sendAfterDelay = new Date(Date.now() + delayMinutes * 60 * 1000)
-
-          // Acionar escada de telefones com delay
-          const ladderResult = await handlePhoneLadderEscalation(
-            message,
-            'landline_detected',
-            `Tel${message.phone_attempt_index || 1}: Fixo/Sem WhatsApp. Enviando para Tel${(message.phone_attempt_index || 1) + 1} em ${delayMinutes}min`,
-            sendAfterDelay,
-          )
-
-          console.log(`[${timestamp()}] 🪜 Escada de telefones: ${ladderResult.action}`, {
-            messageId: message.id,
-            action: ladderResult.action,
-            nextPhone: ladderResult.nextPhone ? maskPhone(ladderResult.nextPhone) : 'nenhum',
-          })
-
-          // Liberar o lock da mensagem atual (não enviar)
           await markMessageFailed(
             message.id,
-            `Número sem WhatsApp no Tel${message.phone_attempt_index || 1} — ${ladderResult.action === 'escalated' ? 'fallback automático para próximo telefone' : 'escada esgotada → aba Crítico'}`,
-            0, // Não contar como tentativa de envio
+            'Todos os telefones sem WhatsApp (Raio-X)',
+            0,
             workerId,
             {
-              secondCallReason: ladderResult.action === 'escalated' ? 'landline_detected' : 'phone_ladder_exhausted',
-              needsSecondCall: ladderResult.action !== 'escalated',
+              secondCallReason: 'all_phones_invalid',
+              needsSecondCall: true,
             },
           )
 
@@ -205,14 +161,32 @@ export class QueueManager {
             processed: true,
             messageId: message.id,
             status: 'skipped',
-            reason: 'landline_detected',
+            reason: 'all_phones_invalid',
           }
         }
 
-        console.log(`[${timestamp()}] ✅ Número confirmado com WhatsApp`, {
-          messageId: message.id,
-          phone: maskPhone(message.phone_number),
-        })
+        if (bestPhone.changed) {
+          console.log(`[${timestamp()}] 🔄 Raio-X: trocando Tel1 → Tel${bestPhone.index}`, {
+            messageId: message.id,
+            newPhone: maskPhone(bestPhone.phone),
+          })
+
+          await supabase
+            .from('patients_queue')
+            .update({
+              phone_number: bestPhone.phone,
+              phone_attempt_index: bestPhone.index,
+              last_phone_used: bestPhone.phone,
+              updated_at: new Date().toISOString(),
+            })
+            .eq('id', message.id)
+
+          message.phone_number = bestPhone.phone
+        } else {
+          console.log(`[${timestamp()}] ✅ Telefone selecionado: Tel${bestPhone.index} (${maskPhone(bestPhone.phone)})`, {
+            messageId: message.id,
+          })
+        }
       }
 
       // ──────────────────────────────────────
@@ -377,76 +351,22 @@ export class QueueManager {
           error: sendResult.error,
         })
 
-        // Fallback automático da escada de telefones:
-        // Só escala para Tel2/Tel3 quando confirmar que o número atual não tem WhatsApp.
-        // Dupla verificação pós-falha: testa os dois formatos antes de escalar
-        const checkAfterFailure = await checkWhatsAppNumber(
-          selectedInstance.instanceName,
-          finalPhoneNumber,
-        )
-
-        if (!checkAfterFailure.exists) {
-          console.warn(`[${timestamp()}] 📵 Falha de envio + número sem WhatsApp confirmado. Acionando escada.`, {
-            messageId: message.id,
-            phone: maskPhone(finalPhoneNumber),
-            phoneAttemptIndex: message.phone_attempt_index || 1,
-          })
-
-          const delayMinutes = Math.floor(Math.random() * 3) + 2
-          const sendAfterDelay = new Date(Date.now() + delayMinutes * 60 * 1000)
-
-          const ladderResult = await handlePhoneLadderEscalation(
-            message,
-            'send_failed_no_whatsapp',
-            `Tel${message.phone_attempt_index || 1}: Erro de envio + sem WhatsApp. Enviando para Tel${(message.phone_attempt_index || 1) + 1} em ${delayMinutes}min`,
-            sendAfterDelay,
-          )
-
-          await markMessageFailed(
-            message.id,
-            `Erro de envio + número sem WhatsApp no Tel${message.phone_attempt_index || 1} — ${ladderResult.action === 'escalated' ? 'fallback automático para próximo telefone' : 'escada esgotada → aba Crítico'}`,
-            0,
-            workerId,
-            {
-              secondCallReason: ladderResult.action === 'escalated' ? 'send_failed_no_whatsapp' : 'phone_ladder_exhausted',
-              needsSecondCall: ladderResult.action !== 'escalated',
-            },
-          )
-
-          return {
-            processed: true,
-            messageId: message.id,
-            status: 'skipped',
-            reason: 'send_failed_no_whatsapp',
-          }
-        }
-
-        const delayMinutes = Math.floor(Math.random() * 5) + 5
-        const sendAfterDelay = new Date(Date.now() + delayMinutes * 60 * 1000)
-
-        const ladderResult = await handlePhoneLadderEscalation(
-          message,
-          'provider_send_failed',
-          `Tel${message.phone_attempt_index || 1}: Erro técnico (${sendResult.errorType}). Tentando Tel${(message.phone_attempt_index || 1) + 1} em ${delayMinutes}min`,
-          sendAfterDelay,
-        )
-
         await markMessageFailed(
           message.id,
           sendResult.error || 'Falha técnica no envio',
           message.attempt_count,
           workerId,
           {
-            secondCallReason: ladderResult.action === 'escalated' ? 'provider_error_escalated' : 'phone_ladder_exhausted',
-            needsSecondCall: ladderResult.action !== 'escalated',
+            secondCallReason: 'provider_error',
+            needsSecondCall: false,
           },
         )
 
         return {
           processed: true,
           messageId: message.id,
-          status: ladderResult.action === 'escalated' ? 'skipped' : 'failed',
-          reason: ladderResult.action === 'escalated' ? 'provider_error_escalated' : sendResult.errorType,
+          status: 'failed',
+          reason: sendResult.errorType,
         }
       }
 
@@ -514,17 +434,27 @@ export class QueueManager {
     }
   }
 
-  /**
-   * Determina se devemos fazer o check proativo de WhatsApp.
-   * Não faz se já foi checado nas últimas 24 horas.
-   */
-  private shouldPerformWhatsAppCheck(message: ClaimedMessage & { whatsapp_checked_at?: string | null }): boolean {
-    const checkedAt = (message as any).whatsapp_checked_at
-    if (!checkedAt) return true
+  private pickBestPhone(message: ClaimedMessage): BestPhoneResult | null {
+    const phones = [
+      { phone: message.phone_number, valid: message.phone_1_whatsapp_valid, index: 1 },
+      { phone: message.phone_2, valid: message.phone_2_whatsapp_valid, index: 2 },
+      { phone: message.phone_3, valid: message.phone_3_whatsapp_valid, index: 3 },
+    ]
 
-    const lastCheck = new Date(checkedAt).getTime()
-    const twentyFourHoursAgo = Date.now() - (24 * 60 * 60 * 1000)
+    const validated = phones.filter(p => p.phone && p.valid === true)
 
-    return lastCheck < twentyFourHoursAgo
+    if (validated.length > 0) {
+      const best = validated[0]
+      return {
+        phone: best.phone!,
+        index: best.index,
+        changed: best.index !== 1,
+      }
+    }
+
+    const allChecked = phones.every(p => p.valid === false || (!p.phone && p.index > 1))
+    if (allChecked) return null
+
+    return { phone: message.phone_number, index: 1, changed: false }
   }
 }

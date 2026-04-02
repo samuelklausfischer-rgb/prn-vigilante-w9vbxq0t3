@@ -476,189 +476,8 @@ export async function scheduleFollowup(queueMessageId: string): Promise<boolean>
 }
 
 // ============================================
-// Phone Ladder & Instance Affinity Operations
+// Instance Affinity Operations
 // ============================================
-
-export interface PhoneLadderResult {
-  action: 'escalated' | 'exhausted'
-  nextPhone?: string
-  nextIndex?: number
-}
-
-/**
- * Aciona a escada de telefones (Phone Ladder).
- * Chamado pelo queue-manager quando o check proativo detecta fixo/sem WhatsApp.
- *
- * - Se há próximo telefone: enfileira com locked_instance_id=null (round-robin)
- * - Se esgotado: marca jornada como phone_ladder_exhausted → aba Crítico
- */
-export async function handlePhoneLadderEscalation(
-  message: ClaimedMessage,
-  reason: string,
-  noteText: string,
-  sendAfterDelay?: Date,
-): Promise<PhoneLadderResult> {
-  // Buscar row completa para ter phone_2, phone_3 e dados do paciente
-  const { data: fullRow } = await supabase
-    .from('patients_queue')
-    .select('*')
-    .eq('id', message.id)
-    .single() as any
-
-  if (!fullRow) {
-    console.error(`❌ handlePhoneLadderEscalation: Mensagem ${message.id} não encontrada`)
-    return { action: 'exhausted' }
-  }
-
-  const currentIndex: number = fullRow.phone_attempt_index || 1
-  const currentPhoneNorm = normalizePhone(fullRow.phone_number)
-  const phone2Norm = fullRow.phone_2 ? normalizePhone(fullRow.phone_2) : null
-  const phone3Norm = fullRow.phone_3 ? normalizePhone(fullRow.phone_3) : null
-
-  // Determinar próximo telefone na escada com deduplicação
-  let nextPhone: string | null = null
-  let nextIndex: number | null = null
-
-  if (currentIndex === 1) {
-    // Tentar o 2 se for diferente do 1
-    if (phone2Norm && phone2Norm !== currentPhoneNorm) {
-      nextPhone = String(fullRow.phone_2).trim()
-      nextIndex = 2
-    } 
-    // Se o 2 for igual ao 1 ou não existir, tentar o 3 se for diferente do 1
-    else if (phone3Norm && phone3Norm !== currentPhoneNorm) {
-      nextPhone = String(fullRow.phone_3).trim()
-      nextIndex = 3
-    }
-  } else if (currentIndex === 2) {
-    // Tentar o 3 se for diferente do 2 (e do 1 por segurança)
-    if (phone3Norm && phone3Norm !== currentPhoneNorm && phone3Norm !== phone2Norm) {
-      nextPhone = String(fullRow.phone_3).trim()
-      nextIndex = 3
-    }
-  }
-
-  // Atualizar jornada com notas de automação
-  if (fullRow.journey_id) {
-    const { data: journey } = await supabase
-      .from('patient_journeys')
-      .select('automation_notes')
-      .eq('id', fullRow.journey_id)
-      .single()
-
-    const existingNotes = (journey as any)?.automation_notes || ''
-    const newNotes = existingNotes ? `${existingNotes} | ${noteText}` : noteText
-
-    const journeyUpdate: Record<string, unknown> = {
-      automation_notes: newNotes,
-      current_phone_index: nextIndex || currentIndex,
-      last_event_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    }
-
-    if (!nextPhone) {
-      journeyUpdate.phone_ladder_exhausted = true
-      journeyUpdate.needs_manual_action = true
-      journeyUpdate.journey_status = 'pending_manual'
-    }
-
-    await supabase
-      .from('patient_journeys')
-      .update(journeyUpdate)
-      .eq('id', fullRow.journey_id)
-
-    await insertJourneyEvent(
-      fullRow.journey_id,
-      null,
-      nextPhone ? 'phone_ladder_escalated' : 'phone_ladder_exhausted',
-      'worker',
-      { reason, from_index: currentIndex, to_index: nextIndex, note: noteText },
-    )
-  }
-
-  if (!nextPhone || !nextIndex) {
-    // Escada esgotada — marcar para intervenção manual
-    await supabase
-      .from('patients_queue')
-      .update({
-        needs_second_call: true,
-        second_call_reason: 'phone_ladder_exhausted',
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', message.id)
-
-    return { action: 'exhausted' }
-  }
-
-  // Enfileirar próximo telefone da escada
-  const dedupeKind = nextIndex === 2 ? 'retry_phone2' : 'retry_phone3'
-  const normalizedPhone = normalizePhone(nextPhone)
-
-  const { data: enqueueResult, error: enqueueError } = await supabase.rpc('enqueue_patient_v2', {
-    p_patient_name: fullRow.patient_name,
-    p_phone_number: nextPhone,
-    p_message_body: fullRow.message_body,
-    p_status: 'queued',
-    p_is_approved: true,
-    p_send_after: sendAfterDelay ? sendAfterDelay.toISOString() : new Date().toISOString(),
-    p_notes: `Escada de telefones: ${dedupeKind} (${reason})`,
-    p_attempt_count: 0,
-    p_dedupe_kind: dedupeKind,
-    p_origin_queue_id: fullRow.origin_queue_id || message.id,
-    p_canonical_phone: normalizedPhone,
-    p_data_nascimento: fullRow.Data_nascimento,
-    p_data_exame: fullRow.data_exame,
-    p_procedimentos: fullRow.procedimentos,
-    p_horario_inicio: fullRow.horario_inicio,
-    p_horario_final: fullRow.horario_final,
-    p_time_proce: fullRow.time_proce,
-    p_phone_2: fullRow.phone_2,
-    p_phone_3: fullRow.phone_3,
-    p_phone_attempt_index: nextIndex,
-    p_last_phone_used: nextPhone,
-  })
-
-  if (enqueueError) {
-    console.error(`❌ Erro ao enfileirar ${dedupeKind} na escada:`, enqueueError)
-    return { action: 'exhausted' }
-  }
-
-  const results = enqueueResult as { id: string; status: string; error_message: string }[] | null
-  const result = results && results.length > 0 ? results[0] : null
-
-  if (!result || result.status !== 'success') {
-    if (result?.status === 'duplicate_recent') {
-      console.log(`ℹ️ ${dedupeKind} já enfileirado para ${sanitizeBrazilianNumber(nextPhone)}`)
-      return { action: 'escalated', nextPhone, nextIndex }
-    } else {
-      console.warn(`⚠️ ${dedupeKind} não enfileirado: ${result?.error_message || result?.status || 'sem resultado'}`)
-    }
-    return { action: 'exhausted' }
-  }
-
-  // Rastreamento na jornada
-  if (fullRow.journey_id) {
-    await supabase
-      .from('journey_messages')
-      .insert({
-        journey_id: fullRow.journey_id,
-        queue_message_id: result.id,
-        direction: 'outbound',
-        message_kind: dedupeKind,
-        phone_number: nextPhone,
-        message_body: fullRow.message_body,
-        status: 'queued',
-      })
-  }
-
-  console.log(`🪜 Escada: ${dedupeKind} enfileirado para ${sanitizeBrazilianNumber(nextPhone)}`)
-
-  return {
-    action: 'escalated',
-    nextPhone,
-    nextIndex,
-  }
-}
 
 /**
  * Grava o resultado da verificação proativa de WhatsApp no banco.
@@ -667,17 +486,22 @@ export async function handlePhoneLadderEscalation(
 export async function updateWhatsAppCheckResult(
   messageId: string,
   hasWhatsApp: boolean,
+  phoneIndex: number = 1,
 ): Promise<boolean> {
   try {
     const nowIso = new Date().toISOString()
+    const update: Record<string, unknown> = {
+      whatsapp_checked_at: nowIso,
+      whatsapp_valid: hasWhatsApp,
+      updated_at: nowIso,
+    }
+    if (phoneIndex === 1) update.phone_1_whatsapp_valid = hasWhatsApp
+    else if (phoneIndex === 2) update.phone_2_whatsapp_valid = hasWhatsApp
+    else if (phoneIndex === 3) update.phone_3_whatsapp_valid = hasWhatsApp
+
     const { error } = await supabase
       .from('patients_queue')
-      .update({
-        whatsapp_checked_at: nowIso,
-        whatsapp_valid: hasWhatsApp,
-        phone_1_whatsapp_valid: hasWhatsApp,
-        updated_at: nowIso,
-      })
+      .update(update)
       .eq('id', messageId)
 
     if (error) {
