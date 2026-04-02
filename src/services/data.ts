@@ -57,6 +57,7 @@ export const MOCK_CONFIG: SystemConfig = {
   id: 1,
   is_paused: false,
   safe_cadence_delay: 30,
+  xray_requested: false,
   updated_at: new Date().toISOString(),
 }
 
@@ -172,68 +173,44 @@ export async function toggleSystemPause(is_paused: boolean) {
   }
 }
 
-export interface ActiveSendList {
-  id: string
-  name: string
-  status: string
-  exam_date: string | null
-}
-
-export interface ValidatedPatientsResult {
-  patients: PatientQueue[]
-  activeLists: ActiveSendList[]
-  hasActiveList: boolean
-}
-
-export async function fetchValidatedPatients(): Promise<ValidatedPatientsResult> {
-  const empty: ValidatedPatientsResult = { patients: [], activeLists: [], hasActiveList: false }
-
+export async function fetchValidatedPatients(): Promise<PatientQueue[]> {
   try {
-    const { data: inProgressLists, error: err1 } = await supabase
-      .from('send_lists')
-      .select('id, name, status, exam_date')
-      .eq('status', 'in_progress')
-      .order('created_at', { ascending: false })
-
-    if (err1) throw err1
-
-    const activeLists = (inProgressLists || []) as ActiveSendList[]
-
-    if (activeLists.length === 0) {
-      const { data: queuedList, error: err2 } = await supabase
-        .from('send_lists')
-        .select('id, name, status, exam_date')
-        .eq('status', 'queued')
-        .order('created_at', { ascending: false })
-        .limit(1)
-
-      if (err2) throw err2
-      if (queuedList && queuedList.length > 0) {
-        activeLists.push(queuedList[0] as ActiveSendList)
-      }
-    }
-
-    if (activeLists.length === 0) return empty
-
-    const listIds = activeLists.map((l) => l.id)
-
     const { data, error } = await supabase
       .from('patients_queue')
-      .select('id, patient_name, phone_number, phone_2, phone_3, phone_1_whatsapp_valid, phone_2_whatsapp_valid, phone_3_whatsapp_valid, whatsapp_checked_at, whatsapp_valid, whatsapp_validated_format, status, updated_at, send_list_id')
-      .in('send_list_id', listIds)
-      .or('whatsapp_checked_at.not.is.null,phone_1_whatsapp_valid.not.is.null,phone_2_whatsapp_valid.not.is.null,phone_3_whatsapp_valid.not.is.null,whatsapp_valid.not.is.null')
+      .select('id, patient_name, phone_number, phone_2, phone_3, phone_1_whatsapp_valid, phone_2_whatsapp_valid, phone_3_whatsapp_valid, whatsapp_checked_at, whatsapp_valid, status, updated_at')
+      .in('status', ['queued', 'sending'])
       .order('updated_at', { ascending: false })
-      .limit(500)
 
     if (error) throw error
-
-    return {
-      patients: (data || []) as PatientQueue[],
-      activeLists,
-      hasActiveList: true,
-    }
+    return (data || []) as PatientQueue[]
   } catch (e) {
     console.error('Error fetching validated patients', e)
-    return empty
+    return []
+  }
+}
+
+export async function requestXray(): Promise<boolean> {
+  try {
+    const { error } = await (supabase.from('system_config') as any)
+      .update({ xray_requested: true, updated_at: new Date().toISOString() })
+      .eq('id', 1)
+    return !error
+  } catch (e) {
+    console.error('Error requesting xray', e)
+    return false
+  }
+}
+
+export async function fetchXrayStatus(): Promise<boolean> {
+  try {
+    const { data } = await supabase
+      .from('system_config')
+      .select('xray_requested')
+      .eq('id', 1)
+      .single()
+    if (!data) return false
+    return (data as any).xray_requested ?? false
+  } catch (e) {
+    return false
   }
 }

@@ -257,6 +257,7 @@ export interface SystemConfig {
   id: number
   is_paused: boolean
   safe_cadence_delay: number
+  xray_requested: boolean
   updated_at: string
 }
 

@@ -1,31 +1,52 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { PatientQueue } from '@/types'
-import { fetchValidatedPatients, ActiveSendList } from '@/services/data'
+import { fetchValidatedPatients, requestXray, fetchXrayStatus } from '@/services/data'
 
 export function useValidatedPatients() {
   const [items, setItems] = useState<PatientQueue[]>([])
-  const [activeLists, setActiveLists] = useState<ActiveSendList[]>([])
-  const [hasActiveList, setHasActiveList] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [analyzing, setAnalyzing] = useState(false)
+  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   const refetch = async () => {
     setLoading(true)
-    const result = await fetchValidatedPatients()
-    setItems(result.patients)
-    setActiveLists(result.activeLists)
-    setHasActiveList(result.hasActiveList)
+    const data = await fetchValidatedPatients()
+    setItems(data)
     setLoading(false)
+  }
+
+  const stopPolling = () => {
+    if (pollRef.current) {
+      clearInterval(pollRef.current)
+      pollRef.current = null
+    }
+  }
+
+  const startPolling = () => {
+    stopPolling()
+    pollRef.current = setInterval(async () => {
+      const isRequested = await fetchXrayStatus()
+      if (!isRequested) {
+        stopPolling()
+        setAnalyzing(false)
+        await refetch()
+      }
+    }, 3000)
+  }
+
+  const requestAnalysis = async () => {
+    const ok = await requestXray()
+    if (ok) {
+      setAnalyzing(true)
+      startPolling()
+    }
   }
 
   useEffect(() => {
     refetch()
+    fetchXrayStatus().then((status) => setAnalyzing(status))
+    return () => stopPolling()
   }, [])
 
-  const listNameById = (sendListId: string | null | undefined) => {
-    if (!sendListId) return ''
-    const found = activeLists.find((l) => l.id === sendListId)
-    return found?.name || sendListId.split('-')[0] + '...'
-  }
-
-  return { items, activeLists, hasActiveList, loading, refetch, listNameById }
+  return { items, loading, analyzing, refetch, requestAnalysis }
 }

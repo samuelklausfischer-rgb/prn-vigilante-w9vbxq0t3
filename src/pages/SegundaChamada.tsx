@@ -14,6 +14,7 @@ import { ConversationModal } from '@/components/ConversationModal'
 import { updateQueueItemsBulk, deleteQueueItemsBulk } from '@/services/data'
 import { archiveSelectedPatients } from '@/services/analytics'
 import { getPatientConversation, type ConversationData } from '@/services/conversation'
+import { supabase } from '@/lib/supabase/client'
 import type { PatientCategory, PatientQueue } from '@/types'
 import { categorizePatients } from '@shared/utils/patient-utils'
 
@@ -152,6 +153,24 @@ export default function SegundaChamada() {
 
   const handleReturnSelected = async () => {
     await runBulkAction(async () => {
+      const now = new Date()
+      const listName = `Segunda chamada - ${now.toLocaleDateString('pt-BR')} ${now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`
+
+      const { data: sendList, error: listError } = await (supabase.from('send_lists') as any)
+        .insert({
+          name: listName,
+          status: 'queued',
+          updated_at: now.toISOString(),
+        })
+        .select('id')
+        .single()
+
+      if (listError || !sendList?.id) {
+        throw new Error('Falha ao criar lista de segunda chamada.')
+      }
+
+      const sendListId = String(sendList.id)
+
       const success = await updateQueueItemsBulk(selectedIds, {
         status: 'queued',
         locked_by: null,
@@ -159,14 +178,16 @@ export default function SegundaChamada() {
         needs_second_call: false,
         second_call_reason: null,
         attempt_count: 0,
-        updated_at: new Date().toISOString(),
+        send_list_id: sendListId,
+        updated_at: now.toISOString(),
       })
 
       if (!success) {
+        await (supabase.from('send_lists') as any).delete().eq('id', sendListId)
         throw new Error('Nao foi possivel devolver os pacientes para a fila.')
       }
 
-      toast({ title: 'Pacientes devolvidos para a fila', description: `${selectedIds.length} registro(s) retornaram para reenvio.` })
+      toast({ title: 'Pacientes devolvidos para a fila', description: `${selectedIds.length} registro(s) vinculados a lista: ${listName}` })
     }).catch((error: any) => {
       toast({ title: 'Erro ao voltar para fila', description: error?.message || 'Falha inesperada.', variant: 'destructive' })
     })

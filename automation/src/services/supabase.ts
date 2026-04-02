@@ -1927,83 +1927,75 @@ export async function updateJourneyMessageFailed(
   }
 }
 
-/**
- * Faz a varredura e pré-validação dos números de WhatsApp em lote (Raio-X WhatsApp).
- * Verifica o banco por pacientes com whatsapp_checked_at nulo.
- */
-export async function runBatchPreValidation(workerId: string, limit = 20): Promise<number> {
-  // Para evitar que a pré-validação trave todo o sistema, usamos um timeout e pegamos os primeiros da fila
+export async function runBatchPreValidation(workerId: string): Promise<number> {
   try {
+    await supabase
+      .from('system_config')
+      .update({ xray_requested: false, updated_at: new Date().toISOString() })
+      .eq('id', 1)
+
     const { data: patients, error } = await supabase
       .from('patients_queue')
       .select('id, phone_number, phone_2, phone_3')
-      .is('whatsapp_checked_at', null)
-      .in('status', ['queued', 'failed', 'sending']) 
+      .in('status', ['queued', 'sending'])
       .order('created_at', { ascending: true })
-      .limit(limit)
 
     if (error) {
-      console.error('❌ Erro ao buscar pacientes para pré-validação (Raio-X):', error.message)
+      console.error('❌ Erro ao buscar pacientes para Raio-X:', error.message)
       return 0
     }
 
     if (!patients || patients.length === 0) {
+      console.log('🩻 [Raio-X] Nenhum paciente na fila para analisar.')
       return 0
     }
 
     let checkCount = 0
 
-    console.log(`🩻 [Raio-X] Iniciando validação prévia em lote para ${patients.length} pacientes...`)
+    console.log(`🩻 [Raio-X] Iniciando análise de ${patients.length} paciente(s)...`)
 
     for (const p of patients) {
-      let p1Valid: boolean | null = null
-      let p2Valid: boolean | null = null
-      let p3Valid: boolean | null = null
-
-      // Check principal
-      if (p.phone_number) {
-        const v1 = await validatePhoneForWhatsApp('any', p.phone_number)
-        p1Valid = v1.valid
-      }
-
-      // Check sec
-      if (p.phone_2) {
-        const v2 = await validatePhoneForWhatsApp('any', p.phone_2)
-        p2Valid = v2.valid
-      }
-
-      // Check ter
-      if (p.phone_3) {
-        const v3 = await validatePhoneForWhatsApp('any', p.phone_3)
-        p3Valid = v3.valid
-      }
-
-      // Update backend
-      const { error: upError } = await supabase
-        .from('patients_queue')
-        .update({
+      try {
+        const updates: Record<string, any> = {
           whatsapp_checked_at: new Date().toISOString(),
-          whatsapp_valid: p1Valid, 
-          phone_1_whatsapp_valid: p1Valid,
-          phone_2_whatsapp_valid: p2Valid,
-          phone_3_whatsapp_valid: p3Valid,
-        })
-        .eq('id', p.id)
+          updated_at: new Date().toISOString(),
+        }
 
-      if (upError) {
-        console.error(`❌ Raio-X erro ao salvar resultados do pcte ${p.id}:`, upError.message)
-      } else {
-        checkCount++
+        if (p.phone_number) {
+          const v1 = await validatePhoneForWhatsApp('any', p.phone_number)
+          updates.phone_1_whatsapp_valid = v1.valid
+          updates.whatsapp_valid = v1.valid
+        }
+
+        if (p.phone_2) {
+          const v2 = await validatePhoneForWhatsApp('any', p.phone_2)
+          updates.phone_2_whatsapp_valid = v2.valid
+        }
+
+        if (p.phone_3) {
+          const v3 = await validatePhoneForWhatsApp('any', p.phone_3)
+          updates.phone_3_whatsapp_valid = v3.valid
+        }
+
+        const { error: upError } = await supabase
+          .from('patients_queue')
+          .update(updates)
+          .eq('id', p.id)
+
+        if (upError) {
+          console.error(`❌ Raio-X erro ao salvar ${p.id}:`, upError.message)
+        } else {
+          checkCount++
+        }
+      } catch (err) {
+        console.error(`❌ Raio-X exceção no paciente ${p.id}:`, err)
       }
     }
 
-    if (checkCount > 0) {
-      console.log(`✅ [Raio-X] Concluído. ${checkCount} novos perfis examinados.`)
-    }
-
+    console.log(`✅ [Raio-X] Concluído. ${checkCount}/${patients.length} paciente(s) validado(s).`)
     return checkCount
   } catch (err) {
-    console.error('❌ Exceção não tratada na pré-validação (Raio-X):', err)
+    console.error('❌ Exceção no Raio-X:', err)
     return 0
   }
 }

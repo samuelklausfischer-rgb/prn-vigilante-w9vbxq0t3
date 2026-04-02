@@ -1,4 +1,6 @@
+import process from 'node:process';
 import 'dotenv/config'
+
 
 import { QueueManager } from './queue-manager'
 import {
@@ -99,6 +101,13 @@ export class WorkerEngine {
           continue
         }
 
+        // ── 1.5. Raio-X de WhatsApp (sob demanda via dashboard) ──
+        if (systemConfig.xray_requested) {
+          console.log(`[${timestamp()}] 🔍 Raio-X solicitado via dashboard. Iniciando...`)
+          const xrayCount = await runBatchPreValidation(this.workerId)
+          console.log(`[${timestamp()}] 🔍 Raio-X concluído. ${xrayCount} paciente(s) validado(s).`)
+        }
+
         if (systemConfig.is_paused) {
           console.log(`[${timestamp()}] ⏸️ Sistema PAUSADO. Aguardando...`)
           await sleep(this.pollIntervalMs)
@@ -124,11 +133,6 @@ export class WorkerEngine {
           continue
         }
 
-        // ── 3.5. Raio-X de Pacientes (Pré-validação de WhatsApp) ──
-        const preValidatedCount = await runBatchPreValidation(this.workerId, 20)
-        if (preValidatedCount > 0) {
-          console.log(`[${timestamp()}] 🔍 Pré-validação concluída para ${preValidatedCount} pacientes novos.`)
-        }
 
         // ── 4. Liberar locks expirados ──
         const releasedLocks = await releaseExpiredLocks(this.lockTimeoutMinutes)
